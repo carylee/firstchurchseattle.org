@@ -1,0 +1,27 @@
+# Protect-list for `ddev pull-prod` (rsync excludes) — prod -> local.
+# These paths are NEVER overwritten or deleted by a pull. Rationale + the A/B/C model:
+# ./ownership.md. Patterns are anchored to the repo root (= the WordPress root).
+
+# --- Dev + git + WP environment (never clobber) ---
+/.ddev/
+/.git/
+/.gitignore
+/db/
+/wp-config.php
+/wp-config-ddev.php
+/wp-config-sample.php
+/.user.ini
+/wp-content/debug.log
+
+# --- Tracked custom code (Class A): git is the source of truth; deploy FROM here ---
+# Excluded so a pull never overwrites in-progress local edits. Edit these in the repo and
+# ship with ops/deploy.sh; do NOT edit them directly on prod (a pull won't capture that and
+# the next deploy would overwrite it).
+/wp-content/themes/maranatha-child/
+/wp-content/plugins/firstchurch-connection-card/
+/wp-content/mu-plugins/firstchurch-mcp-abilities.php
+/wp-content/mu-plugins/sso.php
+/bulletin/index.php
+/ops/
+/CLAUDE.md
+/README.md

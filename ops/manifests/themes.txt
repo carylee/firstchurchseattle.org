@@ -1,0 +1,8 @@
+name	status	version
+maranatha-child	active	0.1.0
+maranatha	parent	2.7
+twentytwentyfive	inactive	1.0
+twentytwentyfour	inactive	1.1
+twentytwentyone	inactive	2.1
+twentytwentythree	inactive	1.4
+twentytwentytwo	inactive	1.6

@@ -1,0 +1,44 @@
+# First Church Seattle — single repo.
+#
+# This repo tracks ONLY our custom code + ops/docs (Class A in ops/sync/ownership.md).
+# Everything else here is a local MIRROR of production (WordPress core, uploads, third-party
+# plugins/themes, the DB, prod subdirs), refreshed by `ddev pull-prod` and never committed.
+# The rules below are the inverse of the ownership table: ignore all, then re-include ours.
+
+# 1) Ignore everything by default.
+/*
+
+# 2) Repo meta + docs + ops tooling + DDEV config.
+!/.gitignore
+!/README.md
+!/CLAUDE.md
+!/ops/
+!/.ddev/
+
+# 3) Local-only artifacts (DB dumps).
+/db/
+
+# 4) Custom webroot code (track only our file in bulletin/).
+!/bulletin/
+/bulletin/*
+!/bulletin/index.php
+
+# 5) WordPress: re-include only our custom code under wp-content/.
+!/wp-content/
+/wp-content/*
+!/wp-content/themes/
+/wp-content/themes/*
+!/wp-content/themes/maranatha-child/
+!/wp-content/plugins/
+/wp-content/plugins/*
+!/wp-content/plugins/firstchurch-connection-card/
+!/wp-content/mu-plugins/
+/wp-content/mu-plugins/*
+!/wp-content/mu-plugins/firstchurch-mcp-abilities.php
+!/wp-content/mu-plugins/sso.php
+
+# Never commit these, even inside tracked dirs (later rules win).
+wp-config.php
+wp-config-ddev.php
+*.log
+.DS_Store

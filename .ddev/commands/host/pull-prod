@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+## Description: PULL production into this local mirror (files via rsync + DB via wp export)
+## Usage: pull-prod [--files-only | --db-only] [-n]
+## Example: "ddev pull-prod"          # files + database
+##          "ddev pull-prod -n"       # dry run (rsync preview, no DB import)
+##          "ddev pull-prod --files-only"
+##          "ddev pull-prod --db-only"
+## CanRunGlobally: false
+
+# Pull half of the sync boundary (prod -> local). The push half is ops/deploy.sh.
+# Both honor the ownership model in ops/sync/ownership.md; this reads its protect-list
+# from ops/sync/pull-exclude.txt (your tracked code + dev glue are NOT overwritten).
+set -euo pipefail
+
+SSH_HOST="firstchurch"          # ~/.ssh/config alias for the HostGator account
+REMOTE_WP="public_html"         # WordPress root, relative to the ssh home dir
+REPO="$DDEV_APPROOT"            # this repo == the WordPress root == the rsync dest
+EXCLUDE="$REPO/ops/sync/pull-exclude.txt"
+DUMP_DIR="$REPO/db"            # gitignored
+
+# Pin the church.pem key explicitly (one level up from the repo), robust regardless of
+# ~/.ssh/config / agent state. Override with FIRSTCHURCH_KEY.
+SSH_KEY="${FIRSTCHURCH_KEY:-$(dirname "$REPO")/church.pem}"
+if [ -f "$SSH_KEY" ]; then
+  RSH="ssh -o IdentitiesOnly=yes -i $SSH_KEY"
+else
+  RSH="ssh"
+fi
+
+DRY=""; DO_FILES=1; DO_DB=1
+for arg in "$@"; do
+  case "$arg" in
+    -n|--dry-run) DRY="--dry-run" ;;
+    --files-only) DO_DB=0 ;;
+    --db-only)    DO_FILES=0 ;;
+    *) echo "unknown flag: $arg" >&2; exit 2 ;;
+  esac
+done
+
+if [ ! -f "$EXCLUDE" ]; then
+  echo "FATAL: protect-list not found at $EXCLUDE" >&2
+  exit 1
+fi
+
+# --- Files -----------------------------------------------------------------
+if [ "$DO_FILES" = 1 ]; then
+  echo "==> Files: rsync ${SSH_HOST}:${REMOTE_WP}/ -> ${REPO}/ ${DRY:+(dry run)}"
+  exargs=()
+  while IFS= read -r line; do
+    case "$line" in ''|\#*) continue ;; esac
+    exargs+=(--exclude="$line")
+  done < "$EXCLUDE"
+  rsync -rlptz $DRY --delete -e "$RSH" "${exargs[@]}" \
+    "${SSH_HOST}:${REMOTE_WP}/" "${REPO}/"
+fi
+
+# --- Database --------------------------------------------------------------
+if [ "$DO_DB" = 1 ]; then
+  if [ -n "$DRY" ]; then
+    echo "==> DB: (dry run) would export ${SSH_HOST} DB and 'ddev import-db'"
+  else
+    mkdir -p "$DUMP_DIR"
+    ts="$(date +%Y-%m-%d-%H%M)"
+    dump="$DUMP_DIR/firstchurchseattle-${ts}.sql.gz"
+    echo "==> DB: exporting production -> ${dump}"
+    # REMOTE_WP is relative; the non-interactive ssh shell lands in $HOME, so wp
+    # resolves it correctly. (Avoid ~/ here — tilde doesn't expand after `=`.)
+    $RSH -C "$SSH_HOST" \
+      "wp --path=${REMOTE_WP} db export - --single-transaction --quick --default-character-set=utf8mb4" \
+      | gzip > "$dump"
+    ln -sf "$(basename "$dump")" "$DUMP_DIR/latest.sql.gz"
+    echo "==> DB: importing into DDEV"
+    ddev import-db --file="$dump"
+    ddev wp cache flush >/dev/null 2>&1 || true
+  fi
+fi
+
+# --- Stamp -----------------------------------------------------------------
+if [ -z "$DRY" ]; then
+  stamp="$REPO/.ddev/.last-pull"
+  {
+    echo "pulled_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    [ "$DO_FILES" = 1 ] && echo "wp_version=$(ddev wp core version 2>/dev/null || echo '?')"
+    [ "$DO_DB" = 1 ] && echo "events=$(ddev wp post list --post_type=ctc_event --post_status=publish --format=count 2>/dev/null || echo '?')"
+    [ "$DO_DB" = 1 ] && echo "sermons=$(ddev wp post list --post_type=ctc_sermon --post_status=publish --format=count 2>/dev/null || echo '?')"
+  } > "$stamp"
+  echo "==> Done. Stamp: $stamp"; cat "$stamp"
+fi

@@ -1,0 +1,326 @@
+/**
+ * Check-in & Connection Card — front-end styles.
+ *
+ * Designed to live inside the Maranatha child theme's visual language:
+ * brand maroon (#70334e), soft card surface (#faf6f8 / #ebe1e5), 12px
+ * radius, pill buttons, ≥44px tap targets on mobile. All rules are
+ * scoped under .fcc-form so dropping this on any page can't bleed into
+ * the rest of the theme.
+ */
+
+.fcc-form {
+	--fcc-maroon: #70334e;
+	--fcc-maroon-dark: #5a2940;
+	--fcc-surface: #faf6f8;
+	--fcc-border: #ebe1e5;
+	--fcc-text: #1f1f1f;
+	--fcc-text-muted: #5f5560;
+	--fcc-danger: #b3261e;
+	--fcc-success: #2f6f3f;
+	--fcc-radius: 12px;
+	--fcc-tap-min: 44px;
+
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 28px;
+	background: var(--fcc-surface);
+	border: 1px solid var(--fcc-border);
+	border-radius: var(--fcc-radius);
+	color: var(--fcc-text);
+	font-size: 16px;
+	line-height: 1.45;
+}
+
+.fcc-form__heading {
+	margin: 0 0 8px;
+	font-size: 24px;
+	font-weight: 600;
+	color: var(--fcc-maroon);
+	letter-spacing: 0.01em;
+}
+
+.fcc-form__intro {
+	margin: 0 0 20px;
+	color: var(--fcc-text-muted);
+}
+
+.fcc-form__intro strong {
+	color: var(--fcc-text);
+}
+
+/* -- Field container ------------------------------------------------- */
+
+.fcc-field,
+.fcc-fieldset {
+	margin: 16px 0;
+}
+
+.fcc-field > label,
+.fcc-fieldset > legend {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 6px;
+	color: var(--fcc-text);
+}
+
+.fcc-required {
+	color: var(--fcc-maroon);
+	margin-left: 2px;
+}
+
+.fcc-optional {
+	font-weight: 400;
+	color: var(--fcc-text-muted);
+	font-size: 0.9em;
+	margin-left: 4px;
+}
+
+/* -- Inputs ---------------------------------------------------------- */
+
+.fcc-form input[type="text"],
+.fcc-form input[type="email"],
+.fcc-form input[type="tel"],
+.fcc-form textarea {
+	width: 100%;
+	min-height: var(--fcc-tap-min);
+	padding: 10px 12px;
+	font: inherit;
+	color: var(--fcc-text);
+	background: #fff;
+	border: 1px solid var(--fcc-border);
+	border-radius: 8px;
+	box-sizing: border-box;
+	transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.fcc-form textarea {
+	min-height: auto;
+	padding: 10px 12px;
+	resize: vertical;
+}
+
+.fcc-form input:focus,
+.fcc-form textarea:focus {
+	outline: none;
+	border-color: var(--fcc-maroon);
+	box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.18);
+}
+
+.fcc-form input[aria-invalid="true"],
+.fcc-form textarea[aria-invalid="true"],
+.fcc-fieldset[aria-invalid="true"] {
+	border-color: var(--fcc-danger);
+}
+
+/* -- Rows / split fields -------------------------------------------- */
+
+.fcc-row {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.fcc-row--split > .fcc-field {
+	flex: 1 1 0;
+	min-width: 180px;
+	margin: 0;
+}
+
+.fcc-row--address > .fcc-field {
+	flex: 0 0 auto;
+	margin: 0;
+}
+
+.fcc-row--address > .fcc-field--grow {
+	flex: 1 1 200px;
+}
+
+/* -- Fieldsets ------------------------------------------------------- */
+
+.fcc-fieldset {
+	border: 0;
+	padding: 0;
+}
+
+.fcc-fieldset--inline {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.fcc-fieldset--inline > legend + .fcc-radio,
+.fcc-fieldset--inline > legend + .fcc-checkbox {
+	margin-top: 0;
+}
+
+/* Inline radios fit on a single row on wider screens. */
+@media (min-width: 540px) {
+	.fcc-fieldset--inline {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 8px 24px;
+		align-items: center;
+	}
+	.fcc-fieldset--inline > legend {
+		width: 100%;
+	}
+}
+
+/* -- Radio / checkbox row ------------------------------------------- */
+
+.fcc-radio,
+.fcc-checkbox {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: var(--fcc-tap-min);
+	padding: 4px 0;
+	font-weight: 400;
+	color: var(--fcc-text);
+	cursor: pointer;
+}
+
+.fcc-radio input,
+.fcc-checkbox input {
+	flex: 0 0 auto;
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	accent-color: var(--fcc-maroon);
+	cursor: pointer;
+}
+
+/* -- Collapsible address -------------------------------------------- */
+
+.fcc-details {
+	margin: 16px 0;
+	padding: 0;
+	border: 1px dashed var(--fcc-border);
+	border-radius: 8px;
+	background: #fff;
+}
+
+.fcc-details summary {
+	padding: 12px 14px;
+	font-weight: 600;
+	cursor: pointer;
+	min-height: var(--fcc-tap-min);
+	display: flex;
+	align-items: center;
+	border-radius: 8px;
+}
+
+.fcc-details summary:focus-visible {
+	outline: 2px solid var(--fcc-maroon);
+	outline-offset: 2px;
+}
+
+.fcc-details[open] summary {
+	border-bottom: 1px solid var(--fcc-border);
+}
+
+.fcc-details > .fcc-field,
+.fcc-details > .fcc-row {
+	margin: 12px 14px;
+}
+
+/* -- Honeypot (visually hidden from humans) ------------------------- */
+
+.fcc-honeypot {
+	position: absolute;
+	left: -10000px;
+	top: -10000px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+/* -- Status (error + success messages) ------------------------------ */
+
+.fcc-form__status {
+	margin: 16px 0 0;
+	font-weight: 500;
+	min-height: 0;
+}
+
+.fcc-form__status:not(:empty) {
+	padding: 12px 14px;
+	border-radius: 8px;
+}
+
+.fcc-form__status[data-state="error"] {
+	background: rgba(179, 38, 30, 0.08);
+	border: 1px solid rgba(179, 38, 30, 0.4);
+	color: var(--fcc-danger);
+}
+
+.fcc-form__status[data-state="success"] {
+	background: rgba(47, 111, 63, 0.08);
+	border: 1px solid rgba(47, 111, 63, 0.4);
+	color: var(--fcc-success);
+}
+
+/* -- Submit button (matches site .maranatha-button) ----------------- */
+
+.fcc-submit {
+	display: inline-block;
+	margin-top: 20px;
+	padding: 12px 28px;
+	min-height: var(--fcc-tap-min);
+	background: var(--fcc-maroon);
+	color: #fff;
+	border: 1px solid var(--fcc-maroon);
+	border-radius: 999px;
+	font: inherit;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	cursor: pointer;
+	box-shadow: 0 1px 2px rgba(112, 51, 78, 0.18);
+	transition: background-color 0.12s ease-out, transform 0.12s ease-out;
+}
+
+.fcc-submit:hover,
+.fcc-submit:focus {
+	background: var(--fcc-maroon-dark);
+	border-color: var(--fcc-maroon-dark);
+	color: #fff;
+	outline: none;
+}
+
+.fcc-submit:focus-visible {
+	box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.35);
+}
+
+.fcc-submit:active {
+	transform: translateY(1px);
+}
+
+.fcc-submit[disabled] {
+	opacity: 0.6;
+	cursor: progress;
+}
+
+/* -- Mobile tweaks -------------------------------------------------- */
+
+@media (max-width: 700px) {
+	.fcc-form {
+		padding: 20px 18px;
+		border-radius: 10px;
+	}
+
+	.fcc-form__heading {
+		font-size: 22px;
+	}
+
+	.fcc-row--split,
+	.fcc-row--address {
+		flex-direction: column;
+	}
+
+	.fcc-row--split > .fcc-field,
+	.fcc-row--address > .fcc-field {
+		flex: 1 1 auto;
+		min-width: 0;
+		margin-bottom: 12px;
+	}
+}
