@@ -20,11 +20,13 @@ require_once __DIR__ . '/src/Renderer.php';
 require_once __DIR__ . '/src/Shortcode.php';
 require_once __DIR__ . '/src/Sync.php';
 require_once __DIR__ . '/src/Store.php';
+require_once __DIR__ . '/src/Block.php';
 
 use FirstChurch\BreezeForms\Shortcode;
 use FirstChurch\BreezeForms\Store;
 use FirstChurch\BreezeForms\Catalog;
 use FirstChurch\BreezeForms\Sync;
+use FirstChurch\BreezeForms\Block;
 
 const FCBF_VERSION = '0.1.0';
 
@@ -82,17 +84,79 @@ function fcbf_id_slug_map(): array
     return Catalog::map_from_records(fcbf_records());
 }
 
-/**
- * Enqueue the (tiny) stylesheet only when a [breeze_form] actually renders.
- */
+/** Enqueue the (tiny) stylesheet only when a [breeze_form] actually renders. */
 function fcbf_enqueue_assets(): void
 {
-    wp_enqueue_style(
+    wp_enqueue_style('firstchurch-breeze-forms');
+}
+
+/**
+ * Register the shared style and the "Breeze Form" editor block on init.
+ *
+ * The block is *dynamic*: its render_callback reuses Shortcode::render, so block
+ * and shortcode emit identical, already-tested markup. The editor script + the
+ * form list it needs are only set up in wp-admin, so front-end requests pay
+ * nothing for the picker.
+ */
+function fcbf_register_assets(): void
+{
+    wp_register_style(
         'firstchurch-breeze-forms',
         plugin_dir_url(__FILE__) . 'assets/breeze-forms.css',
         [],
         FCBF_VERSION
     );
+
+    if (!function_exists('register_block_type')) {
+        return;
+    }
+
+    if (is_admin()) {
+        wp_register_script(
+            'firstchurch-breeze-forms-block',
+            plugin_dir_url(__FILE__) . 'assets/block.js',
+            ['wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n', 'wp-server-side-render'],
+            FCBF_VERSION,
+            true
+        );
+
+        $forms = array_map(
+            static fn ($r) => ['id' => $r['id'], 'slug' => $r['slug'], 'name' => $r['name']],
+            fcbf_records()
+        );
+        wp_add_inline_script(
+            'firstchurch-breeze-forms-block',
+            'window.fcbfForms = ' . wp_json_encode(array_values($forms)) . ';',
+            'before'
+        );
+    }
+
+    register_block_type('firstchurch/breeze-form', [
+        'api_version'     => 3,
+        'editor_script'   => 'firstchurch-breeze-forms-block',
+        'style'           => 'firstchurch-breeze-forms',
+        'render_callback' => 'fcbf_render_block',
+        'attributes'      => [
+            'slug'     => ['type' => 'string',  'default' => ''],
+            'id'       => ['type' => 'string',  'default' => ''],
+            'mode'     => ['type' => 'string',  'default' => 'button'],
+            'label'    => ['type' => 'string',  'default' => 'Open form'],
+            'newTab'   => ['type' => 'boolean', 'default' => true],
+            'height'   => ['type' => 'number',  'default' => 0],
+            'maxWidth' => ['type' => 'number',  'default' => 0],
+        ],
+    ]);
+}
+add_action('init', 'fcbf_register_assets');
+
+/** Block front-end render — delegate to the tested shortcode path. */
+function fcbf_render_block($attributes): string
+{
+    $html = Shortcode::render(Block::to_shortcode_atts((array) $attributes), fcbf_id_slug_map());
+    if ($html !== '') {
+        fcbf_enqueue_assets();
+    }
+    return $html;
 }
 
 add_shortcode('breeze_form', function ($atts): string {

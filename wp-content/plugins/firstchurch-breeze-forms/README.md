@@ -26,6 +26,15 @@ The slug is the token after `/form/` in a form's public URL (find it in the
 Breeze admin "Share" link, or in `../breeze/forms/**`). `slug` is canonical;
 `id` is a convenience resolved through the form list (see "Form list" below).
 
+### Editor block
+
+Prefer not to type shortcodes? Insert the **Breeze Form** block: pick a form
+from a searchable dropdown (populated from the synced list), toggle
+button/embed and its options in the sidebar, and see a live preview. It's a
+dynamic block — the front end renders through the same `Shortcode::render` path,
+so block and shortcode produce identical markup. No JS build step; the editor
+script is plain `wp.*` JavaScript.
+
 ### Attributes
 
 | Attribute   | Default     | Applies to | Notes |
