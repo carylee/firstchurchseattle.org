@@ -24,4 +24,15 @@ final class Catalog
     {
         return $map[$id] ?? null;
     }
+
+    /**
+     * Build an id→slug lookup from normalized form records.
+     *
+     * @param array<int,array{id:string,slug:string}> $records
+     * @return array<string,string>
+     */
+    public static function map_from_records(array $records): array
+    {
+        return array_column($records, 'slug', 'id');
+    }
 }
