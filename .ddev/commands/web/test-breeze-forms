@@ -1,0 +1,17 @@
+#!/bin/bash
+
+## Description: Run the firstchurch-breeze-forms PHPUnit suite
+## Usage: test-breeze-forms [phpunit args...]
+## Example: "ddev test-breeze-forms" or "ddev test-breeze-forms --filter Url"
+
+set -e
+
+PLUGIN_DIR="/var/www/html/wp-content/plugins/firstchurch-breeze-forms"
+cd "$PLUGIN_DIR"
+
+if [ ! -f vendor/bin/phpunit ]; then
+    echo "Installing dev dependencies (first run)..."
+    composer install --no-interaction
+fi
+
+exec vendor/bin/phpunit "$@"

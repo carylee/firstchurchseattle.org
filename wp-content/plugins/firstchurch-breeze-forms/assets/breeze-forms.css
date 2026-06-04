@@ -1,0 +1,22 @@
+/**
+ * First Church Breeze Forms — Mode 1 (button) + Mode 2 (embed).
+ * Intentionally minimal: Mode 1 leans on the theme's .maranatha-button.
+ */
+
+.fcbf-button {
+    display: inline-block;
+}
+
+.fcbf-embed {
+    width: 100%;
+    margin: 1.5rem auto;
+}
+
+.fcbf-embed__frame {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
