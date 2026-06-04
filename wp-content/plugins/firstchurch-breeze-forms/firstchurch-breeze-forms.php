@@ -45,6 +45,18 @@ const FCBF_LIST_FORMS_URL = 'https://firstchurchseattle.breezechms.com/api/forms
 /** Breeze's edge filter blocks default agents — present as a normal browser. */
 const FCBF_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36';
 
+/** Option holding id→description (the leading instructional text of each form). */
+const FCBF_DESCRIPTIONS_OPTION = 'fcbf_descriptions';
+
+/** Option holding the unix time of the last successful description sync. */
+const FCBF_DESCRIPTIONS_LAST_SYNC_OPTION = 'fcbf_descriptions_last_sync';
+
+/** Cron hook that refreshes per-form descriptions (daily — it's 1 call/form). */
+const FCBF_DESCRIPTIONS_HOOK = 'fcbf_descriptions_event';
+
+/** Per-form field endpoint; the leading paragraph/header is our "description". */
+const FCBF_LIST_FIELDS_URL = 'https://firstchurchseattle.breezechms.com/api/forms/list_form_fields';
+
 /**
  * The baked seed shipped with the plugin (data/forms.json): the always-present
  * fallback used until the first successful runtime sync.
@@ -70,8 +82,11 @@ function fcbf_baked_records(): array
  */
 function fcbf_records(): array
 {
-    $synced = get_option(FCBF_FORMS_OPTION, null);
-    return Store::resolve(is_array($synced) ? $synced : null, fcbf_baked_records());
+    $synced  = get_option(FCBF_FORMS_OPTION, null);
+    $records = Store::resolve(is_array($synced) ? $synced : null, fcbf_baked_records());
+
+    $descriptions = get_option(FCBF_DESCRIPTIONS_OPTION, []);
+    return Sync::with_descriptions($records, is_array($descriptions) ? $descriptions : []);
 }
 
 /**
@@ -121,7 +136,12 @@ function fcbf_register_assets(): void
         );
 
         $forms = array_map(
-            static fn ($r) => ['id' => $r['id'], 'slug' => $r['slug'], 'name' => $r['name']],
+            static fn ($r) => [
+                'id'          => $r['id'],
+                'slug'        => $r['slug'],
+                'name'        => $r['name'],
+                'description' => $r['description'] ?? '',
+            ],
             fcbf_records()
         );
         wp_add_inline_script(
@@ -229,15 +249,66 @@ function fcbf_sync_run()
 
 add_action(FCBF_SYNC_HOOK, 'fcbf_sync_run');
 
-/** Ensure the recurring sync is scheduled (self-heals after updates). */
+/**
+ * Refresh each form's description (its leading instructional text).
+ *
+ * One call per form, so this runs DAILY, not hourly. Breeze exposes no change
+ * signal (no ETag/Last-Modified, no modified date), so we re-fetch all forms.
+ * Starts from the existing map and only overwrites on success, so a per-form
+ * failure keeps the prior text rather than blanking it.
+ *
+ * @return array{ok:int,failed:int}|WP_Error
+ */
+function fcbf_sync_descriptions()
+{
+    if (!defined('FCBF_BREEZE_API_KEY') || !FCBF_BREEZE_API_KEY) {
+        return new WP_Error('fcbf_no_key', 'FCBF_BREEZE_API_KEY is not configured in wp-config.php.');
+    }
+
+    $out    = (array) get_option(FCBF_DESCRIPTIONS_OPTION, []);
+    $ok     = 0;
+    $failed = 0;
+
+    foreach (fcbf_records() as $record) {
+        $resp = wp_remote_get(
+            add_query_arg('form_id', $record['id'], FCBF_LIST_FIELDS_URL),
+            ['timeout' => 20, 'user-agent' => FCBF_USER_AGENT, 'headers' => ['Api-Key' => FCBF_BREEZE_API_KEY]]
+        );
+        if (is_wp_error($resp) || wp_remote_retrieve_response_code($resp) !== 200) {
+            $failed++;
+            continue;
+        }
+        $fields = json_decode((string) wp_remote_retrieve_body($resp), true);
+        if (!is_array($fields)) {
+            $failed++;
+            continue;
+        }
+
+        $out[$record['id']] = Sync::lead_description($fields);
+        $ok++;
+        usleep(100000); // ~10 req/s — gentle on a small origin server
+    }
+
+    update_option(FCBF_DESCRIPTIONS_OPTION, $out, false);
+    update_option(FCBF_DESCRIPTIONS_LAST_SYNC_OPTION, time(), false);
+    return ['ok' => $ok, 'failed' => $failed];
+}
+
+add_action(FCBF_DESCRIPTIONS_HOOK, 'fcbf_sync_descriptions');
+
+/** Ensure both recurring syncs are scheduled (self-heals after updates). */
 function fcbf_ensure_scheduled(): void
 {
     if (!wp_next_scheduled(FCBF_SYNC_HOOK)) {
         wp_schedule_event(time() + 60, 'hourly', FCBF_SYNC_HOOK);
+    }
+    if (!wp_next_scheduled(FCBF_DESCRIPTIONS_HOOK)) {
+        wp_schedule_event(time() + 120, 'daily', FCBF_DESCRIPTIONS_HOOK);
     }
 }
 add_action('init', 'fcbf_ensure_scheduled');
 register_activation_hook(__FILE__, 'fcbf_ensure_scheduled');
 register_deactivation_hook(__FILE__, function (): void {
     wp_clear_scheduled_hook(FCBF_SYNC_HOOK);
+    wp_clear_scheduled_hook(FCBF_DESCRIPTIONS_HOOK);
 });

@@ -69,6 +69,15 @@ Regenerate the seed offline when forms change substantially (the runtime sync
 otherwise keeps things current). The current seed was generated from the Breeze
 catalog under `../breeze/forms/active/`.
 
+**Descriptions.** Breeze has no description field, so each form's "description"
+is the text of its first leading instructional field (paragraph/header). That
+only comes from a per-form call, so it's fetched on a separate **daily** cron
+(`fcbf_descriptions_event`) into the `fcbf_descriptions` option and merged into
+each record. Only forms that lead with such text get one (~a quarter of them);
+the rest are simply blank. There's no change signal from Breeze (no
+ETag/Last-Modified/modified date — confirmed against the API), so the daily job
+re-fetches everything; it keeps prior text on any per-form failure.
+
 ### Configuration & manual refresh
 
 Add the read-only key to `wp-config.php` (gitignored; never the DB):
@@ -82,8 +91,9 @@ the list live. Force a refresh any time:
 
 ```bash
 ddev wp eval 'echo is_wp_error($e = fcbf_sync_run()) ? $e->get_error_message() : "ok";'
-# or trigger the scheduled event:
-ddev wp cron event run fcbf_sync_event
+# or trigger the scheduled events:
+ddev wp cron event run fcbf_sync_event           # form list (hourly)
+ddev wp cron event run fcbf_descriptions_event   # descriptions (daily, ~1 call/form)
 ```
 
 `fcbf_sync_run()` returns `true` or a `WP_Error` (e.g. `fcbf_no_key`,

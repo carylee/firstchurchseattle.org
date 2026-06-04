@@ -53,6 +53,12 @@
 			var a = props.attributes;
 			var set = props.setAttributes;
 
+			var selected = forms.filter( function ( f ) {
+				return f.id === a.id;
+			} )[ 0 ];
+			var desc = selected && selected.description ? selected.description : '';
+			var hint = desc.length > 160 ? desc.slice( 0, 160 ) + '…' : desc;
+
 			var settings = el(
 				InspectorControls,
 				{},
@@ -63,6 +69,7 @@
 						label: __( 'Breeze form', 'firstchurch-breeze-forms' ),
 						value: a.id,
 						options: formOptions,
+						help: hint || undefined,
 						onChange: function ( id ) {
 							chooseForm( set, id );
 						}

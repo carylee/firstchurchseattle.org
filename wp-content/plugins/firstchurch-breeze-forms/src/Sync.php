@@ -58,4 +58,47 @@ final class Sync
 
         return is_array($decoded) ? self::normalize($decoded) : null;
     }
+
+    /**
+     * Extract a form's "description" — the text of its first non-empty leading
+     * instructional field (paragraph / header / section). Breeze has no real
+     * description field; this is the closest thing. Returns '' if there is none.
+     *
+     * @param array<int,array<string,mixed>> $fields A list_form_fields payload.
+     */
+    public static function lead_description(array $fields): string
+    {
+        foreach ($fields as $f) {
+            if (!in_array($f['field_type'] ?? '', ['paragraph', 'header', 'section'], true)) {
+                continue;
+            }
+            // Tags → spaces (so "a<br><br>b" doesn't become "ab"), decode, collapse.
+            $text = preg_replace('/<[^>]+>/', ' ', (string) ($f['name'] ?? ''));
+            $text = html_entity_decode((string) $text, ENT_QUOTES, 'UTF-8');
+            $text = trim((string) preg_replace('/\s+/', ' ', $text));
+            if ($text !== '') {
+                return $text;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Attach a 'description' to each record from an id→description map.
+     *
+     * @param array<int,array<string,string>> $records
+     * @param array<string,string>            $descById
+     * @return array<int,array<string,string>>
+     */
+    public static function with_descriptions(array $records, array $descById): array
+    {
+        return array_map(
+            static function (array $r) use ($descById): array {
+                $r['description'] = (string) ($descById[$r['id']] ?? '');
+                return $r;
+            },
+            $records
+        );
+    }
 }

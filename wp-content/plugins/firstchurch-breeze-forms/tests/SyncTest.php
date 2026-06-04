@@ -81,4 +81,56 @@ final class SyncTest extends TestCase
     {
         $this->assertSame([], Sync::from_json('[]'));
     }
+
+    // --- descriptions: extract the leading instructional text from a form's fields ---
+
+    public function test_lead_description_extracts_first_paragraph_cleaned(): void
+    {
+        $fields = [
+            ['field_type' => 'name', 'name' => 'Name'],
+            ['field_type' => 'paragraph', 'name' => 'Tell us how we can pray. <br /><br />All requests &amp; notes are shared.'],
+            ['field_type' => 'notes', 'name' => 'Request'],
+        ];
+        $this->assertSame(
+            'Tell us how we can pray. All requests & notes are shared.',
+            Sync::lead_description($fields)
+        );
+    }
+
+    public function test_lead_description_accepts_header_and_section(): void
+    {
+        $this->assertSame('A Heading', Sync::lead_description([['field_type' => 'header', 'name' => 'A Heading']]));
+        $this->assertSame('A Section', Sync::lead_description([['field_type' => 'section', 'name' => 'A Section']]));
+    }
+
+    public function test_lead_description_skips_empty_instructional_fields(): void
+    {
+        $fields = [
+            ['field_type' => 'paragraph', 'name' => '   '],
+            ['field_type' => 'paragraph', 'name' => 'The real intro.'],
+        ];
+        $this->assertSame('The real intro.', Sync::lead_description($fields));
+    }
+
+    public function test_lead_description_returns_empty_when_none(): void
+    {
+        $fields = [
+            ['field_type' => 'name', 'name' => 'Name'],
+            ['field_type' => 'single_line', 'name' => 'Email'],
+        ];
+        $this->assertSame('', Sync::lead_description($fields));
+        $this->assertSame('', Sync::lead_description([]));
+    }
+
+    public function test_with_descriptions_attaches_by_id(): void
+    {
+        $records = [
+            ['id' => '1', 'slug' => 's1', 'name' => 'One', 'folder_id' => '0'],
+            ['id' => '2', 'slug' => 's2', 'name' => 'Two', 'folder_id' => '0'],
+        ];
+        $out = Sync::with_descriptions($records, ['1' => 'first blurb']);
+        $this->assertSame('first blurb', $out[0]['description']);
+        $this->assertSame('', $out[1]['description'], 'missing id yields empty description');
+        $this->assertSame('s1', $out[0]['slug'], 'existing fields are preserved');
+    }
 }
