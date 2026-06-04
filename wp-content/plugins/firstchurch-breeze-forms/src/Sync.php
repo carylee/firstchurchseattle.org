@@ -44,4 +44,18 @@ final class Sync
 
         return $records;
     }
+
+    /**
+     * Parse a raw list_forms response body into records.
+     *
+     * @return array<int,array{id:string,slug:string,name:string,folder_id:string}>|null
+     *         null signals an unparseable body (decode failure or non-array) so the
+     *         caller can treat it as a failed sync rather than "zero forms".
+     */
+    public static function from_json(string $json): ?array
+    {
+        $decoded = json_decode($json, true);
+
+        return is_array($decoded) ? self::normalize($decoded) : null;
+    }
 }

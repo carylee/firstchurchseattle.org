@@ -50,14 +50,35 @@ layers, resolved by `Store::resolve()`:
    the active forms (`{id, slug, name, folder_id}`). Always present, so the
    plugin works with zero configuration and survives any API outage. Guarded by
    `tests/SeedTest.php` (every slug must validate, ids unique).
-2. **Runtime sync** *(in progress)* — a scheduled read from Breeze's read-only
-   `list_forms` (Api-Key) cached in the `fcbf_synced_forms` option. When present
+2. **Runtime sync** — an hourly WP-Cron read from Breeze's read-only
+   `list_forms` (Api-Key), cached in the `fcbf_synced_forms` option. When present
    it overrides the seed, so a form added in Breeze appears without a redeploy.
-   Only written on a successful fetch, so a transient failure never blanks it.
+   Written only on a successful, non-empty fetch, so a transient failure or a
+   bad response never blanks the list.
 
 Regenerate the seed offline when forms change substantially (the runtime sync
 otherwise keeps things current). The current seed was generated from the Breeze
 catalog under `../breeze/forms/active/`.
+
+### Configuration & manual refresh
+
+Add the read-only key to `wp-config.php` (gitignored; never the DB):
+
+```php
+define( 'FCBF_BREEZE_API_KEY', 'your-key' );
+```
+
+Without it the plugin runs fine on the baked seed; with it, the hourly sync keeps
+the list live. Force a refresh any time:
+
+```bash
+ddev wp eval 'echo is_wp_error($e = fcbf_sync_run()) ? $e->get_error_message() : "ok";'
+# or trigger the scheduled event:
+ddev wp cron event run fcbf_sync_event
+```
+
+`fcbf_sync_run()` returns `true` or a `WP_Error` (e.g. `fcbf_no_key`,
+`fcbf_http`, `fcbf_bad_body`) and only persists on success.
 
 ## Limitations (by design)
 

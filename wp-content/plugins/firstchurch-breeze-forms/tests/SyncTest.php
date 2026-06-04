@@ -63,4 +63,22 @@ final class SyncTest extends TestCase
     {
         $this->assertSame([], Sync::normalize([]));
     }
+
+    public function test_from_json_parses_a_response_body(): void
+    {
+        $records = Sync::from_json((string) json_encode($this->payload()));
+        $this->assertNotNull($records);
+        $this->assertCount(2, $records, 'two valid forms survive normalization');
+    }
+
+    public function test_from_json_returns_null_on_unparseable_body(): void
+    {
+        $this->assertNull(Sync::from_json('<html>403 Forbidden</html>'));
+        $this->assertNull(Sync::from_json('"a bare string"'), 'a non-array JSON value is not a form list');
+    }
+
+    public function test_from_json_handles_empty_array(): void
+    {
+        $this->assertSame([], Sync::from_json('[]'));
+    }
 }
