@@ -19,19 +19,19 @@ Breeze credentials**, make **no network calls at render time**, and work for
 [breeze_form slug="603d6c56" new_tab="false"]          Open in same tab
 [breeze_form slug="603d6c56" mode="embed"]             Responsive iframe
 [breeze_form slug="603d6c56" mode="embed" height="1000" max_width="720"]
-[breeze_form id="1011854"]                              Resolve id→slug via data/forms.php
+[breeze_form id="1011854"]                              Resolve id→slug via the form list
 ```
 
 The slug is the token after `/form/` in a form's public URL (find it in the
 Breeze admin "Share" link, or in `../breeze/forms/**`). `slug` is canonical;
-`id` is a convenience resolved through the generated `data/forms.php` map.
+`id` is a convenience resolved through the form list (see "Form list" below).
 
 ### Attributes
 
 | Attribute   | Default     | Applies to | Notes |
 |-------------|-------------|------------|-------|
 | `slug`      | —           | both       | Canonical form token. Required (or `id`). |
-| `id`        | —           | both       | Numeric Breeze form id; resolved via `data/forms.php`. |
+| `id`        | —           | both       | Numeric Breeze form id; resolved via the form list. |
 | `mode`      | `button`    | both       | `button` (Mode 1) or `embed` (Mode 2). Unknown → button. |
 | `label`     | `Open form` | button     | Button text. |
 | `new_tab`   | `true`      | button     | Open the form in a new tab. |
@@ -40,6 +40,24 @@ Breeze admin "Share" link, or in `../breeze/forms/**`). `slug` is canonical;
 | `max_width` | `680`       | embed      | Container max-width in px. |
 
 Invalid/missing input renders nothing (never fatals the page).
+
+## Form list (how the plugin knows which forms exist)
+
+The list backing `id=` resolution (and, soon, an editor picker) comes from two
+layers, resolved by `Store::resolve()`:
+
+1. **Baked seed** — `data/forms.json`, committed with the plugin: a snapshot of
+   the active forms (`{id, slug, name, folder_id}`). Always present, so the
+   plugin works with zero configuration and survives any API outage. Guarded by
+   `tests/SeedTest.php` (every slug must validate, ids unique).
+2. **Runtime sync** *(in progress)* — a scheduled read from Breeze's read-only
+   `list_forms` (Api-Key) cached in the `fcbf_synced_forms` option. When present
+   it overrides the seed, so a form added in Breeze appears without a redeploy.
+   Only written on a successful fetch, so a transient failure never blanks it.
+
+Regenerate the seed offline when forms change substantially (the runtime sync
+otherwise keeps things current). The current seed was generated from the Breeze
+catalog under `../breeze/forms/active/`.
 
 ## Limitations (by design)
 

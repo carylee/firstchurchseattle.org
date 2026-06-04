@@ -18,26 +18,55 @@ require_once __DIR__ . '/src/Url.php';
 require_once __DIR__ . '/src/Catalog.php';
 require_once __DIR__ . '/src/Renderer.php';
 require_once __DIR__ . '/src/Shortcode.php';
+require_once __DIR__ . '/src/Sync.php';
+require_once __DIR__ . '/src/Store.php';
 
 use FirstChurch\BreezeForms\Shortcode;
+use FirstChurch\BreezeForms\Store;
+use FirstChurch\BreezeForms\Catalog;
 
 const FCBF_VERSION = '0.1.0';
 
+/** Option holding the last successful Breeze sync (a list of form records). */
+const FCBF_FORMS_OPTION = 'fcbf_synced_forms';
+
 /**
- * The optional id→slug map, generated offline from the Breeze catalog.
+ * The baked seed shipped with the plugin (data/forms.json): the always-present
+ * fallback used until the first successful runtime sync.
+ *
+ * @return array<int,array<string,string>>
+ */
+function fcbf_baked_records(): array
+{
+    $file = __DIR__ . '/data/forms.json';
+    if (is_readable($file)) {
+        $data = json_decode((string) file_get_contents($file), true);
+        if (is_array($data)) {
+            return $data;
+        }
+    }
+    return [];
+}
+
+/**
+ * The effective form list: last-good synced data if present, else the seed.
+ *
+ * @return array<int,array<string,string>>
+ */
+function fcbf_records(): array
+{
+    $synced = get_option(FCBF_FORMS_OPTION, null);
+    return Store::resolve(is_array($synced) ? $synced : null, fcbf_baked_records());
+}
+
+/**
+ * id→slug map derived from the effective form list (for [breeze_form id="…"]).
  *
  * @return array<string,string>
  */
 function fcbf_id_slug_map(): array
 {
-    $file = __DIR__ . '/data/forms.php';
-    if (is_readable($file)) {
-        $map = require $file;
-        if (is_array($map)) {
-            return $map;
-        }
-    }
-    return [];
+    return Catalog::map_from_records(fcbf_records());
 }
 
 /**

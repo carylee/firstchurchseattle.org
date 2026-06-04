@@ -31,6 +31,24 @@ final class UrlTest extends TestCase
         );
     }
 
+    // Custom human-readable slugs (Breeze lets admins set these) contain hyphens
+    // — and sometimes underscores. They must be accepted, not silently dropped.
+    public function test_accepts_custom_hyphenated_slugs(): void
+    {
+        $this->assertSame(
+            'https://firstchurchseattle.breezechms.com/form/event-request',
+            Url::for_slug('event-request')
+        );
+        $this->assertSame(
+            'https://firstchurchseattle.breezechms.com/form/adult-spirituality-2026-loneliness',
+            Url::for_slug('adult-spirituality-2026-loneliness')
+        );
+        $this->assertSame(
+            'https://firstchurchseattle.breezechms.com/form/news_publicity',
+            Url::for_slug('news_publicity')
+        );
+    }
+
     // Cycle 3 — empty / whitespace-only
     public function test_rejects_empty_or_blank_slug(): void
     {
