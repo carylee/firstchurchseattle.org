@@ -669,6 +669,8 @@ add_action(
 						'title'   => array( 'type' => 'string' ),
 						'content' => array( 'type' => 'string', 'description' => 'Body (may contain basic HTML).' ),
 						'excerpt' => array( 'type' => 'string' ),
+						'cta_text' => array( 'type' => 'string', 'description' => 'Call-to-action button label (e.g. "RSVP", "Learn more"). Optional; defaults to "Learn more" when a cta_url is set.' ),
+						'cta_url'  => array( 'type' => 'string', 'description' => 'Call-to-action button URL. The button only renders when this is set. Use mailto: for "contact X" asks.' ),
 						'image_id'  => array( 'type' => 'integer', 'description' => 'Existing media library attachment ID to use as the featured image.' ),
 						'image_url' => array( 'type' => 'string', 'description' => 'URL of an image to download and set as the featured image.' ),
 						'date'      => array( 'type' => 'string', 'description' => 'Publication date/time as YYYY-MM-DD or YYYY-MM-DD HH:MM (site local). Past backdates; future schedules it to auto-publish then. Defaults to now.' ),
@@ -696,6 +698,8 @@ add_action(
 						'title'   => array( 'type' => 'string' ),
 						'content' => array( 'type' => 'string' ),
 						'excerpt' => array( 'type' => 'string' ),
+						'cta_text' => array( 'type' => 'string', 'description' => 'Call-to-action button label.' ),
+						'cta_url'  => array( 'type' => 'string', 'description' => 'Call-to-action button URL (button renders only when set).' ),
 						'image_id'  => array( 'type' => 'integer', 'description' => 'Existing media library attachment ID to use as the featured image.' ),
 						'image_url' => array( 'type' => 'string', 'description' => 'URL of an image to download and set as the featured image.' ),
 						'date'      => array( 'type' => 'string', 'description' => 'Publication date/time as YYYY-MM-DD or YYYY-MM-DD HH:MM (site local). Past backdates; future schedules it to auto-publish then.' ),
@@ -1789,6 +1793,16 @@ function fcmcp_list_announcements( $input = array() ) {
 	return array( 'count' => count( $out ), 'announcements' => $out );
 }
 
+/** Write the announcement call-to-action button meta (fcs_cta_text/fcs_cta_url). */
+function fcmcp_apply_cta( int $post_id, array $input ): void {
+	if ( array_key_exists( 'cta_text', $input ) ) {
+		update_post_meta( $post_id, 'fcs_cta_text', sanitize_text_field( (string) $input['cta_text'] ) );
+	}
+	if ( array_key_exists( 'cta_url', $input ) ) {
+		update_post_meta( $post_id, 'fcs_cta_url', esc_url_raw( (string) $input['cta_url'] ) );
+	}
+}
+
 function fcmcp_create_announcement( $input ) {
 	$cat = fcmcp_announce_cat_id();
 	if ( ! $cat ) {
@@ -1811,6 +1825,7 @@ function fcmcp_create_announcement( $input ) {
 	if ( is_wp_error( $post_id ) ) {
 		return $post_id;
 	}
+	fcmcp_apply_cta( (int) $post_id, $input );
 	$result = array( 'id' => (int) $post_id, 'status' => get_post_status( $post_id ), 'edit_url' => get_edit_post_link( $post_id, 'raw' ) );
 	$img    = fcmcp_set_featured_image( (int) $post_id, $input );
 	if ( is_wp_error( $img ) ) {
@@ -1843,6 +1858,7 @@ function fcmcp_update_announcement( $input ) {
 			return $r;
 		}
 	}
+	fcmcp_apply_cta( $id, $input );
 	$result = array( 'id' => $id, 'status' => get_post_status( $id ) );
 	$img    = fcmcp_set_featured_image( $id, $input );
 	if ( is_wp_error( $img ) ) {
@@ -2604,3 +2620,74 @@ function fcmcp_delete_redirect( $input ) {
 	$item->delete();
 	return array( 'id' => $id, 'deleted' => true );
 }
+
+/* ----------------------------------------------------------------------------
+ * Intake REST endpoints — a thin, app-password-authenticated wrapper around the
+ * create abilities, for non-MCP automation (e.g. the firstchurchnews email
+ * worker). One POST per draft; all date/time/recurrence/CTA normalization is
+ * handled by the same fcmcp_create_* functions the MCP tools use.
+ *
+ *   POST /wp-json/firstchurch/v1/intake/event         (body = create-event input)
+ *   POST /wp-json/firstchurch/v1/intake/announcement  (body = create-announcement input)
+ *
+ * Auth: HTTP Basic with an Application Password for an mcp_editor-role user.
+ * Returns 201 with { id, status, edit_url, event|announcement }, or 4xx
+ * { error, code }. Everything is created as a draft unless status says otherwise.
+ * ------------------------------------------------------------------------- */
+
+function fcmcp_rest_json_params( WP_REST_Request $req ): array {
+	$p = $req->get_json_params();
+	return is_array( $p ) ? $p : array();
+}
+
+function fcmcp_rest_intake_response( $result ) {
+	if ( is_wp_error( $result ) ) {
+		$status = ( 'not_found' === $result->get_error_code() ) ? 404 : 400;
+		return new WP_REST_Response(
+			array( 'error' => $result->get_error_message(), 'code' => $result->get_error_code() ),
+			$status
+		);
+	}
+	return new WP_REST_Response( $result, 201 );
+}
+
+add_action(
+	'rest_api_init',
+	static function () {
+		$can_write = static function () {
+			return current_user_can( 'edit_posts' );
+		};
+
+		register_rest_route(
+			'firstchurch/v1',
+			'/intake/event',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $can_write,
+				'callback'            => static function ( WP_REST_Request $req ) {
+					$input = fcmcp_rest_json_params( $req );
+					if ( '' === trim( (string) ( $input['title'] ?? '' ) ) ) {
+						return new WP_REST_Response( array( 'error' => 'title is required.', 'code' => 'missing_title' ), 400 );
+					}
+					return fcmcp_rest_intake_response( fcmcp_create_event( $input ) );
+				},
+			)
+		);
+
+		register_rest_route(
+			'firstchurch/v1',
+			'/intake/announcement',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $can_write,
+				'callback'            => static function ( WP_REST_Request $req ) {
+					$input = fcmcp_rest_json_params( $req );
+					if ( '' === trim( (string) ( $input['title'] ?? '' ) ) || '' === trim( (string) ( $input['content'] ?? '' ) ) ) {
+						return new WP_REST_Response( array( 'error' => 'title and content are required.', 'code' => 'missing_fields' ), 400 );
+					}
+					return fcmcp_rest_intake_response( fcmcp_create_announcement( $input ) );
+				},
+			)
+		);
+	}
+);
