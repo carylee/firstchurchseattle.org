@@ -12,11 +12,9 @@
     margin: 1.5rem auto;
 }
 
-.fcbf-embed__frame {
+/* Breeze's form_embed.js injects the auto-resizing iframe into this container. */
+.fcbf-embed .breeze_form_embed iframe {
     display: block;
     width: 100%;
     border: 0;
-    border-radius: 6px;
-    background: #fff;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }

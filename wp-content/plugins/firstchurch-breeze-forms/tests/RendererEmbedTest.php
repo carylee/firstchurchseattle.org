@@ -7,57 +7,68 @@ namespace FirstChurch\BreezeForms\Tests;
 use FirstChurch\BreezeForms\Renderer;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Mode 2 uses Breeze's official embed: a `breeze_form_embed` div that their
+ * form_embed.js turns into an auto-resizing iframe. We render the (escaped) div
+ * + a no-JS fallback link.
+ */
 final class RendererEmbedTest extends TestCase
 {
-    private const URL = 'https://firstchurchseattle.breezechms.com/form/603d6c56';
-
-    // Cycle 14 — an iframe whose src is the form URL
-    public function test_emits_iframe_with_src(): void
+    private function base(array $extra = []): array
     {
-        $html = Renderer::embed(['url' => self::URL, 'title' => 'Contact form']);
-
-        $this->assertSame(1, substr_count($html, '<iframe '), 'should emit exactly one iframe');
-        $this->assertStringContainsString('src="' . self::URL . '"', $html);
+        return array_merge(['slug' => '603d6c56', 'subdomain' => 'firstchurchseattle'], $extra);
     }
 
-    // Cycle 15 — a non-empty, escaped title for accessibility
-    public function test_has_non_empty_escaped_title(): void
+    public function test_emits_breeze_embed_div(): void
     {
-        $html = Renderer::embed(['url' => self::URL, 'title' => 'A "quoted" form']);
-
-        $this->assertMatchesRegularExpression('/title="[^"]+"/', $html, 'title must be present and non-empty');
-        $this->assertStringContainsString('&quot;quoted&quot;', $html);
-        $this->assertStringNotContainsString('"quoted"', $html);
+        $html = Renderer::embed($this->base());
+        $this->assertStringContainsString('class="breeze_form_embed"', $html);
+        $this->assertStringContainsString('data-subdomain="firstchurchseattle"', $html);
+        $this->assertStringContainsString('data-address="603d6c56"', $html);
+        $this->assertStringContainsString('data-width="100%"', $html);
     }
 
-    // Cycle 16 — lazy loading
-    public function test_iframe_is_lazy_loaded(): void
+    public function test_theming_attrs_included_when_present(): void
     {
-        $html = Renderer::embed(['url' => self::URL, 'title' => 'x']);
-        $this->assertStringContainsString('loading="lazy"', $html);
+        $html = Renderer::embed($this->base([
+            'background_color' => 'ffffff',
+            'border_width'     => '0',
+            'border_color'     => '000000',
+            'button_color'     => '92b765',
+        ]));
+        $this->assertStringContainsString('data-background_color="ffffff"', $html);
+        $this->assertStringContainsString('data-border_width="0"', $html);
+        $this->assertStringContainsString('data-border_color="000000"', $html);
+        $this->assertStringContainsString('data-button_color="92b765"', $html);
     }
 
-    // Cycle 17 — height + max-width are integer-coerced; junk falls back to defaults
-    public function test_dimensions_are_integer_coerced(): void
+    public function test_theming_attrs_omitted_when_empty(): void
     {
-        $valid = Renderer::embed(['url' => self::URL, 'title' => 'x', 'height' => 900, 'max_width' => 500]);
-        $this->assertStringContainsString('height="900"', $valid);
-        $this->assertStringContainsString('max-width:500px', $valid);
-
-        $junk = Renderer::embed(['url' => self::URL, 'title' => 'x', 'height' => 'abc', 'max_width' => 'xyz']);
-        $this->assertStringContainsString('height="800"', $junk, 'junk height falls back to default');
-        $this->assertStringContainsString('max-width:680px', $junk, 'junk width falls back to default');
-        $this->assertStringNotContainsString('abc', $junk);
-        $this->assertStringNotContainsString('xyz', $junk);
+        $html = Renderer::embed($this->base());
+        $this->assertStringNotContainsString('data-button_color', $html);
+        $this->assertStringNotContainsString('data-background_color', $html);
     }
 
-    // Cycle 18 — src is escaped
-    public function test_src_is_escaped(): void
+    public function test_has_noscript_fallback_link(): void
     {
-        $evil = 'https://firstchurchseattle.breezechms.com/form/x"onload=alert(1)';
-        $html = Renderer::embed(['url' => $evil, 'title' => 'x']);
+        $html = Renderer::embed($this->base());
+        $this->assertStringContainsString('<noscript>', $html);
+        $this->assertStringContainsString(
+            'href="https://firstchurchseattle.breezechms.com/form/603d6c56"',
+            $html
+        );
+    }
 
-        $this->assertStringNotContainsString('"onload', $html);
-        $this->assertStringContainsString('%22onload', $html);
+    public function test_container_max_width_is_integer_coerced(): void
+    {
+        $this->assertStringContainsString('max-width:500px', Renderer::embed($this->base(['max_width' => 500])));
+        $this->assertStringContainsString('max-width:680px', Renderer::embed($this->base(['max_width' => 'junk'])));
+    }
+
+    public function test_values_are_escaped(): void
+    {
+        $html = Renderer::embed($this->base(['background_color' => 'a"b']));
+        $this->assertStringContainsString('&quot;', $html);
+        $this->assertStringNotContainsString('a"b', $html);
     }
 }

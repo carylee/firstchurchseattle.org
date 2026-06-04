@@ -55,4 +55,18 @@ final class BlockTest extends TestCase
         $this->assertSame('', $a['id']);
         $this->assertSame('Open form', $a['label']);
     }
+
+    public function test_passes_embed_theming_through(): void
+    {
+        $a = Block::to_shortcode_atts([
+            'backgroundColor' => 'ffffff',
+            'borderColor'     => '000000',
+            'borderWidth'     => '2',
+            'buttonColor'     => '92b765',
+        ]);
+        $this->assertSame('ffffff', $a['background_color']);
+        $this->assertSame('000000', $a['border_color']);
+        $this->assertSame('2', $a['border_width']);
+        $this->assertSame('92b765', $a['button_color']);
+    }
 }

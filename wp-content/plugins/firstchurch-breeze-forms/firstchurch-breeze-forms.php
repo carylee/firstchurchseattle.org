@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) {
 // Production loads the small core via explicit requires (no Composer on prod);
 // the test suite loads the same classes through Composer's PSR-4 autoloader.
 require_once __DIR__ . '/src/Url.php';
+require_once __DIR__ . '/src/Color.php';
 require_once __DIR__ . '/src/Catalog.php';
 require_once __DIR__ . '/src/Renderer.php';
 require_once __DIR__ . '/src/Shortcode.php';
@@ -99,10 +100,18 @@ function fcbf_id_slug_map(): array
     return Catalog::map_from_records(fcbf_records());
 }
 
-/** Enqueue the (tiny) stylesheet only when a [breeze_form] actually renders. */
-function fcbf_enqueue_assets(): void
+/**
+ * Enqueue the stylesheet when a [breeze_form] renders, plus — for embeds —
+ * Breeze's official form_embed.js, which turns the breeze_form_embed div into
+ * an auto-resizing iframe. Loaded only when an embed is actually on the page.
+ */
+function fcbf_enqueue_assets(string $html = ''): void
 {
     wp_enqueue_style('firstchurch-breeze-forms');
+
+    if (strpos($html, 'breeze_form_embed') !== false) {
+        wp_enqueue_script('breeze-form-embed', 'https://app.breezechms.com/js/form_embed.js', [], null, true);
+    }
 }
 
 /**
@@ -157,13 +166,17 @@ function fcbf_register_assets(): void
         'style'           => 'firstchurch-breeze-forms',
         'render_callback' => 'fcbf_render_block',
         'attributes'      => [
-            'slug'     => ['type' => 'string',  'default' => ''],
-            'id'       => ['type' => 'string',  'default' => ''],
-            'mode'     => ['type' => 'string',  'default' => 'button'],
-            'label'    => ['type' => 'string',  'default' => 'Open form'],
-            'newTab'   => ['type' => 'boolean', 'default' => true],
-            'height'   => ['type' => 'number',  'default' => 0],
-            'maxWidth' => ['type' => 'number',  'default' => 0],
+            'slug'            => ['type' => 'string',  'default' => ''],
+            'id'              => ['type' => 'string',  'default' => ''],
+            'mode'            => ['type' => 'string',  'default' => 'button'],
+            'label'           => ['type' => 'string',  'default' => 'Open form'],
+            'newTab'          => ['type' => 'boolean', 'default' => true],
+            'height'          => ['type' => 'number',  'default' => 0],
+            'maxWidth'        => ['type' => 'number',  'default' => 0],
+            'backgroundColor' => ['type' => 'string',  'default' => ''],
+            'borderColor'     => ['type' => 'string',  'default' => ''],
+            'borderWidth'     => ['type' => 'string',  'default' => ''],
+            'buttonColor'     => ['type' => 'string',  'default' => ''],
         ],
     ]);
 }
@@ -174,7 +187,7 @@ function fcbf_render_block($attributes): string
 {
     $html = Shortcode::render(Block::to_shortcode_atts((array) $attributes), fcbf_id_slug_map());
     if ($html !== '') {
-        fcbf_enqueue_assets();
+        fcbf_enqueue_assets($html);
     }
     return $html;
 }
@@ -182,7 +195,7 @@ function fcbf_render_block($attributes): string
 add_shortcode('breeze_form', function ($atts): string {
     $html = Shortcode::render(is_array($atts) ? $atts : [], fcbf_id_slug_map());
     if ($html !== '') {
-        fcbf_enqueue_assets();
+        fcbf_enqueue_assets($html);
     }
     return $html;
 });

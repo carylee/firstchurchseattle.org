@@ -46,7 +46,11 @@
 			label: { type: 'string', default: 'Open form' },
 			newTab: { type: 'boolean', default: true },
 			height: { type: 'number', default: 0 },
-			maxWidth: { type: 'number', default: 0 }
+			maxWidth: { type: 'number', default: 0 },
+			backgroundColor: { type: 'string', default: '' },
+			borderColor: { type: 'string', default: '' },
+			borderWidth: { type: 'string', default: '' },
+			buttonColor: { type: 'string', default: '' }
 		},
 
 		edit: function ( props ) {
@@ -108,15 +112,9 @@
 					: el(
 							c.PanelBody,
 							{ title: __( 'Embed', 'firstchurch-breeze-forms' ), initialOpen: false },
-							el( c.RangeControl, {
-								label: __( 'Height (px)', 'firstchurch-breeze-forms' ),
-								value: a.height || 800,
-								min: 300,
-								max: 2000,
-								onChange: function ( v ) {
-									set( { height: v } );
-								}
-							} ),
+							el( 'p', { style: { color: '#757575', marginTop: 0 } },
+								__( 'The embedded form auto-sizes to its content. Colors are hex (e.g. 92b765); leave blank for Breeze defaults.', 'firstchurch-breeze-forms' )
+							),
 							el( c.RangeControl, {
 								label: __( 'Max width (px)', 'firstchurch-breeze-forms' ),
 								value: a.maxWidth || 680,
@@ -124,6 +122,34 @@
 								max: 1200,
 								onChange: function ( v ) {
 									set( { maxWidth: v } );
+								}
+							} ),
+							el( c.TextControl, {
+								label: __( 'Button color', 'firstchurch-breeze-forms' ),
+								value: a.buttonColor,
+								onChange: function ( v ) {
+									set( { buttonColor: v } );
+								}
+							} ),
+							el( c.TextControl, {
+								label: __( 'Background color', 'firstchurch-breeze-forms' ),
+								value: a.backgroundColor,
+								onChange: function ( v ) {
+									set( { backgroundColor: v } );
+								}
+							} ),
+							el( c.TextControl, {
+								label: __( 'Border color', 'firstchurch-breeze-forms' ),
+								value: a.borderColor,
+								onChange: function ( v ) {
+									set( { borderColor: v } );
+								}
+							} ),
+							el( c.TextControl, {
+								label: __( 'Border width (px)', 'firstchurch-breeze-forms' ),
+								value: a.borderWidth,
+								onChange: function ( v ) {
+									set( { borderWidth: v } );
 								}
 							} )
 					  )
@@ -145,6 +171,17 @@
 							chooseForm( set, id );
 						}
 					} )
+				);
+			} else if ( a.mode === 'embed' ) {
+				// The live embed needs Breeze's form_embed.js, which doesn't run
+				// in the editor preview — so show an informative placeholder.
+				body = el(
+					c.Placeholder,
+					{
+						icon: 'feedback',
+						label: ( selected ? selected.name : __( 'Breeze form', 'firstchurch-breeze-forms' ) ),
+						instructions: __( 'Embedded form — it appears and auto-sizes on the published page.', 'firstchurch-breeze-forms' )
+					}
 				);
 			} else {
 				body = el( ServerSideRender, {

@@ -17,8 +17,8 @@ Breeze credentials**, make **no network calls at render time**, and work for
 [breeze_form slug="603d6c56"]                          Button, "Open form"
 [breeze_form slug="603d6c56" label="Contact us"]       Button, custom label
 [breeze_form slug="603d6c56" new_tab="false"]          Open in same tab
-[breeze_form slug="603d6c56" mode="embed"]             Responsive iframe
-[breeze_form slug="603d6c56" mode="embed" height="1000" max_width="720"]
+[breeze_form slug="603d6c56" mode="embed"]             Auto-sizing embed
+[breeze_form slug="603d6c56" mode="embed" button_color="92b765" max_width="720"]
 [breeze_form id="1011854"]                              Resolve id→slug via the form list
 ```
 
@@ -44,11 +44,27 @@ script is plain `wp.*` JavaScript.
 | `mode`      | `button`    | both       | `button` (Mode 1) or `embed` (Mode 2). Unknown → button. |
 | `label`     | `Open form` | button     | Button text. |
 | `new_tab`   | `true`      | button     | Open the form in a new tab. |
-| `title`     | `label`     | embed      | iframe accessible title. |
-| `height`    | `800`       | embed      | Pixel height (cross-origin = no auto-height). |
-| `max_width` | `680`       | embed      | Container max-width in px. |
+| `max_width` | `680`       | embed      | Container max-width in px (height auto-sizes). |
+| `background_color` | — | embed | Form background, hex (no `#`), e.g. `ffffff`. |
+| `border_color`     | — | embed | Form border color, hex. |
+| `border_width`     | — | embed | Form border width in px. |
+| `button_color`     | — | embed | Submit-button color, hex, e.g. `92b765`. |
 
-Invalid/missing input renders nothing (never fatals the page).
+Invalid input is dropped silently (bad hex / non-numeric width are ignored);
+missing required input renders nothing (never fatals the page).
+
+### Mode 2 = Breeze's official embed
+
+`mode="embed"` renders Breeze's own `breeze_form_embed` container and loads
+their `form_embed.js`, which builds an **auto-resizing** iframe — so the embed
+sizes to the form (no fixed height, no inner scrollbars) and honors the theming
+params above. A `<noscript>` link is the no-JS fallback.
+
+> **The form's logo/header is set in Breeze, not here.** A form's big header
+> image and title bar are part of the Breeze form template; nothing our plugin
+> (or any URL param) can do reaches inside the cross-origin iframe to hide them.
+> To drop a redundant logo on embedded forms, clear the form's header image in
+> the Breeze form editor.
 
 ## Form list (how the plugin knows which forms exist)
 
@@ -101,10 +117,12 @@ ddev wp cron event run fcbf_descriptions_event   # descriptions (daily, ~1 call/
 
 ## Limitations (by design)
 
-- **Embed height is fixed** — Breeze's page is cross-origin and posts no height
-  messages, so the iframe can't auto-size. Set `height` per form.
-- **Embedded payment forms can't be sandboxed** — Breeze's JS + Stripe need
-  scripts/forms/same-origin/popups; the iframe is intentionally not sandboxed.
+- **Embed requires JavaScript** — auto-sizing is driven by Breeze's
+  `form_embed.js`; with JS off, the `<noscript>` fallback links to the form.
+- **In-form chrome (logo/title) is a Breeze setting** — it lives inside the
+  cross-origin iframe; remove it in the Breeze form editor, not here.
+- **Embedded payment forms aren't sandboxed** — Breeze's JS + Stripe need
+  scripts/forms/same-origin/popups; for payments/uploads, prefer the button.
 
 ## Development / tests
 

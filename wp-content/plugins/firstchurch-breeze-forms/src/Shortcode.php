@@ -23,9 +23,13 @@ final class Shortcode
             'mode'      => 'button',
             'label'     => 'Open form',
             'new_tab'   => 'true',
-            'title'     => '',
-            'height'    => '',
-            'max_width' => '',
+            'title'            => '',
+            'height'           => '',
+            'max_width'        => '',
+            'background_color' => '',
+            'border_color'     => '',
+            'border_width'     => '',
+            'button_color'     => '',
         ];
     }
 
@@ -49,10 +53,13 @@ final class Shortcode
 
         if (strtolower((string) $a['mode']) === 'embed') {
             return Renderer::embed([
-                'url'       => $url,
-                'title'     => (string) ($a['title'] !== '' ? $a['title'] : $a['label']),
-                'height'    => (string) $a['height'],
-                'max_width' => (string) $a['max_width'],
+                'slug'             => $slug,
+                'subdomain'        => Url::SUBDOMAIN,
+                'max_width'        => (string) $a['max_width'],
+                'background_color' => (string) (Color::hex((string) $a['background_color']) ?? ''),
+                'border_color'     => (string) (Color::hex((string) $a['border_color']) ?? ''),
+                'border_width'     => ctype_digit((string) $a['border_width']) ? (string) $a['border_width'] : '',
+                'button_color'     => (string) (Color::hex((string) $a['button_color']) ?? ''),
             ]);
         }
 

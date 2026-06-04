@@ -16,7 +16,9 @@ namespace FirstChurch\BreezeForms;
  */
 final class Url
 {
-    public const BASE = 'https://firstchurchseattle.breezechms.com/form/';
+    public const SUBDOMAIN = 'firstchurchseattle';
+
+    public const BASE = 'https://' . self::SUBDOMAIN . '.breezechms.com/form/';
 
     /**
      * @return string|null Canonical form URL, or null if the slug is invalid.

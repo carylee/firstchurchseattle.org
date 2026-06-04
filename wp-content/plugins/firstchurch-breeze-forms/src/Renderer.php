@@ -14,11 +14,11 @@ namespace FirstChurch\BreezeForms;
  */
 final class Renderer
 {
-    /** Fallback iframe height when none/invalid is supplied (cross-origin = no auto-height). */
-    public const DEFAULT_HEIGHT = 800;
-
     /** Fallback container max-width when none/invalid is supplied. */
     public const DEFAULT_MAX_WIDTH = 680;
+
+    /** Breeze embed theming params, passed through as validated data-attributes. */
+    private const THEME_KEYS = ['background_color', 'border_width', 'border_color', 'button_color'];
 
     /**
      * Mode 1 — a themed link styled as a button.
@@ -40,30 +40,41 @@ final class Renderer
     }
 
     /**
-     * Mode 2 — a responsive iframe wrapping the real Breeze form.
+     * Mode 2 — Breeze's official embed.
      *
-     * Height is author-set (Breeze's page is cross-origin and posts no height
-     * messages, so true auto-height isn't possible); junk falls back to a
-     * default rather than emitting a raw attribute. The iframe is intentionally
-     * NOT sandboxed: Breeze's own JS and Stripe checkout need scripts, forms,
-     * same-origin and popups, and over-sandboxing silently breaks payment forms.
+     * Renders the `breeze_form_embed` container that Breeze's form_embed.js turns
+     * into an auto-resizing iframe (so the embed sizes to the form — no fixed
+     * height). Optional theming params (validated upstream) ride along as
+     * data-attributes. A <noscript> link is the no-JS fallback.
      *
-     * @param array{url:string,title:string,height?:int|string,max_width?:int|string} $a
+     * @param array{slug:string,subdomain:string,max_width?:int|string,
+     *              background_color?:string,border_width?:string,
+     *              border_color?:string,button_color?:string} $a
      */
     public static function embed(array $a): string
     {
-        $src    = esc_url($a['url']);
-        $title  = esc_attr($a['title']);
-        $height = self::dimension($a['height'] ?? 0, self::DEFAULT_HEIGHT);
-        $width  = self::dimension($a['max_width'] ?? 0, self::DEFAULT_MAX_WIDTH);
+        $slug      = (string) ($a['slug'] ?? '');
+        $subdomain = (string) ($a['subdomain'] ?? '');
+        $width     = self::dimension($a['max_width'] ?? 0, self::DEFAULT_MAX_WIDTH);
+
+        $theme = '';
+        foreach (self::THEME_KEYS as $key) {
+            $value = (string) ($a[$key] ?? '');
+            if ($value !== '') {
+                $theme .= ' data-' . $key . '="' . esc_attr($value) . '"';
+            }
+        }
+
+        $form_url = esc_url('https://' . $subdomain . '.breezechms.com/form/' . $slug);
 
         return '<div class="fcbf-embed" style="max-width:' . $width . 'px">'
-            . '<iframe class="fcbf-embed__frame"'
-            . ' src="' . $src . '"'
-            . ' title="' . $title . '"'
-            . ' height="' . $height . '"'
-            . ' loading="lazy"'
-            . ' referrerpolicy="no-referrer-when-downgrade"></iframe>'
+            . '<div class="breeze_form_embed"'
+            . ' data-subdomain="' . esc_attr($subdomain) . '"'
+            . ' data-address="' . esc_attr($slug) . '"'
+            . ' data-width="100%"'
+            . $theme
+            . '></div>'
+            . '<noscript><a class="fcbf-button maranatha-button" href="' . $form_url . '">Open the form</a></noscript>'
             . '</div>';
     }
 

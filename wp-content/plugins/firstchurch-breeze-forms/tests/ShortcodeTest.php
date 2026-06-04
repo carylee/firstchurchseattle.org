@@ -29,11 +29,23 @@ final class ShortcodeTest extends TestCase
         $this->assertStringContainsString('Contact us', $html);
     }
 
-    // Cycle 20 — embed mode produces an iframe
-    public function test_embed_mode_produces_iframe(): void
+    // Cycle 20 — embed mode produces Breeze's official embed container
+    public function test_embed_mode_produces_breeze_embed(): void
     {
         $html = Shortcode::render(['slug' => '603d6c56', 'mode' => 'embed']);
-        $this->assertStringContainsString('<iframe', $html);
+        $this->assertStringContainsString('class="breeze_form_embed"', $html);
+        $this->assertStringContainsString('data-address="603d6c56"', $html);
+    }
+
+    public function test_embed_theming_is_validated(): void
+    {
+        $ok = Shortcode::render(['slug' => '603d6c56', 'mode' => 'embed', 'button_color' => '#92B765', 'border_width' => '2']);
+        $this->assertStringContainsString('data-button_color="92b765"', $ok, 'valid hex normalized + passed through');
+        $this->assertStringContainsString('data-border_width="2"', $ok);
+
+        $bad = Shortcode::render(['slug' => '603d6c56', 'mode' => 'embed', 'button_color' => 'red', 'border_width' => 'abc']);
+        $this->assertStringNotContainsString('data-button_color', $bad, 'invalid hex dropped');
+        $this->assertStringNotContainsString('data-border_width', $bad, 'non-numeric width dropped');
     }
 
     // Cycle 21 — id (no slug) resolves through the map

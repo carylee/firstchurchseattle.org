@@ -27,13 +27,17 @@ final class Block
         $maxWidth = (int) ($a['maxWidth'] ?? 0);
 
         return [
-            'slug'      => (string) ($a['slug'] ?? ''),
-            'id'        => (string) ($a['id'] ?? ''),
-            'mode'      => $mode,
-            'label'     => (string) ($a['label'] ?? 'Open form'),
-            'new_tab'   => !empty($a['newTab']) ? 'true' : 'false',
-            'height'    => $height > 0 ? (string) $height : '',
-            'max_width' => $maxWidth > 0 ? (string) $maxWidth : '',
+            'slug'             => (string) ($a['slug'] ?? ''),
+            'id'               => (string) ($a['id'] ?? ''),
+            'mode'             => $mode,
+            'label'            => (string) ($a['label'] ?? 'Open form'),
+            'new_tab'          => !empty($a['newTab']) ? 'true' : 'false',
+            'height'           => $height > 0 ? (string) $height : '',
+            'max_width'        => $maxWidth > 0 ? (string) $maxWidth : '',
+            'background_color' => (string) ($a['backgroundColor'] ?? ''),
+            'border_color'     => (string) ($a['borderColor'] ?? ''),
+            'border_width'     => (string) ($a['borderWidth'] ?? ''),
+            'button_color'     => (string) ($a['buttonColor'] ?? ''),
         ];
     }
 }
