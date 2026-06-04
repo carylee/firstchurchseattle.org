@@ -10,7 +10,7 @@ Every path under the repo (= the WordPress root) is exactly one of three classes
 
 | Class | What | Examples | Git? | Push? | Pull? |
 |------|------|----------|:----:|:----:|:----:|
-| **A — Owned code** | We author it; git is the source of truth | `wp-content/themes/maranatha-child/`, `wp-content/plugins/firstchurch-connection-card/`, `wp-content/mu-plugins/firstchurch-*.php`, `bulletin/index.php`, `ops/` | **tracked** | ✅ deploy | ❌ excluded (git leads) |
+| **A — Owned code** | We author it; git is the source of truth | `wp-content/themes/maranatha-child/`, `wp-content/plugins/firstchurch-connection-card/`, `wp-content/plugins/firstchurch-breeze-forms/`, `wp-content/mu-plugins/firstchurch-*.php`, `bulletin/index.php`, `ops/` | **tracked** | ✅ deploy | ❌ excluded (git leads) |
 | **B — Prod-authoritative** | WordPress core, third-party, content | WP core, `wp-content/uploads/`, 3rd-party plugins/themes, the database, `paxchristiyoga.org/` & other prod subdirs | gitignored | ❌ never | ✅ mirrored |
 | **C — Local-only archives** | Pre-WP geology, irreplaceable | *(removed from the tree)* — now in `../archive/legacy-site/` | — | — | — |
 
@@ -29,7 +29,8 @@ The litmus test: **A** = "we wrote it" → tracked + deployed. **B** = "prod own
 
 ## Push nuances (in `ops/deploy.sh`)
 
-- Theme + connection-card: fully ours → `rsync --delete`.
+- Theme + connection-card + breeze-forms: fully ours → `rsync --delete` (breeze-forms
+  excludes dev-only `vendor/`, `tests/`, Composer/PHPUnit config).
 - `mu-plugins/`: synced **file-by-file, never `--delete`** (the dir also holds the host
   must-use `endurance-page-cache` we don't track).
 - `ops/bin/` → `~/bin` (cron scripts, outside the webroot); `bulletin/index.php` → webroot.

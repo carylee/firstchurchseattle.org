@@ -27,6 +27,14 @@ rsync -av $DRY --delete -e "$RSH" wp-content/themes/maranatha-child/ \
 rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-connection-card/ \
   "$REMOTE/plugins/firstchurch-connection-card/"
 
+# breeze-forms is fully ours too, but its working tree carries dev-only artifacts
+# (Composer deps, PHPUnit cache/config, tests) that must NOT ship to prod.
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-breeze-forms/ \
+  "$REMOTE/plugins/firstchurch-breeze-forms/"
+
 # mu-plugins/ ALSO holds host must-use plugins (endurance-page-cache) we do NOT track,
 # so sync our files individually and NEVER --delete this directory.
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php "$REMOTE/mu-plugins/"
