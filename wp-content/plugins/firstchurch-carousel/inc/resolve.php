@@ -64,20 +64,20 @@ function fccar_evergreen_items(): array {
 
 function fccar_card_to_item( WP_Post $post ): array {
 	$layout = (string) get_post_meta( $post->ID, FCCAR_META_LAYOUT, true ) ?: 'info';
-	$prompt = (string) get_post_meta( $post->ID, FCCAR_META_PROMPT, true );
-	$body   = (string) get_post_meta( $post->ID, FCCAR_META_BODY, true );
+	$prompt = fccar_text( get_post_meta( $post->ID, FCCAR_META_PROMPT, true ) );
+	$body   = fccar_text( get_post_meta( $post->ID, FCCAR_META_BODY, true ) );
 
 	return fccar_item( array(
 		'id'              => 'card-' . $post->ID,
 		'source'          => 'card',
 		'layout'          => $layout,
-		'title'           => get_the_title( $post ),
+		'title'           => fccar_text( get_the_title( $post ) ),
 		// qr_callout authors its text in `prompt`; the Announcement contract
 		// only has `body`, so fold prompt → body for the shape-detect path
 		// while also exposing it explicitly.
 		'body'            => 'qr_callout' === $layout ? $prompt : $body,
 		'prompt'          => $prompt,
-		'details'         => (string) get_post_meta( $post->ID, FCCAR_META_DETAILS, true ),
+		'details'         => fccar_text( get_post_meta( $post->ID, FCCAR_META_DETAILS, true ) ),
 		'ctaUrl'          => (string) get_post_meta( $post->ID, FCCAR_META_QR, true ),
 		'backgroundColor' => (string) get_post_meta( $post->ID, FCCAR_META_BGCOLOR, true ),
 		'image'           => (string) get_the_post_thumbnail_url( $post, 'full' ),
@@ -112,7 +112,7 @@ function fccar_event_to_item( WP_Post $post ): array {
 		'id'     => 'event-' . $post->ID,
 		'source' => 'event',
 		'layout' => 'event',
-		'title'  => get_the_title( $post ),
+		'title'  => fccar_text( get_the_title( $post ) ),
 		'when'   => fccar_event_when( $post->ID ),
 		'ctaUrl' => $reg ?: (string) get_permalink( $post ),
 		'image'  => (string) get_the_post_thumbnail_url( $post, 'full' ),
@@ -140,19 +140,20 @@ function fccar_news_items( int $days ): array {
 }
 
 function fccar_news_to_item( WP_Post $post ): array {
-	$body = has_excerpt( $post )
-		? get_the_excerpt( $post )
-		: wp_trim_words( wp_strip_all_tags( $post->post_content ), 40 );
-	$cta = (string) get_post_meta( $post->ID, 'fcs_cta_url', true );
+	$body = fccar_text( wp_strip_all_tags(
+		has_excerpt( $post ) ? get_the_excerpt( $post ) : wp_trim_words( $post->post_content, 40 )
+	) );
+	$title = fccar_text( get_the_title( $post ) );
+	$cta   = (string) get_post_meta( $post->ID, 'fcs_cta_url', true );
 
 	return fccar_item( array(
 		'id'      => 'announcement-' . $post->ID,
 		'source'  => 'announcement',
-		'layout'  => fccar_detect_layout( get_the_title( $post ), $body, '', $cta ),
-		'title'   => get_the_title( $post ),
+		'layout'  => fccar_detect_layout( $title, $body, '', $cta ),
+		'title'   => $title,
 		'body'    => $body,
 		'ctaUrl'  => $cta,
-		'ctaText' => (string) get_post_meta( $post->ID, 'fcs_cta_text', true ),
+		'ctaText' => fccar_text( get_post_meta( $post->ID, 'fcs_cta_text', true ) ),
 		'image'   => (string) get_the_post_thumbnail_url( $post, 'full' ),
 	) );
 }
@@ -162,6 +163,20 @@ function fccar_news_to_item( WP_Post $post ): array {
 function fccar_announce_cat_id(): int {
 	$term = get_term_by( 'slug', FCCAR_ANNOUNCE_SLUG, 'category' );
 	return $term ? (int) $term->term_id : 0;
+}
+
+/**
+ * Normalize WP-sourced text for the feed: decode HTML entities (WP stores
+ * "Men&#8217;s") to real characters and trim. The slides renderer does its own
+ * escaping, so it wants plain text.
+ */
+function fccar_text( $s ): string {
+	return trim( html_entity_decode( (string) $s, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+}
+
+/** Does this string read as a clock time ("7:00 pm", "9 am")? */
+function fccar_is_clocklike( string $s ): bool {
+	return (bool) preg_match( '/\d{1,2}:\d{2}|\d\s*[ap]\.?m\.?/i', $s );
 }
 
 /**
@@ -224,38 +239,45 @@ function fccar_item( array $fields ): array {
 function fccar_event_when( int $post_id ): string {
 	$start = (string) get_post_meta( $post_id, '_ctc_event_start_date', true );
 	$freq  = (string) get_post_meta( $post_id, '_ctc_event_recurrence', true );
-	$venue = (string) get_post_meta( $post_id, '_ctc_event_venue', true );
+	$venue = fccar_text( get_post_meta( $post_id, '_ctc_event_venue', true ) );
 
 	$when_ts = $start ? strtotime( $start ) : false;
-	$lead    = '';
 
+	$lead = '';
 	if ( $freq && 'none' !== $freq ) {
 		$lead = fccar_recurrence_phrase( $post_id, $freq, $when_ts );
 	} elseif ( $when_ts ) {
 		$lead = date_i18n( 'F j', $when_ts ); // "April 12"
 	}
 
-	$time = fccar_event_time( $post_id );
-	$out  = trim( $lead . ( $time ? ( $lead ? ' at ' : '' ) . $time : '' ) );
+	// The time slot. Prefer the machine start_time (a real clock value); the
+	// human _ctc_event_time field is free text staff sometimes fill with a room
+	// or a phrase ("After the worship service", "Room 302"). A clock value joins
+	// with " at "; anything else becomes a trailing " · " descriptor so we never
+	// emit "at After the worship service".
+	$clock = '';
+	$descr = '';
+	$st    = trim( (string) get_post_meta( $post_id, '_ctc_event_start_time', true ) );
+	$human = fccar_text( get_post_meta( $post_id, '_ctc_event_time', true ) );
+	if ( preg_match( '/^\d{1,2}:\d{2}/', $st ) ) {
+		$clock = date_i18n( 'g:i a', strtotime( '2000-01-01 ' . $st ) );
+		if ( '' !== $human && ! fccar_is_clocklike( $human ) ) {
+			$descr = $human; // e.g. start_time set AND a room note in the text field
+		}
+	} elseif ( '' !== $human ) {
+		fccar_is_clocklike( $human ) ? ( $clock = $human ) : ( $descr = $human );
+	}
 
-	if ( $venue ) {
-		$out = $out ? $out . ' · ' . $venue : $venue;
+	$out = $lead;
+	if ( '' !== $clock ) {
+		$out = trim( $out . ( '' !== $out ? ' at ' : '' ) . $clock );
+	}
+	foreach ( array( $descr, $venue ) as $tail ) {
+		if ( '' !== $tail ) {
+			$out = '' !== $out ? $out . ' · ' . $tail : $tail;
+		}
 	}
 	return $out;
-}
-
-function fccar_event_time( int $post_id ): string {
-	// CTC stores a human time string in _ctc_event_time; fall back to the
-	// machine start_time (HH:MM) formatted to "g:i a".
-	$human = trim( (string) get_post_meta( $post_id, '_ctc_event_time', true ) );
-	if ( '' !== $human ) {
-		return $human;
-	}
-	$st = trim( (string) get_post_meta( $post_id, '_ctc_event_start_time', true ) );
-	if ( preg_match( '/^\d{1,2}:\d{2}/', $st ) ) {
-		return date_i18n( 'g:i a', strtotime( '2000-01-01 ' . $st ) );
-	}
-	return '';
 }
 
 function fccar_recurrence_phrase( int $post_id, string $freq, $when_ts ): string {
