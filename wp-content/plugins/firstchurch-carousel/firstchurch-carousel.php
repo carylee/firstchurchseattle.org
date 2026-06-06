@@ -40,8 +40,12 @@ const FCCAR_ANNOUNCE_SLUG = 'announcements';
 
 require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/resolve.php';
+require_once __DIR__ . '/inc/deck.php';
 require_once __DIR__ . '/inc/rest.php';
 require_once __DIR__ . '/inc/mcp.php';
+// Loaded unconditionally: its admin page/asset hooks self-gate, but the deck
+// save route registers on rest_api_init (not an is_admin() context).
+require_once __DIR__ . '/inc/admin-curate.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once __DIR__ . '/inc/seed.php';

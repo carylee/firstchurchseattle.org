@@ -1,0 +1,46 @@
+/* Carousel curation screen. */
+.fccar-curate .fccar-intro { max-width: 60em; }
+.fccar-actions { margin: 12px 0 18px; display: flex; align-items: center; gap: 8px; }
+.fccar-status { margin-left: 8px; font-style: italic; color: #555; }
+.fccar-status.is-ok { color: #1a7d3c; }
+.fccar-status.is-error { color: #b32d2e; }
+.fccar-count { color: #777; font-weight: 400; }
+
+.fccar-cols { display: flex; gap: 24px; align-items: flex-start; }
+.fccar-col { flex: 1 1 0; min-width: 0; }
+
+.fccar-list { margin: 0; padding: 0; list-style: none; min-height: 40px; }
+.fccar-list--avail { opacity: 0.96; }
+
+.fccar-item {
+	display: flex; align-items: flex-start; gap: 8px;
+	background: #fff; border: 1px solid #dcdcde; border-radius: 6px;
+	padding: 10px 12px; margin: 0 0 8px;
+}
+.fccar-item--avail { background: #f6f7f7; }
+.fccar-placeholder { border: 2px dashed #c3c4c7; border-radius: 6px; background: #f0f6fc; height: 52px; margin: 0 0 8px; }
+
+.fccar-handle { cursor: grab; color: #8c8f94; font-size: 16px; line-height: 1.4; user-select: none; padding-top: 2px; }
+.fccar-main { flex: 1 1 auto; min-width: 0; }
+.fccar-head { display: flex; align-items: center; gap: 8px; }
+.fccar-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fccar-meta { color: #646970; font-size: 12px; margin-top: 2px; min-height: 14px; }
+
+.fccar-badge {
+	font-size: 10px; text-transform: uppercase; letter-spacing: .03em;
+	padding: 2px 6px; border-radius: 10px; background: #e0e0e0; color: #2c3338; white-space: nowrap;
+}
+.fccar-badge--event { background: #d8e7d1; }
+.fccar-badge--announcement { background: #d6e6f5; }
+.fccar-badge--card { background: #efe2c8; }
+.fccar-badge--layout { background: #eee; color: #555; }
+
+.fccar-remove { border: 0; background: none; color: #b32d2e; cursor: pointer; font-size: 14px; line-height: 1; }
+.fccar-remove:hover { color: #8a2424; }
+
+.fccar-overrides { margin-top: 6px; }
+.fccar-overrides summary { cursor: pointer; color: #2271b1; font-size: 12px; }
+.fccar-overrides label { display: block; margin: 8px 0; font-size: 12px; color: #1d2327; }
+.fccar-overrides input[type="text"] { width: 100%; max-width: 420px; display: block; margin-top: 2px; }
+.fccar-bg-row .fccar-bg-url { display: inline-block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; color: #646970; font-size: 11px; }
+.fccar-presvc { display: flex !important; align-items: center; gap: 6px; }

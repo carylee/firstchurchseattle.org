@@ -33,11 +33,19 @@ function fccar_resolve( array $args = array() ): array {
 	$weeks   = max( 1, min( 52, (int) ( $args['weeks'] ?? FCCAR_DEFAULT_WEEKS ) ) );
 	$days    = max( 1, min( 365, (int) ( $args['days'] ?? FCCAR_DEFAULT_DAYS ) ) );
 
-	$items = array_merge(
-		fccar_evergreen_items(),
-		fccar_event_items( $weeks ),
-		fccar_news_items( $days )
-	);
+	// A saved deck (curation screen) is the source of truth when present;
+	// otherwise fall back to the auto-assembled default. `null` means never
+	// curated; an empty array means curated-to-empty (honor it).
+	$deck = function_exists( 'fccar_get_deck' ) ? fccar_get_deck() : null;
+	if ( is_array( $deck ) ) {
+		$items = fccar_resolve_from_deck( $deck );
+	} else {
+		$items = array_merge(
+			fccar_evergreen_items(),
+			fccar_event_items( $weeks ),
+			fccar_news_items( $days )
+		);
+	}
 
 	// Postservice drops preservice-only cards (mirrors slides' selectCards()).
 	if ( 'postservice' === $variant ) {
@@ -47,6 +55,46 @@ function fccar_resolve( array $args = array() ): array {
 	}
 
 	return $items;
+}
+
+/** The auto-assembled default deck (evergreen → events → news), default windows. */
+function fccar_autodeck_items(): array {
+	return array_merge(
+		fccar_evergreen_items(),
+		fccar_event_items( FCCAR_DEFAULT_WEEKS ),
+		fccar_news_items( FCCAR_DEFAULT_DAYS )
+	);
+}
+
+/** A generous candidate pool for the curation screen's "available" list. */
+function fccar_candidate_pool(): array {
+	return array_merge(
+		fccar_evergreen_items(),
+		fccar_event_items( 26 ),
+		fccar_news_items( 90 )
+	);
+}
+
+/**
+ * Project a single candidate by its feed id ("card-12" / "event-7" /
+ * "announcement-9"), loading that specific post directly so deck references
+ * resolve regardless of any look-ahead window. Returns null if the post is
+ * missing, the wrong type, unpublished, or (for news) out of the category.
+ */
+function fccar_item_by_id( string $id ): ?array {
+	if ( 0 === strpos( $id, 'card-' ) ) {
+		$p = get_post( (int) substr( $id, 5 ) );
+		return ( $p && FCCAR_CPT === $p->post_type && 'publish' === $p->post_status ) ? fccar_card_to_item( $p ) : null;
+	}
+	if ( 0 === strpos( $id, 'event-' ) ) {
+		$p = get_post( (int) substr( $id, 6 ) );
+		return ( $p && 'ctc_event' === $p->post_type && 'publish' === $p->post_status ) ? fccar_event_to_item( $p ) : null;
+	}
+	if ( 0 === strpos( $id, 'announcement-' ) ) {
+		$p = get_post( (int) substr( $id, 13 ) );
+		return ( $p && 'post' === $p->post_type && 'publish' === $p->post_status && has_category( fccar_announce_cat_id(), $p ) ) ? fccar_news_to_item( $p ) : null;
+	}
+	return null;
 }
 
 /* ---- Source 1: evergreen carousel_card posts ---- */

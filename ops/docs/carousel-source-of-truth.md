@@ -1,12 +1,13 @@
 # The website as the source of truth for the announcement carousel
 
-**Status:** Phases 1–2 built (CPT + resolver + feed); curation UI not yet built.
+**Status:** Phases 1–4 built (CPT + resolver + feed + curation screen).
 **Date:** 2026-06-06
 **Scope:** WordPress (`firstchurchseattle.org`) — content model, curation UI, and a feed.
 **Consumer:** the slides app in `../hocuspocus/apps/slides` (render only; not changed by this).
 **Implementation:** `wp-content/plugins/firstchurch-carousel/` (the `carousel_card` CPT,
 the resolver, `GET /wp-json/firstchurch/v1/carousel`, the `firstchurch/get-carousel` MCP
-ability, and a `wp firstchurch-carousel seed` evergreen seeder).
+ability, a `wp firstchurch-carousel seed` evergreen seeder, and the **Carousel → Curate**
+admin screen with its `POST /wp-json/firstchurch/v1/carousel/deck` save endpoint).
 
 ---
 
@@ -244,9 +245,13 @@ manifesto in `../hocuspocus/CLAUDE.md` calls for, delivered through one screen.
 2. ✅ **Resolver + REST feed** (`/wp-json/firstchurch/v1/carousel`) over the three sources with
    the §7 mapping — testable immediately against the slides app by pointing it at the feed.
 3. ✅ **MCP ability** `get-carousel` wrapping the same resolver.
-4. ⬜ **Curation screen** (§5) — the playlist UI with drag/toggles/overrides and the
-   reference+override storage. *Until built, the feed is the auto-assembled default deck
-   (evergreen by menu_order → events by date → news by date).*
+4. ✅ **Curation screen** (§5) — **Carousel → Curate**: drag to reorder, add/remove
+   candidates, preservice-only toggle, and title/when/background overrides; stored as
+   ordered references + overrides (`fccar_deck` option) and saved via
+   `POST /wp-json/firstchurch/v1/carousel/deck`. The feed resolves through the saved deck
+   when present (looking each reference up live, applying overrides, skipping deleted
+   content) and falls back to the auto-assembled default (evergreen by menu_order → events
+   by date → news by date) otherwise. "Reset to default" forgets the deck.
 5. ⬜ **Bulletin / e-news** wired to the same feed (mostly downstream work in `../hocuspocus`).
 6. ⬜ **Slides-side faithful `intro`/`feature`** — teach the slides ingestion to honor the
    feed's explicit `layout` (today those two degrade through shape-detection; see §10.1).
