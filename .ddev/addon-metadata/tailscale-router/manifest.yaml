@@ -1,0 +1,11 @@
+name: tailscale-router
+repository: atj4me/ddev-tailscale-router
+version: v3.0.0
+install_date: "2026-06-06T08:05:00-07:00"
+project_files:
+    - config.tailscale-router.yaml
+    - commands/host/tailscale
+    - web-build/Dockerfile.tailscale-router
+    - docker-compose.tailscale-router.yaml
+global_files: []
+removal_actions: []
