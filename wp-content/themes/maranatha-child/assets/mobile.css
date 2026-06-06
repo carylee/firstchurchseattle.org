@@ -25,6 +25,99 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Hide post author bylines
+ *
+ * The site never attributes posts to a person, and the raw author was leaking
+ * internal account names ("MCP Editor", "firstchurch") into the public byline.
+ * The author lives in its own <li> on both the single-post meta
+ * (.maranatha-entry-full-author) and the listing-card meta
+ * (.maranatha-entry-short-author), so date + category are untouched.
+ * Cross-viewport.
+ * --------------------------------------------------------------------- */
+.maranatha-entry-full-meta > .maranatha-entry-full-author,
+.maranatha-entry-short-meta > .maranatha-entry-short-author {
+	display: none;
+}
+
+/* -------------------------------------------------------------------------
+ * Single-post featured image (hero)
+ *
+ * Injected by inc/single-featured-image.php at the top of single blog posts,
+ * which the parent's single template omits. Breaks out of the 700px text
+ * measure to a ~980px centered hero, clamped to the viewport on small screens.
+ * Cross-viewport.
+ * --------------------------------------------------------------------- */
+.maranatha-entry-full-content .fcs-single-featured {
+	width: min(980px, 92vw);
+	margin: 0 0 1.75em;
+	margin-left: 50%;
+	transform: translateX(-50%);
+}
+
+.fcs-single-featured img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 6px;
+}
+
+/* -------------------------------------------------------------------------
+ * News listing: aligned two-column grid
+ *
+ * The parent floats `.maranatha-entry-short` cards (width: calc(49.9% - 2.5em)),
+ * which can't equalize heights — so image cards (image+title) and text cards
+ * (title+excerpt) stagger out of alignment. Convert the post loop to CSS grid
+ * (rows auto-equalize to the tallest card) and make each card a flex column so
+ * the VIEW POST button pins to the bottom and CTAs line up across a row.
+ *
+ * Scoped to post contexts only (blog index + post category/tag/date/author
+ * archives) so the shared `.maranatha-loop-two-columns` used by sermon / event /
+ * people archives is untouched. Desktop only (min-width 701px) — at/below the
+ * parent's 700px breakpoint cards already stack to one column, which we leave be.
+ * --------------------------------------------------------------------- */
+@media (min-width: 701px) {
+
+	:is(.blog, .archive.category, .archive.tag, .archive.date, .archive.author)
+	.maranatha-loop-two-columns {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		column-gap: 5em;
+		row-gap: 4.4em;
+	}
+
+	/* The loop carries .maranatha-clearfix, whose ::before/::after would become
+	 * stray grid items and shove the first card into column 2. Drop them — grid
+	 * doesn't need float clearing. */
+	:is(.blog, .archive.category, .archive.tag, .archive.date, .archive.author)
+	.maranatha-loop-two-columns::before,
+	:is(.blog, .archive.category, .archive.tag, .archive.date, .archive.author)
+	.maranatha-loop-two-columns::after {
+		content: none;
+	}
+
+	/* Cards: drop the float/width/margins, become flex columns so the button row
+	 * can pin to the bottom and align across a row. */
+	:is(.blog, .archive.category, .archive.tag, .archive.date, .archive.author)
+	.maranatha-loop-two-columns > .maranatha-entry-short {
+		float: none;
+		width: auto;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	:is(.blog, .archive.category, .archive.tag, .archive.date, .archive.author)
+	.maranatha-loop-two-columns .maranatha-entry-short-footer {
+		margin-top: auto;
+	}
+}
+
+/* Drop the justified excerpt text (rivers) for a cleaner left edge. Cross-viewport. */
+:is(.blog, .archive) .maranatha-entry-content-short {
+	text-align: left;
+}
+
+/* -------------------------------------------------------------------------
  * Announcement / Featured CTA cards
  *
  * Rendered by the [fcs_announcements] shortcode (inc/announcements-cta.php),

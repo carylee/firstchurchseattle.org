@@ -16,13 +16,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version string for cache-busting child assets. Bump when the CSS/JS changes.
  */
 if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.6.2' );
+	define( 'FCS_CHILD_VERSION', '0.6.5' );
 }
 
 /**
  * Feature modules. Keep functions.php thin — each concern lives in inc/.
  */
 require_once get_stylesheet_directory() . '/inc/announcements-cta.php';
+require_once get_stylesheet_directory() . '/inc/single-featured-image.php';
 
 /**
  * Enqueue parent + child stylesheets.
