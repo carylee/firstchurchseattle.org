@@ -1,0 +1,48 @@
+#!/bin/bash
+## Description: Scrub PII + analytics/log bloat from the LOCAL database (visitor IPs, subscriber + staff emails). Local-only, idempotent. Run automatically by `ddev pull-prod`.
+## Usage: sanitize-db
+## CanRunGlobally: false
+
+# Runs INSIDE the web container, against the local DDEV database ONLY. There is no
+# path from here to production — `wp` here talks to the local mariadb container.
+# Safe to re-run. Invoked automatically at the end of `ddev pull-prod` (skip with
+# `ddev pull-prod --no-sanitize`).
+set -euo pipefail
+
+PREFIX="$(wp config get table_prefix 2>/dev/null || echo 'wpqg_')"
+
+# 1) Truncate PII / log / analytics tables: visitor IPs and request logs (personal
+#    data) that are also pure bloat in a dev mirror. Config/content tables — e.g.
+#    redirection_items / redirection_groups (the actual redirects) — are NOT listed.
+tables="
+statistics_visitor
+statistics_visitor_relationships
+statistics_events
+statistics_pages
+loginizer_logs
+redirection_logs
+redirection_404
+utm_event_tracker_events
+utm_event_tracker_sessions
+utm_event_tracker_views
+utm_event_tracker_stats
+actionscheduler_logs
+wpmm_subscribers
+"
+for t in $tables; do
+  tbl="${PREFIX}${t}"
+  if wp db query "SELECT 1 FROM ${tbl} LIMIT 1" >/dev/null 2>&1; then
+    wp db query "TRUNCATE TABLE ${tbl}"
+    echo "  truncated ${tbl}"
+  fi
+done
+
+# 2) Anonymize the (few, staff-only) user emails; keep logins so you know who's who.
+wp db query "UPDATE ${PREFIX}users SET user_email = CONCAT('user', ID, '@example.test')"
+echo "  anonymized user emails -> user<ID>@example.test"
+
+# 3) Hygiene: clear transients (cached remote data, not content).
+wp transient delete --all >/dev/null 2>&1 || true
+echo "  cleared transients"
+
+echo "Local DB sanitized."
