@@ -34,7 +34,7 @@ const FCMCP_DIRECT_TOOLS = array(
 	// Sermons
 	'firstchurch/search-sermons', 'firstchurch/create-sermon', 'firstchurch/update-sermon', 'firstchurch/set-sermon-status',
 	// Announcements
-	'firstchurch/list-announcements', 'firstchurch/create-announcement', 'firstchurch/update-announcement', 'firstchurch/set-announcement-status',
+	'firstchurch/list-announcements', 'firstchurch/get-announcement', 'firstchurch/create-announcement', 'firstchurch/update-announcement', 'firstchurch/set-announcement-status',
 	// Posts
 	'firstchurch/search-posts', 'firstchurch/create-post', 'firstchurch/update-post', 'firstchurch/set-post-status',
 	// Pages
@@ -602,7 +602,7 @@ add_action(
 			'firstchurch/list-announcements',
 			array(
 				'label'               => 'List announcements',
-				'description'         => 'List posts in the Announcements category, newest first. Drafts/pending require edit permission. Read-only.',
+				'description'         => 'List posts in the Announcements category, newest first. Each item carries a truncated excerpt only — call get-announcement with the id for the full body. Drafts/pending require edit permission. Read-only.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',
