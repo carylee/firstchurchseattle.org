@@ -1,0 +1,109 @@
+
+// Content / Website Background
+
+body {
+	background-color: $bg-color;
+}
+
+// Main Color as Background (Customizer)
+
+.maranatha-color-main-bg {
+
+	// Main background color is set in <head> according to Customizer
+
+	color: $text-color-on-main;
+
+	a,
+	a:hover {
+		color: $text-color-on-main;
+	}
+
+	h1,
+	h2 {
+		color: $text-color-on-main;
+	}
+
+	.maranatha-circle-buttons-list a {
+
+		border-color: $circle-button-border-color-on-main;
+		color: $text-color-on-main;
+
+		&:hover {
+			background-color: $circle-button-hover-bg-color-on-main;
+			color: $circle-button-hover-text-color-on-main;
+		}
+
+	}
+
+}
+
+// Dark Background
+
+.maranatha-color-dark-bg {
+
+	background-color: $bg-color-dark;
+	color: $text-color-on-dark;
+
+	a,
+	a:hover {
+		color: $text-color-on-dark;
+		border-color: $text-color-on-dark; // underline under text link
+	}
+
+	h1,
+	h2 {
+		color: $text-color-on-main;
+	}
+
+	.maranatha-circle-buttons-list a {
+
+		border-color: $circle-button-border-color-on-dark;
+		color: $text-color-on-dark;
+
+		&:hover {
+			background-color: $circle-button-hover-bg-color-on-dark;
+			color: $circle-button-hover-text-color-on-dark;
+		}
+
+	}
+
+}
+
+// Light Background
+
+.maranatha-color-light-bg {
+
+	background-color: $bg-color-light;
+	color: $text-color-on-light;
+
+	a,
+	a:hover {
+		color: $text-color-on-light;
+		border-color: $text-color-on-light; // underline under text link
+	}
+
+	.maranatha-circle-buttons-list a {
+
+		border-color: $circle-button-border-color-on-light;
+		color: $text-color-on-light;
+
+		&:hover {
+			background-color: $circle-button-hover-bg-color-on-light;
+			color: $circle-button-hover-text-color-on-light;
+		}
+
+	}
+
+}
+
+// Primary Background (content)
+
+.maranatha-bg {
+	background-color: $bg-color;
+}
+
+// Secondary Background (footer, blockquote, etc.)
+
+.maranatha-secondary-bg {
+	background-color: $bg-color-secondary;
+}

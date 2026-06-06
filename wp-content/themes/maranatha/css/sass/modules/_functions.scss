@@ -1,0 +1,36 @@
+
+//---------------------------------------------
+// Units
+//---------------------------------------------
+
+// Convert px to em units
+@function ct-em($px) {
+
+	$px: ct-strip-unit( $px );
+
+	@return ( $px / 16 ) * 1em;
+
+}
+
+// Convert px to rem units
+@function ct-rem($px) {
+
+	$px: ct-strip-unit( $px );
+
+	@return ( $px / 16 ) * 1rem;
+
+}
+
+// Strip unit from value
+// e.g. 12px becomes 12
+@function ct-strip-unit( $number ) {
+
+	// Number has unit, remove it
+	@if not unitless( $number ) {
+		$number: $number / ( $number * 0 + 1 );
+	}
+
+	@return $number;
+
+}
+/* pickles */

@@ -1,0 +1,467 @@
+
+/*---------------------------------------------
+ * Calendar
+ *--------------------------------------------*/
+
+$calendar-header-line-height: 3;
+$calendar-top-border-radius: 3px;
+
+// Content before calendar (if any)
+
+.page-template-events-calendar .maranatha-entry-full-content > *:not(#maranatha-calendar) {
+	@extend .maranatha-centered-medium;
+}
+
+// Calendar Container
+
+#maranatha-calendar {
+
+	position: relative;
+	font-size: $enlarged-font-size-reverse;
+
+	.maranatha-entry-has-content & {
+		@extend .maranatha-vertical-margin-top-medium;
+	}
+
+}
+
+// Loading AJAX
+
+	#maranatha-calendar-loading {
+		display: none;
+		opacity: 0.7;
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		z-index: 100;
+		background-color: $bg-color;
+	}
+
+// Month Table and Controls
+
+#maranatha-calendar-header {
+	margin-top: ct-em(-10);
+	@extend .maranatha-clearfix;
+}
+
+	#maranatha-calendar-header-left {
+		float: left;
+		margin-right: ct-em(25);
+		line-height: $calendar-header-line-height;
+		vertical-align: middle;
+	}
+
+		#maranatha-calendar-title { // h2
+
+			display: inline-block;
+			margin: 0;
+			vertical-align: middle;
+			font-size: 2.2em;
+			line-height: 1.8;
+
+			span {
+				display: inline-block;
+				margin-right: ct-em(15);
+			}
+
+		}
+
+			// Category
+
+			#maranatha-calendar-title-category {
+				display: inline-block;
+				@extend .maranatha-light;
+			}
+
+				#maranatha-calendar-remove-category {
+
+					margin-left: ct-em(4);
+					display: inline-block;
+					position: relative;
+
+					a {
+						position: relative;
+						top: ct-em(-7);
+						font-size: 0.4em;
+						color: rgba( $text-color-light, 0.7 );
+					}
+
+				}
+
+	#maranatha-calendar-header-right { // ul.maranatha-list-icons
+
+		float: right;
+		padding-top: ct-em(2);
+		line-height: $calendar-header-line-height;
+		font-size: 1.3em;
+
+		a { // icon
+
+			position: relative;
+			margin-left: 0;
+			padding: 0 ct-em(2.5);
+			text-align: center;
+		}
+
+		a:first-child {
+			margin-left: 0;
+		}
+
+		// Icon Adjustments
+
+		.el-calendar {
+			font-size: 1.1em;
+		}
+
+		.el-folder {
+			top: ct-em(1);
+			font-size: 1.2em;
+		}
+
+	}
+
+		// Dropdowns (Months, Categories)
+
+		.maranatha-calendar-dropdown {
+
+			margin-top: ct-em(10);
+			left: ct-em(15);
+			text-transform: uppercase;
+			font-size: 0.85em;
+
+			.maranatha-dropdown-panel,
+			.maranatha-dropdown-menu {
+				position: relative;
+				right: ct-em(-20);
+			}
+
+		}
+
+		// Month Dropdown
+
+		#maranatha-calendar-month-dropdown {
+			width: ct-em(220);
+			line-height: 2;
+		}
+
+			.maranatha-calendar-month-dropdown-year {
+
+				@extend .maranatha-dark;
+				margin-top: ct-em(12);
+				font-size: 1.2em;
+
+				&:first-child {
+					margin-top: 0;
+				}
+
+			}
+
+			.maranatha-calendar-month-dropdown-months { // <ul>
+
+				margin: 0;
+				list-style: none;
+
+				li {
+
+					display: inline-block;
+					width: 23%;
+
+					&.maranatha-calendar-month-dropdown-past {
+						@extend .maranatha-light;
+					}
+
+				}
+
+			}
+
+		// Category Dropdown
+
+		#maranatha-calendar-category-dropdown { // .maranatha-dropdown
+
+			ul {
+				padding-top: ct-em(10);
+				padding-bottom: ct-em(8);
+			}
+
+		}
+
+// Calendar Table
+
+#maranatha-calendar-table { // table
+	margin-top: ct-em(25);
+	margin-bottom: 0;
+	border-collapse: separate; // Firefox doesn't like collapse
+	border-spacing: 0;
+	table-layout: fixed; // help overflow: hidden on cells; equal widths
+	border: 0 !important;
+	overflow: hidden;
+}
+
+	// Top (for rounded corners)
+
+	.maranatha-calendar-table-top {
+		height: $calendar-top-border-radius; // equal to border-radius; update .maranatha-calendar-table-header padding-bottom and .maranatha-calendar-table-header-row height
+		border-top-left-radius: $calendar-top-border-radius;
+		border-top-right-radius: $calendar-top-border-radius;
+	}
+
+	// Cells
+
+	#maranatha-calendar-table th,
+	#maranatha-calendar-table td {
+		border: 0;
+		padding: 0;
+		position: relative; // helps today border
+	}
+
+	// Header / Controls
+
+	.maranatha-calendar-table-header-row { // tr
+		height: ( 40px - $calendar-top-border-radius ); // 40 minus .maranatha-calendar-table-top height
+	}
+
+		.maranatha-calendar-table-header { // th
+			width: ( 100% / 7 );
+			border-width: 1px !important;
+			border-style: solid !important;
+			vertical-align: middle;
+		}
+
+			.maranatha-calendar-table-header-content {
+				padding-bottom: $calendar-top-border-radius !important; // offset .maranatha-calendar-table-top height
+				font-size: 1em;
+				line-height: 1;
+				text-align: center !important;
+				text-transform: uppercase;
+				color: $text-color-on-main;
+			}
+
+				// Three letter abbreviation show on mobile
+
+				.maranatha-calendar-table-header-short {
+					display: none;
+				}
+
+	// Week
+
+	.maranatha-calendar-table-week-first .maranatha-calendar-table-day {
+		border-top-width: 0 !important;
+	}
+
+	.maranatha-calendar-table-day { // td
+		vertical-align: top;
+		border-width: 0 0 1px 1px !important;
+		border-style: solid !important;
+		border-color: #e5e5e5 !important;
+	}
+
+		// First and last days of week
+
+		.maranatha-calendar-table-day-1 {
+			border-left-width: 1px !important;
+		}
+
+		.maranatha-calendar-table-day-7 {
+			border-right-width: 1px !important;
+		}
+
+		// Day content container
+
+		.maranatha-calendar-table-day-content-container {
+			padding: ct-em(5) ct-em(16) ct-em(10) ct-em(10);
+			overflow: hidden;
+			min-height: 120px;
+		}
+
+			.maranatha-calendar-table-day-heading { // div
+				margin: ct-em(2) 0 ct-em(1) 0;
+				font-size: 0.9em;
+				text-align: right;
+				text-transform: uppercase;
+				white-space: nowrap;
+			}
+
+				.maranatha-calendar-table-day-label { // span
+					display: inline-block;
+					margin-right: ct-em(3);
+					vertical-align: middle;
+				}
+
+				// Number
+
+				.maranatha-calendar-table-day-number {
+					vertical-align: middle;
+				}
+
+				// Number - linked number for mobile
+
+				a.maranatha-calendar-table-day-number {
+					display: none;
+				}
+
+			.maranatha-calendar-table-day-events { // ul
+
+				list-style: none;
+				margin: 0;
+
+				li {
+					font-size: 0.9em;
+					line-height: 1.8;
+					white-space: nowrap;
+				}
+
+			}
+
+				// Time
+
+				.maranatha-calendar-table-day-event-time {
+					@extend .maranatha-light;
+					padding-left: ct-em(3);
+				}
+
+			// Today
+
+			.maranatha-calendar-table-day-today {
+				z-index: 10;
+				background-color: #fff8e9;
+			}
+
+			// Past
+
+			.maranatha-calendar-table-day-past {
+
+				background-color: #f9f9f9;
+
+				.maranatha-calendar-table-day-heading {
+					color: #aaa;
+				}
+
+			}
+
+			// Day from other month
+
+			.maranatha-calendar-table-day-other-month {
+
+				background-color: #f2f2f2;
+
+				&:not(.maranatha-calendar-table-day-today) {
+
+					.maranatha-calendar-table-day-heading,
+					.maranatha-calendar-table-day-label {
+						color: #aaa;
+					}
+
+				}
+
+			}
+
+	// Event Hover (Tooltipster)
+	// Entries use .maranatha-event-short and content-event-short.php partial
+
+	.maranatha-tooltipster-calendar {
+
+		margin-left: ct-em(40); // don't touch edge of screen
+		margin-right: ct-em(40);
+
+		.tooltipster-content {
+			@include box();
+			max-width: ct-em(400);
+			padding: 0 0 ct-em(30) 0;
+			overflow: hidden;
+			font-size: 16px; // fails without px font-size
+		}
+
+		// Padding
+
+		> *,
+		header > * {
+			margin-left: ct-em(25);
+			margin-right: ct-em(25);
+		}
+
+		.maranatha-entry-no-image header > *:first-child {
+			margin-top: ct-em(18) !important;
+		}
+
+		// Image
+
+		.maranatha-entry-short-image {
+			margin-top: 0 !important;
+			margin-right: 0;
+			margin-left: 0;
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+		}
+
+		// Heading
+
+		.maranatha-entry-short-header h2 {
+			padding-top: ct-em(2);
+			font-size: 1.2em !important; // smaller
+		}
+
+		// Buttons
+
+		.maranatha-entry-short-footer {
+			padding-top: ct-em(15);
+			font-size: 0.835em;
+		}
+
+	}
+
+	// List of Events (Mobile)
+	// Entries use .maranatha-event-short and content-event-short.php partial
+
+	#maranatha-calendar-list {
+
+		display: none;
+		@extend .maranatha-vertical-margin-top-medium;
+
+		// Heading
+
+		h3 { // #maranatha-calendar-list-heading
+			text-align: center;
+			display: none;
+			font-size: 1.9em;
+			@include thin-heading-font();
+			@extend .maranatha-vertical-margin-bottom-medium;
+			padding-top: ct-em(4);
+		}
+
+		// Event
+
+		.maranatha-event-short { // space between each <article> in list; not hover
+			display: none;
+			@extend .maranatha-vertical-margin-top-small;
+		}
+
+		.maranatha-event-short:first-of-type {
+			margin-top: 0;
+		}
+
+			// Image
+
+			.maranatha-entry-short-image {
+				max-width: 400px; // keep height from being too much for small screens -- less scrolling
+			}
+
+			// Meta
+
+			.maranatha-entry-short-meta {
+				font-size: 1.08em;
+			}
+
+			// Hide date in list (heading shows it)
+
+			.maranatha-event-short-date {
+				display: none;
+			}
+
+			// Hide buttons in list (less room on phone)
+
+			.maranatha-entry-short-footer {
+				display: none;
+			}
+
+	}

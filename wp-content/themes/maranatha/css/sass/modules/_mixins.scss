@@ -1,0 +1,256 @@
+
+//---------------------------------------------
+// Typography
+//---------------------------------------------
+
+// Thinner "bold" for certain fonts
+// These support a weight less than 400 for regular text so boldness can be slight
+@mixin thin-bold-fonts($target: body) {
+
+	.maranatha-#{$target}-font-lato &,
+	.maranatha-#{$target}-font-open-sans &,
+	.maranatha-#{$target}-font-roboto &,
+	.maranatha-#{$target}-font-catamaran &,
+	.maranatha-#{$target}-font-source-sans-pro &,
+	.maranatha-#{$target}-font-titillium-web & {
+		font-weight: 400;
+	}
+
+	.maranatha-#{$target}-font-raleway &,
+	.maranatha-#{$target}-font-ubuntu & {
+		font-weight: 500;
+	}
+
+}
+
+// Thin heading font
+// for Raleway and other thin fonts
+@mixin thin-heading-font($font-weight: 200) {
+
+	font-weight: $font-weight;
+
+	a {
+		font-weight: $font-weight;
+	}
+
+}
+
+//---------------------------------------------
+// Custom Elements
+//---------------------------------------------
+
+// Box (with shadow; for dropdowns, tooltips, etc.)
+@mixin box($border-radius: $box-border-radius) {
+	border-radius: $border-radius;
+	background-color: $bg-color-box;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+// Circle Radius (avatars)
+@mixin circle-radius($size) {
+	border-radius: $size / 2; // Fallback: Android 2.3 doesn't work with percent
+	border-radius: 50%;
+}
+
+//---------------------------------------------
+// Spacing
+//---------------------------------------------
+
+// Vertical Spacing
+// See _layout.scss for explanation
+@mixin vertical-spacing( $device: 'default' ) {
+
+	// Regular sizing
+	$small: $vertical-space-small;
+	$medium: $vertical-space-medium;
+	$large: $vertical-space-large;
+
+	// Mobile sizing
+ 	@if $device == 'mobile' {
+		$small: $mobile-vertical-space-small;
+		$medium: $mobile-vertical-space-medium;
+		$large: $mobile-vertical-space-large;
+	}
+
+	// Content sizing
+	// Reduce to compensate for increased line height in content blocks
+	$small-content: $small * $vertical-space-content-reduction;
+	$medium-content: $medium * $vertical-space-content-reduction;
+	$large-content: $large * $vertical-space-content-reduction;
+
+	// Small
+
+	.maranatha-vertical-margin-small {
+	  margin-top: $small;
+	  margin-bottom: $small;
+	}
+
+	.maranatha-vertical-padding-small {
+	  padding-top: $small;
+	  padding-bottom: $small;
+	}
+
+	.maranatha-vertical-margin-top-small {
+	  margin-top: $small;
+	}
+
+	.maranatha-vertical-padding-top-small {
+	  padding-top: $small;
+	}
+
+	.maranatha-vertical-margin-bottom-small {
+	  margin-bottom: $small;
+	}
+
+	.maranatha-vertical-padding-bottom-small {
+	  padding-bottom: $small;
+	}
+
+	// Small (Content)
+
+	.maranatha-vertical-margin-small-content {
+	  margin-top: $small-content;
+	  margin-bottom: $small-content;
+	}
+
+	.maranatha-vertical-padding-small-content {
+	  padding-top: $small-content;
+	  padding-bottom: $small-content;
+	}
+
+	.maranatha-vertical-margin-top-small-content {
+	  margin-top: $small-content;
+	}
+
+	.maranatha-vertical-padding-top-small-content {
+	  padding-top: $small-content;
+	}
+
+	.maranatha-vertical-margin-bottom-small-content {
+	  margin-bottom: $small-content;
+	}
+
+	.maranatha-vertical-padding-bottom-small-content {
+	  padding-bottom: $small-content;
+	}
+
+	// Medium
+
+	.maranatha-vertical-margin-medium {
+	  margin-top: $medium;
+	  margin-bottom: $medium;
+	}
+
+	.maranatha-vertical-padding-medium {
+	  padding-top: $medium;
+	  padding-bottom: $medium;
+	}
+
+	.maranatha-vertical-margin-top-medium {
+	  margin-top: $medium;
+	}
+
+	.maranatha-vertical-padding-top-medium {
+	  padding-top: $medium;
+	}
+
+	.maranatha-vertical-margin-bottom-medium {
+	  margin-bottom: $medium;
+	}
+
+	.maranatha-vertical-padding-bottom-medium {
+	  padding-bottom: $medium;
+	}
+
+	// Medium (Content)
+
+	.maranatha-vertical-margin-medium-content {
+	  margin-top: $medium-content;
+	  margin-bottom: $medium-content;
+	}
+
+	.maranatha-vertical-padding-medium-content {
+	  padding-top: $medium-content;
+	  padding-bottom: $medium-content;
+	}
+
+	.maranatha-vertical-margin-top-medium-content {
+	  margin-top: $medium-content;
+	}
+
+	.maranatha-vertical-padding-top-medium-content {
+	  padding-top: $medium-content;
+	}
+
+	.maranatha-vertical-margin-bottom-medium-content {
+	  margin-bottom: $medium-content;
+	}
+
+	.maranatha-vertical-padding-bottom-medium-content {
+	  padding-bottom: $medium-content;
+	}
+
+	// Large
+
+	.maranatha-vertical-margin-large {
+	  margin-top: $large;
+	  margin-bottom: $large;
+	}
+
+	.maranatha-vertical-padding-large {
+	  padding-top: $large;
+	  padding-bottom: $large;
+	}
+
+	.maranatha-vertical-margin-top-large {
+	  margin-top: $large;
+	}
+
+	.maranatha-vertical-padding-top-large {
+	  padding-top: $large;
+	}
+
+	.maranatha-vertical-margin-bottom-large {
+	  margin-bottom: $large;
+	}
+
+	.maranatha-vertical-padding-bottom-large {
+	  padding-bottom: $large;
+	}
+
+	// Large (Content)
+
+	.maranatha-vertical-margin-large-content {
+	  margin-top: $large-content;
+	  margin-bottom: $large-content;
+	}
+
+	.maranatha-vertical-padding-large-content {
+	  padding-top: $large-content;
+	  padding-bottom: $large-content;
+	}
+
+	.maranatha-vertical-margin-top-large-content {
+	  margin-top: $large-content;
+	}
+
+	.maranatha-vertical-padding-top-large-content {
+	  padding-top: $large-content;
+	}
+
+	.maranatha-vertical-margin-bottom-large-content {
+	  margin-bottom: $large-content;
+	}
+
+	.maranatha-vertical-padding-bottom-large-content {
+	  padding-bottom: $large-content;
+	}
+
+	// Misc
+
+	.maranatha-vertical-margin-medium-small-content { // headings in content
+	  margin-top: $medium-content;
+	  margin-bottom: $small-content;
+	}
+
+}

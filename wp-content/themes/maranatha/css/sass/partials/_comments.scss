@@ -1,0 +1,298 @@
+
+/*---------------------------------------------
+ * Comments Section
+ *--------------------------------------------*/
+
+#comments { // Note: #comments is hardcoded in WP core comments_popup_link(), so no prefix
+	@extend .maranatha-vertical-margin-top-large;
+}
+
+	#maranatha-comments-header {
+		@extend .maranatha-vertical-margin-bottom-medium;
+	}
+
+		#maranatha-comments-title {
+			@extend h1;
+			text-align: center;
+		}
+
+/*---------------------------------------------
+ * Comment List
+ *--------------------------------------------*/
+
+.maranatha-comments, // <ol>
+.maranatha-comments ul.children {
+	margin: 0;
+	list-style: none;
+}
+
+	// Comment or Trackback/Pingback Item
+
+	.maranatha-comment {
+		@extend .maranatha-vertical-margin-top-medium;
+		@extend .maranatha-compact-content;
+	}
+
+		// Comment Meta (Header)
+
+		.maranatha-comment-meta { // <header>
+			min-height: $comment-image-size;
+		}
+
+			// Avatar Container
+
+			.maranatha-comment-avatar {
+
+				margin-right: ct-em(24);
+				float: left;
+
+				img {
+					width: $comment-image-size;
+					height: $comment-image-size;
+					@include circle-radius($comment-image-size);
+				}
+
+			}
+
+			// Comment Title <h3>
+			// Comment Author or Trackback
+
+			.maranatha-comment-title {
+
+				margin: 0 !important;
+				color: $text-color-dark !important;
+				font-weight: normal;
+
+				a {
+					font-weight: normal;
+				}
+
+				span {
+					@extend .maranatha-light;
+				}
+
+			}
+
+			// Date
+
+			.maranatha-comment-meta {
+
+				time {
+					display: inline-block;
+					padding-top: ct-em(15);
+					font-size: 0.8em;
+					text-transform: uppercase;
+				}
+
+				a time,
+				a:hover time {
+					color: $text-color;
+				}
+
+			}
+
+				.maranatha-comment-time {
+					display: block; // line break
+					@extend .maranatha-light;
+				}
+
+			// Buttons
+
+			.maranatha-comment-buttons { // .maranatha-buttons-list
+				float: right;
+				position: relative;
+				margin-left: ct-em(20);
+				top: ct-em(-25);
+			}
+
+		// Comment Content
+
+		.maranatha-comment-content {
+			margin-top: ct-em(28);
+		}
+
+		// Moderation Note
+
+		.maranatha-comment-moderation {
+			@extend .maranatha-dark;
+		}
+
+		// Indentations
+
+		.maranatha-comment,
+		.maranatha-comment #respond {
+			margin-left: 6%;
+		}
+
+		.maranatha-comment.depth-1 { // first level flush left
+			margin-left: 0;
+		}
+
+	// Post author
+
+	.single-post .bypostauthor > article { // blog posts only
+		padding: ct-em(35) ct-em(40);
+		border-radius: $box-border-radius;
+		background-color: $bg-color-secondary;
+	}
+
+// Comment navigation
+
+#maranatha-comment-nav { // .maranatha-nav-left-right
+	@extend .maranatha-vertical-margin-top-medium;
+}
+
+/*---------------------------------------------
+ * Comment Form
+ *--------------------------------------------*/
+
+// Comment Form
+
+#respond { // hard coded by WP
+
+	position: relative;
+	top: ct-em(-8);
+	@extend .maranatha-vertical-margin-top-medium;
+	padding-bottom: ct-em(8);
+
+	li:not(:last-child) & {
+		@extend .maranatha-vertical-margin-bottom-medium;
+	}
+
+}
+
+	// Title
+
+	#reply-title {
+		@extend .maranatha-h2;
+	}
+
+	// Cancel Reply Link
+
+	#cancel-comment-reply-link { // this is within #reply-title heading so here we give it regular font
+		position: relative;
+		bottom: ct-em(5);
+		margin-left: ct-em(25);
+		font-size: 0.55em;
+		font-weight: normal !important;
+		text-transform: uppercase;
+	}
+
+	// Message above form
+
+	#respond .comment-notes,
+	#respond .logged-in-as {
+		@extend .maranatha-vertical-margin-bottom-small;
+	}
+
+	// Text Inputs
+
+	.comment-form-author,
+	.comment-form-email,
+	.comment-form-url {
+		position: relative;
+		margin: ct-em(35) 0;
+	}
+
+		#respond {
+
+			label {
+				line-height: 36px;
+				text-transform: uppercase;
+				font-size: 0.8em;
+			}
+
+			.comment-form-cookies-consent {
+
+				margin-bottom: 0;
+
+				label {
+					text-transform: none;
+					font-size: 1em;
+					line-height: 1.4;
+					padding-left: 4px;
+				}
+
+			}
+
+		}
+
+		.comment-form-comment label {
+			display: none;
+		}
+
+		#respond .required {
+			margin-left: ct-em(5);
+		}
+
+		#respond input[type=text],
+		#respond input[type=email],
+		#respond input[type=url] {
+			position: absolute;
+			left: 90px;
+			width: 260px;
+		}
+
+	// Comment Field
+
+	.comment-form-comment {
+
+		clear: left;
+
+		textarea {
+			width: 95%;
+		}
+
+	}
+
+	// Error Messages
+
+	#respond label.error {
+		@extend .maranatha-dark;
+		font-weight: normal;
+	}
+
+		// Error Message for Name, Email, URL after input
+
+		.comment-form-author label.error,
+		.comment-form-email label.error,
+		.comment-form-url label.error {
+			position: absolute;
+			left: 375px;
+			white-space: nowrap;
+		}
+
+		// Error Message for Comment
+
+		p.comment-form-comment label.error {
+			position: relative;
+			top: 0;
+			display: block;
+		}
+
+	// Allowed tags note
+
+	.form-allowed-tags {
+		display: none;
+	}
+
+	// Submit Button
+
+	#respond .form-submit {
+
+		margin-top: 1.8em;
+
+		.logged-in & {
+			margin-top: 0 !important;
+		}
+
+		margin-bottom: 0;
+
+	}
+
+// Comments closed message (in place of add form if comments have already been made)
+
+#maranatha-comments-closed {
+	@extend .maranatha-vertical-margin-top-medium;
+	@extend .maranatha-dark;
+}

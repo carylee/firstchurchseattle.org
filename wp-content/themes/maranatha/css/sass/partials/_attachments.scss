@@ -1,0 +1,47 @@
+
+.attachment {
+
+	& .maranatha-entry-full > *:last-child {
+		margin-bottom: 0;
+	}
+
+
+	.maranatha-entry-content {
+		@extend .maranatha-vertical-margin-top-medium;
+	}
+
+	// Back button max 100%  and centered since there is none on right
+
+	.maranatha-nav-left-right {
+		@extend .maranatha-vertical-margin-top-medium;
+	}
+
+		.maranatha-nav-left { // use in .maranatha-nav-left-right
+			width: 100%;
+			position: relative;
+			top: -5px;
+			text-align: center;
+		}
+
+}
+
+.maranatha-attachment-image {
+
+	@extend .maranatha-vertical-margin-bottom-medium;
+	@extend .maranatha-enlarged; // make caption as big as if was in content area
+
+	.wp-caption {
+		max-width: none;
+		margin: 0;
+	}
+
+	.wp-caption-text {
+		@extend .maranatha-centered-small;
+		margin-top: ct-em(15);
+	}
+
+}
+
+.maranatha-attachment-button {
+	text-align: center;
+}

@@ -29,6 +29,9 @@
 /wp-content/*
 !/wp-content/themes/
 /wp-content/themes/*
+# maranatha: vendored parent theme — tracked to pin the version, but NEVER edited
+# directly. All theme changes go in maranatha-child. See CLAUDE.md.
+!/wp-content/themes/maranatha/
 !/wp-content/themes/maranatha-child/
 !/wp-content/plugins/
 /wp-content/plugins/*

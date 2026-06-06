@@ -1,0 +1,60 @@
+
+/*---------------------------------------------
+ * Full / Single
+ *--------------------------------------------*/
+
+#maranatha-person-header-content {
+	display: table;
+	margin: 0 auto;
+}
+
+	#maranatha-person-image-column {
+		display: table-cell;
+		vertical-align: top;
+	}
+
+		#maranatha-person-image {
+
+			$size: ct-em(120);
+
+			width: $size;
+
+			@include circle-radius( $size );
+
+			img {
+				width: ct-em(120);
+				height: auto;
+				@include circle-radius( $size );
+			}
+
+		}
+
+	#maranatha-person-meta {
+
+		display: table-cell;
+		vertical-align: middle;
+
+		.maranatha-person-has-image & {
+			padding-left: ct-em(40);
+			padding-top: ct-em(4);
+		}
+
+	}
+
+/*---------------------------------------------
+ * Short / Multiple
+ *--------------------------------------------*/
+
+.maranatha-person-short-image {
+
+	$size: ct-em(160);
+
+	@include circle-radius( $size );
+
+	img {
+		width: $size;
+		height: auto;
+		@include circle-radius( $size );
+	}
+
+}

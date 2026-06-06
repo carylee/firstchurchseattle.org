@@ -1,0 +1,18 @@
+/**
+ * Admin Widgets
+ *
+ * Appearance > Widgets and Customizer's widget controls both use these styles.
+ * Also see framework/css/admin/admin-widgets.css
+ */
+
+/* Show video field only on first CT Section widget (http://stackoverflow.com/a/8539107) */
+
+#ctcom-home-sections > .widget .ctfw-widget-field-video {
+    display: block;
+}
+
+#ctcom-home-sections > .widget ~ .widget .ctfw-widget-field-video,
+#sub-accordion-section-sidebar-widgets-ctcom-home-sections .widget-rendered:not(.first-widget) .ctfw-widget-field-video /* Customizer */
+{
+    display: none;
+}

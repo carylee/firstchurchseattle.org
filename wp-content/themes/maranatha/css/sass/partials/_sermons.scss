@@ -1,0 +1,339 @@
+/*---------------------------------------------
+ * Full / Single
+ *--------------------------------------------*/
+
+// Media Container
+
+#maranatha-sermon-media {
+	@extend .maranatha-vertical-margin-bottom-medium;
+}
+
+	// Media Buttons
+
+	#maranatha-sermon-buttons {
+		@extend .maranatha-vertical-margin-top-small;
+		text-align: center;
+	}
+
+		#maranatha-sermon-download-button a.maranatha-dropdown-open {
+			@extend .maranatha-circle-button-selected;
+		}
+
+// Save Button Dropdown
+
+#maranatha-sermon-download-dropdown {
+
+	width: ct-em(220);
+	margin-left: ct-em(-42);
+	margin-top: ct-em(-20);
+
+	.maranatha-dropdown-panel {
+		padding-right: ct-em(20);
+		text-transform: uppercase;
+		font-size: 0.85em;
+	}
+
+		ul {
+			margin: 0;
+			list-style: none;
+			line-height: 2;
+		}
+
+			.el { // icon
+				display: inline-block;
+				width: ct-em(24);
+			}
+
+}
+
+	.maranatha-sermon-download-dropdown-filesize {
+		@extend .maranatha-light;
+		float: right;
+	}
+
+/*---------------------------------------------
+ * Sermon Indexes
+ *--------------------------------------------*/
+
+// Index Container
+
+.maranatha-sermon-index {
+
+	@extend .maranatha-vertical-margin-top-medium;
+	font-size: $enlarged-font-size-reverse;
+
+	> * {
+
+		margin-top: 0;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+}
+
+	// Header Buttons
+	#maranatha-sermon-index-header {
+
+		@extend .maranatha-vertical-margin-bottom-medium;
+		text-align: center;
+
+		ul {
+			margin-top: 0;
+		}
+
+	}
+
+	// No Items
+
+	#maranatha-sermon-index-none {
+		@extend .maranatha-enlarged;
+		text-align: center;
+	}
+
+// List Items (Sermons, Speakers, etc.)
+
+.maranatha-sermon-index-list { // <ul>
+
+	@extend .maranatha-list;
+
+	$top-level-margin: ct-em(20);
+	$sub-level-margin: ct-em(8);
+
+	margin-bottom: (-$top-level-margin) !important;
+	line-height: 1.3;
+
+	// Second and third level margins
+
+	ul {
+
+		margin-top: $sub-level-margin;
+
+		ul {
+			margin-left: ct-em(20);
+		}
+
+	}
+
+	// Top-level Item
+
+	> li {
+
+		padding-bottom: $top-level-margin;
+
+		// Link bigger
+
+		> a {
+			@extend .maranatha-h4;
+		}
+
+		// Count lower
+
+		> .maranatha-list-item-count {
+			top: ct-em(6);
+		}
+
+	}
+
+	// All Items
+
+	li {
+
+		// Second level or deeper
+
+		li {
+
+			// Less margin
+
+			margin-bottom: $sub-level-margin;
+
+			// Second-level links smaller
+
+			a {
+				font-size: 1em;
+			}
+
+		}
+
+	}
+
+	// Three Columns
+
+	&.maranatha-sermon-index-list-three-columns {
+
+		$columns: 3;
+		$column-gap: ct-em(100);
+
+		-moz-column-count: $columns;
+		-webkit-column-count: $columns;
+		column-count: $columns;
+		-moz-column-gap: $column-gap;
+		-webkit-column-gap: $column-gap;
+		column-gap: $column-gap;
+
+	}
+
+	// Two Columns
+
+	&.maranatha-sermon-index-list-two-columns {
+
+		$columns: 2;
+		$column-gap: ct-em(70);
+
+		-moz-column-count: $columns;
+		-webkit-column-count: $columns;
+		column-count: $columns;
+		-moz-column-gap: $column-gap;
+		-webkit-column-gap: $column-gap;
+		column-gap: $column-gap;
+
+	}
+
+}
+
+// Sermon Books
+
+$books-bottom-margin: ct-em(50);
+
+#maranatha-sermon-books-list {
+	margin-bottom: (-$books-bottom-margin);
+}
+
+.maranatha-sermon-books-testament { // <section>
+
+	$column-gap: 10%;
+
+	display: inline-block;
+	width: 49.5% - ($column-gap / 2);
+	margin-bottom: $books-bottom-margin;
+	vertical-align: top;
+
+	&:nth-child(odd) {
+		margin-right: $column-gap;
+	}
+
+	h2 {
+		margin-top: 0;
+		text-align: center;
+	}
+
+	ul {
+
+		@extend .maranatha-enlarged;
+
+		$columns: 2;
+		$column-gap: ct-em(60);
+
+		-moz-column-count: $columns;
+		-webkit-column-count: $columns;
+		column-count: $columns;
+		-moz-column-gap: $column-gap;
+		-webkit-column-gap: $column-gap;
+		column-gap: $column-gap;
+
+		padding-bottom: ct-em(12); // workaround for when there is only one item, it gets cut off in IE / Edge
+
+	}
+
+	.maranatha-list-item-count {
+		font-size: $enlarged-font-size-reverse;
+	}
+
+}
+
+// Sermon Dates
+
+#maranatha-sermon-dates-list {
+
+	@extend .maranatha-enlarged;
+
+	$margin: ct-em(15);
+	text-align: center;
+
+	ul {
+		margin: 0;
+	}
+
+	li {
+		margin: 0 $margin;
+		display: inline-block;
+		list-style: 0;
+		font-size: $enlarged-font-size-reverse;
+	}
+
+	a {
+		@extend .maranatha-h4;
+	}
+
+}
+
+	.maranatha-sermon-dates-count {
+		position: relative;
+		top: ct-em(-1);
+		@extend .maranatha-light;
+		margin-left: ct-em(5);
+		font-size: 0.9em;
+	}
+
+// Sermon Series
+
+#maranatha-sermon-series-list {
+
+	$margin-px: 50;
+	$margin: ct-em($margin-px);
+
+	text-align: center;
+	@extend .maranatha-enlarged;
+
+	ul {
+		margin-top: 0;
+		margin-bottom: -$margin + 0.5em;
+		margin-left: ct-em(-$margin-px / 2);
+		margin-right: ct-em(-$margin-px / 2);
+		@extend .maranatha-clearfix;
+	}
+
+		li {
+
+			display: inline-block;
+			width: 27%;
+			min-width: 250px;
+			margin-bottom: $margin - 0.6em; // reduce to account for line height
+			margin-left: ct-em($margin-px / 2);
+			margin-right: ct-em($margin-px / 2);
+			list-style: none;
+			vertical-align: top;
+			line-height: 1.3;
+
+		}
+
+			a {
+				display: inline-block;
+				@extend .maranatha-h5;
+				line-height: 1.2;
+			}
+
+			.maranatha-sermon-series-dates,
+			.maranatha-sermon-series-count {
+				margin-top: ct-em(5);
+				font-size: 0.85em;
+			}
+
+			.maranatha-sermon-series-dates {
+				@extend .maranatha-dark;
+			}
+
+			.maranatha-sermon-series-count {
+				@extend .maranatha-light;
+			}
+
+}
+
+/*---------------------------------------------
+ * Embeds
+ *--------------------------------------------*/
+
+.sermonnet .fluid-width-video-wrapper {
+   padding-top: 0 !important;
+}

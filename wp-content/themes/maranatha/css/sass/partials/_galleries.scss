@@ -1,0 +1,150 @@
+
+/*---------------------------------------------
+ * Gallery (Single)
+ *--------------------------------------------*/
+
+// Note that these classes also used for showing cover thumbnails on Galleries template
+
+// Gallery Container
+
+.gallery {
+
+	@extend .maranatha-clearfix;
+	@extend .maranatha-vertical-margin-medium-content; // automatically responsive when extending
+
+	position: relative;
+	font-size: $enlarged-font-size-reverse;
+
+}
+
+	// Thumbnail Container
+
+	.gallery-item {
+		display: block;
+		position: relative;
+		margin: 0;
+		float: left; // fills vertical gaps in some browsers
+	}
+
+		.gallery-icon {
+
+			@extend .maranatha-hover-image;
+			overflow: hidden; // prevent most lines between images (see img max-width)
+
+			a {
+				display: block; // helps with spacing, especially with regard to matchHeight
+			}
+
+				img {
+					display: block; // fixes line at top of image at certain screen sizes
+					border-radius: 0;
+					max-width: calc( 100% + 2px ); // prevent most lines between images (see .gallery-icon overflow)
+				}
+
+		}
+
+		// Thumbnail caption
+
+		.gallery-caption {
+
+			$right-margin: 10%;
+
+			position: absolute;
+			left: 0;
+			bottom: 12%;
+			max-width: 100% - $right-margin;
+			padding: ct-em(11) ct-em(13) ct-em(12) ct-em(10);
+			line-height: 1;
+			border-top-right-radius: ct-em(3);
+			border-bottom-right-radius: ct-em(3);
+			opacity: 0;
+			font-size: 0.9em;
+			font-style: italic;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis; // ... before overflows
+			background-color: rgba( $bg-color, 0.8 );
+			color: $text-color;
+			cursor: pointer;
+			backface-visibility: hidden;
+
+			// Show on hover
+
+			.gallery-item:hover & {
+				opacity: 1;
+			}
+
+		}
+
+		// No caption for very small thumbnails, galleries in widgets
+
+		.gallery-columns-6 .gallery-caption,
+		.gallery-columns-7 .gallery-caption,
+		.gallery-columns-8 .gallery-caption,
+		.gallery-columns-9 .gallery-caption,
+		.maranatha-widget .gallery-caption {
+			display: none;
+		}
+
+	// Multi-column widths
+
+	.gallery-columns-1 {
+
+		text-align: center;
+
+		.gallery-item {
+			display: inline-block;
+			width: auto;
+			margin-left: auto;
+			margin-right: auto;
+			float: none;
+		}
+
+	}
+
+	.gallery-columns-2 .gallery-item {
+		max-width: (100% / 2);
+	}
+
+	.gallery-columns-3 .gallery-item {
+		max-width: (100% / 3);
+	}
+
+	.gallery-columns-4 .gallery-item {
+		max-width: (100% / 4);
+	}
+
+	.gallery-columns-5 .gallery-item {
+		max-width: (100% / 5);
+	}
+
+	.gallery-columns-6 .gallery-item {
+		max-width: (100% / 6);
+	}
+
+	.gallery-columns-7 .gallery-item {
+		max-width: (100% / 7);
+	}
+
+	.gallery-columns-8 .gallery-item {
+		max-width: (100% / 8);
+	}
+
+	.gallery-columns-9 .gallery-item {
+		max-width: (100% / 9);
+	}
+
+/*---------------------------------------------
+ * Galleries (Multiple)
+ *--------------------------------------------*/
+
+.maranatha-galleries-list {
+
+	font-size: $enlarged-font-size-reverse;
+
+	img {
+		display: block; // fixes line at top of image at certain screen sizes
+		border-radius: 0;
+	}
+
+}

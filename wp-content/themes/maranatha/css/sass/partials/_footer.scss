@@ -1,0 +1,250 @@
+
+/*---------------------------------------------
+ * Footer Container
+ *--------------------------------------------*/
+
+#maranatha-footer {
+	z-index: 0; // keep footer above video on homepage so clickable
+	position: relative; // for making z-index work in IE9 - IE11
+}
+
+/*---------------------------------------------
+ * Footer at Bottom
+ *--------------------------------------------*/
+
+// Helps footer stick to bottom in modern browsers
+
+body:not(.mce-content-body) { // not on editor style
+	display: flex;
+	-webkit-flex-direction: column;
+	-ms-flex-direction: column;
+	flex-direction: column;
+	min-height: 100vh;
+	content: 'viewport-units-buggyfill; min-height: 100vh;';
+}
+
+#maranatha-content {
+	-webkit-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+}
+
+// Internet Explorer hack
+// Flexbox is broken in IE11: https://connect.microsoft.com/IE/feedback/details/802625/min-height-and-flexbox-flex-direction-column-dont-work-together-in-ie-10-11-preview
+// Remove it in IE with the media query hack. Otherwise content area is collapsed. http://keithclark.co.uk/articles/moving-ie-specific-css-into-media-blocks/
+@media screen\0 { // IE9, IE10, IE11, Phone (not Edge12)
+
+	body:not(.mce-content-body) { // not on editor style
+		display: block;
+		min-height: 0;
+	}
+
+	#maranatha-content {
+		-ms-flex: none;
+		flex: none;
+	}
+
+}
+
+/*---------------------------------------------
+ * Footer Widgets
+ *--------------------------------------------*/
+
+#maranatha-footer-widgets-row {
+
+  	@extend .maranatha-vertical-padding-medium;
+
+	min-height: 300px;
+
+	background-color: $bg-color-secondary;
+
+	// Last homepage slide is light colored, so make footer widget BG contrast with it
+
+	&.maranatha-footer-widgets-row-light {
+		background-color: $bg-color;
+	}
+
+}
+
+	#maranatha-footer-widgets {
+
+		$spacing: 6%;
+
+		@extend .maranatha-clearfix;
+		margin-right: -$spacing;
+
+		aside {
+
+			display: block;
+			float: left;
+			margin-right: $spacing;
+			width: 33.333% - $spacing;
+			line-height: $line-height-content;
+
+			> *:first-child {
+				margin-top: 0;
+			}
+
+			> *:last-child {
+				margin-bottom: 0;
+			}
+
+			h2 {
+				@extend .maranatha-h3;
+			}
+
+		}
+
+	}
+
+/*---------------------------------------------
+ * Footer Map
+ *--------------------------------------------*/
+
+#maranatha-footer {
+
+	.maranatha-map-section,
+	#maranatha-map-section-canvas {
+		max-height: 450px;
+	}
+
+}
+
+/*---------------------------------------------
+ * Footer Icons / Notice
+ *--------------------------------------------*/
+
+#maranatha-footer-icons-notice {
+
+	.maranatha-footer-has-icons & {
+		@extend .maranatha-vertical-padding-medium;
+	}
+
+	.maranatha-footer-no-icons & { // notice only
+		@extend .maranatha-vertical-padding-small;
+	}
+
+	& > *:nth-child(2) {
+		@extend .maranatha-vertical-margin-top-small;
+	}
+
+}
+
+	#maranatha-footer-icons {
+
+		.maranatha-list-icons {
+			font-size: 2em;
+			text-align: center;
+		}
+	}
+
+	#maranatha-footer-notice {
+		font-size: 0.85em;
+		text-align: center;
+	}
+
+/*---------------------------------------------
+ * Footer Stickies
+ *--------------------------------------------*/
+
+// Latest events, comments, etc.
+
+#maranatha-stickies { // hidden when scroll to footer (or top of home) or under 1024 (see media queries)
+	display: none;
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	z-index: 1000;
+}
+
+	#maranatha-stickies-inner {
+
+		position: relative;
+
+		> aside {
+			position: absolute;
+			bottom: 0;
+			padding: ct-em(17) ct-em(20);
+			background-color: $bg-color-stickies;
+			font-size: 0.8em;
+			text-transform: uppercase;
+			line-height: 1.3;
+		}
+
+	}
+
+		// Left Sticky (posts or free content)
+
+		#maranatha-stickies-left {
+			left: 0;
+			@include box( 0 $box-border-radius 0 0 );
+		}
+
+			// Posts (events, sermons, etc.)
+
+			.maranatha-stickies-left-item {
+
+				margin-right: ct-em(18);
+				display: inline-block;
+
+				&:last-child {
+					margin-right: 0;
+				}
+
+			}
+
+				/* Date */
+
+				.maranatha-stickies-left-item-date {
+					padding-right: ct-em(10);
+					color: $text-color-light;
+				}
+
+			// Custom Content
+
+			.maranatha-stickies-left-type-content {
+				max-width: 60%; // dont let custom content go too long; wrap it
+			}
+
+		// Right Sticky (comments)
+
+		#maranatha-stickies-right {
+
+			right: 0;
+			@include box( $box-border-radius 0 0 0 );
+
+			ul {
+				list-style: none;
+				margin: 0;
+			}
+
+			li {
+
+				display: inline-block;
+				margin-right: ct-em(16);
+
+				&:last-child {
+					margin-right: 0;
+				}
+
+			}
+
+			// Icon
+
+			.el {
+
+				padding-right: ct-em(5);
+				position: relative;
+
+				&.el-comment {
+					top: ct-em(2);
+					font-size: 1.1em;
+				}
+
+				&.el-edit {
+					top: ct-em(1);
+				}
+
+			}
+
+		}

@@ -1,0 +1,35 @@
+
+// These affect the admin area's content editor when adding or editing a post.
+// This is compiled into style.css which is loaded in its entirety into the editor.
+// See maranatha_add_editor_style() for how Customizer fonts and colors are added to editor's <head>.
+
+.mce-content-body {
+
+	margin: ct-em(30);
+	font-size: 115% !important; // match actual frontend size
+	line-height: 1.9 !important;
+
+	> * {
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+	}
+
+	.wp-caption-text,
+	.wp-caption-dd {
+		font-style: italic;
+		line-height: 1.5;
+		color: #777;
+	}
+
+	.wp-caption-dd {
+		padding-top: 0.5em;
+	}
+
+}

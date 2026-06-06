@@ -1,0 +1,192 @@
+
+//---------------------------------------------
+// Colors
+//---------------------------------------------
+
+// Text Color
+$text-color: #444;					// Text over content (website background color)
+$text-color-light: #777;			// Light text over content
+$text-color-dark: #000;				// Dark text over content
+$text-color-on-main: #fff; 			// Text over Main Color (Customizer) as background
+$text-color-on-dark: #fff; 			// Text over Dark Background
+$text-color-on-light: #000; 		// Text over Light Background
+$text-color-on-menu-hover: #000; 	// Link color on menu hover (also affects arrow)
+$text-color-heading: #000;
+$form-text-color: $text-color;
+
+// Background Colors
+// Note: Main Color background is set via Customizer and output in <head>
+$bg-color: #fff; 					// Content Background (website background) -- contrast with $bg-color-box
+$bg-color-dark: #2b2b2b; 			// Dark Background (homepage sections and page banners)
+$bg-color-light: #fff; 				// Light Background (homepage sections and page banners)
+$bg-color-secondary: #f7f7f7;		// Footer widgets row, blockquote background, etc.
+$bg-color-stickies: #fff;			// Footer Stickies
+$bg-color-box: #fff;				// Box Background (dropdowns, tooltips, etc.)
+
+// Rectangular Button on Content Background
+// Border and hover background color output in <head> per Customizer's Link Color
+$button-hover-text-color: #fff;
+
+// Circle Button on Content Background
+// Border and hover background color output in <head> per Customizer's Link Color
+$circle-button-hover-text-color: #fff;
+
+// Circle Button on Main Background (Customizer color)
+$circle-button-border-color-on-main: #fff;
+$circle-button-hover-bg-color-on-main: #fff; 	// fill circle on hover
+$circle-button-hover-text-color-on-main: #000;
+
+// Circle Button on Dark Background
+$circle-button-border-color-on-dark: #fff;
+$circle-button-hover-bg-color-on-dark: #fff; 	// fill circle on hover
+$circle-button-hover-text-color-on-dark: #000;
+
+// Circle Button on Light Background
+$circle-button-border-color-on-light: #000;
+$circle-button-hover-bg-color-on-light: #000; 	// fill circle on hover
+$circle-button-hover-text-color-on-light: #fff;
+
+// Text Selection Color
+// This is when user selects text on a page
+$text-selection-color: #000;
+$text-selection-bg-color: #e5e5e5;
+
+//---------------------------------------------
+// Layout
+//---------------------------------------------
+
+$max-width: 1170px; 					// max width for any content (used on centered content blocks and media queries)
+$max-width-medium: 980px;				// homepage content, extended blockquotes, videos, etc.
+$max-width-small: 700px;				// page/post content (comfortable reading w/no sidebar)
+
+$viewport-padding: 6%; 					// horizontal space between contents and edge of viewport on smaller screens
+$viewport-padding-reverse: $viewport-padding + 1%; // use more when reversing, because width is coming from inner element that is not as wide
+
+$logo-max-width: 300px; 				// update in images.php too
+$logo-max-height: 50px;					// update in images.php too
+$logo-max-height-small: 30px; 			// when scrolling or on mobile; update in images.php too
+
+//---------------------------------------------
+// Typography
+//---------------------------------------------
+
+$entry-font-size: 1em;					// font size for entries (excerpts, comments) (aim for under 80 characters per line for readability)
+$enlarged-font-size: 1.15em;			// increased font size (about 20pt) for main article content (under 80 chars per line for readability)
+$enlarged-font-size-reverse: 0.863em;	// what to reverse enlarged font size with
+
+$line-height: 1.5; 						// body (tighter buttons, menu wrapping, etc.)
+$line-height-content: 1.8;				// content in posts, comments, widgets
+
+//---------------------------------------------
+// Borders
+//---------------------------------------------
+
+// Boxes
+$box-border-radius: ct-em(5) !default; // hover boxes; can be used outside of box() mixin
+
+// Images
+$image-border-radius: ct-em(4);
+
+//---------------------------------------------
+// Spacing
+//---------------------------------------------
+
+// Vertical Space
+// See _layout.scss for explanation
+// Note each size is 70% of the next larger size
+
+$vertical-space-small-px: 50;	// space between paragraphs and blocks in content (like paragraph, bottom of headings, blockquote)
+$vertical-space-medium-px: 70;	// space between major elements in a section (like top of heading, or comments)
+$vertical-space-large-px: 100;	// space between sections (like article and comment sections)
+
+$vertical-space-small: ct-rem($vertical-space-small-px);
+$vertical-space-medium: ct-rem($vertical-space-medium-px);
+$vertical-space-large: ct-rem($vertical-space-large-px);
+
+$mobile-vertical-space-reduction: 0.75;	// reduce to this much on mobile
+$mobile-vertical-space-small: ct-rem($vertical-space-small-px * $mobile-vertical-space-reduction);
+$mobile-vertical-space-medium: ct-rem($vertical-space-medium-px * $mobile-vertical-space-reduction);
+$mobile-vertical-space-large: ct-rem($vertical-space-large-px * $mobile-vertical-space-reduction);
+
+$vertical-space-content-reduction: 0.7; // for content, reduce size to this to compensate for line height
+
+//---------------------------------------------
+// Buttons
+//---------------------------------------------
+
+// Rectangular Button
+
+$button-height: 3.07em;
+$button-margin: 1em;
+$button-margin-half: $button-margin / 2;
+$button-font-size: 0.85em;
+
+// Circle Button
+
+$circle-button-size-px: 116;
+$circle-button-size: ct-rem($circle-button-size-px);
+$circle-button-margin-px: 24;
+$circle-button-margin: ct-rem($circle-button-margin-px);
+$circle-button-margin-half: ct-rem($circle-button-margin-px / 2);
+$circle-button-side-padding-px: 15;
+$circle-button-side-padding: ct-rem($circle-button-side-padding-px); // so long text doesn't go up against border
+$circle-button-font-size: 0.95em;
+$circle-button-icon-size: 3em;
+$circle-button-icon-with-text-size: 1.4em;
+
+$mobile-circle-button-percent: 0.8; // reduce to this on mobile
+$mobile-circle-button-size: ct-rem($circle-button-size-px * $mobile-circle-button-percent);
+$mobile-circle-button-margin-px: $circle-button-margin-px * $mobile-circle-button-percent;
+$mobile-circle-button-margin: ct-rem($mobile-circle-button-margin-px);
+$mobile-circle-button-margin-half: ct-rem($mobile-circle-button-margin-px / 2);
+$mobile-circle-button-side-padding: ct-rem($circle-button-side-padding-px * $mobile-circle-button-percent); // so long text doesn't go up against border
+$mobile-circle-button-font-size: $circle-button-font-size * $mobile-circle-button-percent;
+$mobile-circle-button-icon-size: $circle-button-icon-size * $mobile-circle-button-percent;
+
+// Circle Button Small
+
+$circle-button-small-size-px: 60;
+$circle-button-small-size: ct-rem($circle-button-small-size-px);
+$circle-button-small-margin-px: 15;
+$circle-button-small-margin: ct-rem($circle-button-small-margin-px);
+$circle-button-small-margin-half: ct-rem($circle-button-small-margin-px / 2);
+$circle-button-small-icon-size: 1.7em;
+
+$mobile-circle-button-small-percent: $mobile-circle-button-percent; // reduce to this on mobile
+$mobile-circle-button-small-size: ct-rem($circle-button-small-size-px * $mobile-circle-button-small-percent);
+$mobile-circle-button-small-margin-px: $circle-button-small-margin-px * $mobile-circle-button-small-percent;
+$mobile-circle-button-small-margin: ct-rem($mobile-circle-button-small-margin-px);
+$mobile-circle-button-small-margin-half: ct-rem($mobile-circle-button-small-margin-px / 2);
+$mobile-circle-button-small-icon-size: $circle-button-small-icon-size * $mobile-circle-button-small-percent;
+
+//---------------------------------------------
+// Author Box
+//---------------------------------------------
+
+$author-box-avatar-size-px: 110;
+$author-box-avatar-size: ct-em($author-box-avatar-size-px);
+$mobile-author-box-avatar-size-px: $author-box-avatar-size-px * 0.7;
+$mobile-author-box-avatar-size: ct-em($mobile-author-box-avatar-size-px);
+
+//---------------------------------------------
+// Homepage
+//---------------------------------------------
+
+$homepage-header-offset: ct-em(70); 		// margin on first homepage section to offset the header bar
+$mobile-homepage-header-offset: ct-em(20); 	// top is smaller on mobile + the browser's controls take space
+
+//---------------------------------------------
+// Comments
+//---------------------------------------------
+
+$comment-image-size-px: 70;
+$comment-image-size: ct-em($comment-image-size-px);
+
+//---------------------------------------------
+// Admin Bar
+//---------------------------------------------
+
+$admin-bar-height: 32px;					// offset menu bar, homepage content and arrow by this much
+$admin-bar-mobile-height: 46px;				// use this offset for smaller screens (big icons, no text)
+$admin-bar-mobile-screen-width: 782px; 		// screen width to use mobile height on
+$admin-bar-hidden-screen-width: 600px;		// screen width that admin bar is hidden at
