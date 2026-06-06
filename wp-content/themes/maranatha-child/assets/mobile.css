@@ -25,6 +25,21 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Hide post author bylines
+ *
+ * The site never attributes posts to a person, and the raw author was leaking
+ * internal account names ("MCP Editor", "firstchurch") into the public byline.
+ * The author lives in its own <li> on both the single-post meta
+ * (.maranatha-entry-full-author) and the listing-card meta
+ * (.maranatha-entry-short-author), so date + category are untouched.
+ * Cross-viewport.
+ * --------------------------------------------------------------------- */
+.maranatha-entry-full-meta > .maranatha-entry-full-author,
+.maranatha-entry-short-meta > .maranatha-entry-short-author {
+	display: none;
+}
+
+/* -------------------------------------------------------------------------
  * Announcement / Featured CTA cards
  *
  * Rendered by the [fcs_announcements] shortcode (inc/announcements-cta.php),
