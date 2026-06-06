@@ -1,0 +1,80 @@
+name: Deploy to production
+
+# Push half of the sync boundary, automated: rsync this repo's tracked code to
+# HostGator via ops/deploy.sh (the same script you run locally).
+#
+# Gating: this runs only after the "CI" workflow finishes SUCCESSFULLY on main
+# (so a red build never deploys), or on manual dispatch. Combine with branch
+# protection on main (require CI to pass before merge) for end-to-end safety.
+#
+# Required configuration (Settings → Secrets and variables → Actions, and
+# Settings → Environments → "production"):
+#   secret  DEPLOY_SSH_KEY   private key authorized for the HostGator account
+#   secret  DEPLOY_HOST      HostGator hostname/IP for the firstchurch account
+#   secret  DEPLOY_USER      SSH username
+#   secret  DEPLOY_PORT      SSH port (optional, defaults to 22)
+# Add required reviewers to the "production" environment for a manual approval
+# gate before each deploy. Full notes: ops/docs/ci-cd.md.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (rsync --dry-run, no changes pushed)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: rsync to HostGator
+    runs-on: ubuntu-latest
+    # Skip auto-runs where CI failed; always allow manual dispatch.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Deploy the exact commit CI validated (auto), or the dispatched ref (manual).
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # deploy.sh connects via the `firstchurch` host alias, so define it here.
+          {
+            echo "Host firstchurch"
+            echo "  HostName $DEPLOY_HOST"
+            echo "  User $DEPLOY_USER"
+            echo "  Port $DEPLOY_PORT"
+            echo "  IdentityFile ~/.ssh/deploy_key"
+            echo "  IdentitiesOnly yes"
+            echo "  StrictHostKeyChecking accept-new"
+          } > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "::notice::Dry run — no changes will be pushed."
+            ops/deploy.sh -n
+          else
+            ops/deploy.sh
+          fi
