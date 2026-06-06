@@ -24,7 +24,8 @@ even though the working tree is ~6 GB. The detailed boundary is in
 
 ## Quickstart
 
-**Prereqs:** OrbStack (Docker provider) + `ddev` + `mkcert` (declared in home-manager).
+**Prereqs:** a Docker provider (OrbStack on macOS; native Docker on Linux) + `ddev` +
+`mkcert`.
 
 ```bash
 mkcert -install            # one-time, for trusted local HTTPS
@@ -63,6 +64,11 @@ ddev pull-prod -n          # dry run
 ddev pull-prod --db-only   # or --files-only
 ```
 
+The pull deliberately keeps the local mirror lean: `ops/sync/pull-exclude.txt` also skips
+bulky media the dev box doesn't need — regenerated `-WxH` thumbnails, videos, and older
+PDFs (these stay on prod, fully re-pullable). Rebuild thumbnails locally on demand with
+`ddev wp media regenerate`.
+
 ---
 
 ## How to work on the site
@@ -99,6 +105,7 @@ firstchurchseattle.org/                 ← git repo + DDEV project
 ├── wp-content/
 │   ├── themes/maranatha-child/         ← TRACKED  — our child theme
 │   ├── plugins/firstchurch-connection-card/  ← TRACKED — website → Breeze form bridge
+│   ├── plugins/firstchurch-breeze-forms/      ← TRACKED — [breeze_form] shortcode
 │   ├── mu-plugins/firstchurch-mcp-abilities.php, sso.php  ← TRACKED
 │   └── …core / uploads / third-party…  ← mirrored from prod, gitignored
 ├── bulletin/index.php                  ← TRACKED (web bulletin server); *.pdf / *.html mirrored
@@ -111,7 +118,8 @@ firstchurchseattle.org/                 ← git repo + DDEV project
 | Path | What it is |
 |---|---|
 | `wp-content/themes/maranatha-child/` | Child theme of [Maranatha](https://churchthemes.com/themes/maranatha) — mobile UX, layout polish, the `/worship/live/` template, announcements CTA. See its [README](./wp-content/themes/maranatha-child/README.md). |
-| `wp-content/plugins/firstchurch-connection-card/` | Connection-card form on the live site, bridged to the church's Breeze ChMS (form 320238). |
+| `wp-content/plugins/firstchurch-connection-card/` | Connection-card form on the live site, bridged to the church's Breeze ChMS (form 320238) — native in-theme rendering + submission ("Mode 3"). |
+| `wp-content/plugins/firstchurch-breeze-forms/` | Surfaces any Breeze form via the `[breeze_form]` shortcode — a themed button or a responsive embed, pointing at the public Breeze URL (no credentials, no render-time calls). See its [README](./wp-content/plugins/firstchurch-breeze-forms/README.md). |
 | `wp-content/mu-plugins/firstchurch-mcp-abilities.php` | The site's MCP server — content CRUD (events, sermons, announcements, posts, pages, media, redirects) for AI agents. |
 | `wp-content/mu-plugins/sso.php` | Single sign-on glue. |
 | `bulletin/index.php` | The web-bulletin server at `/bulletin`. |
@@ -155,11 +163,31 @@ The `ddev pull-prod` command itself lives at `.ddev/commands/host/pull-prod`.
 
 ## Local dev wiring (DDEV)
 
-- Provider **OrbStack**; `php=8.3`, `webserver=apache-fpm` (HostGator parity),
-  `database=mariadb:10.11`, `performance_mode=none` (direct mount).
+- Docker provider **OrbStack** (macOS) or native Docker (Linux); `php=8.3`,
+  `webserver=apache-fpm` (HostGator parity), `database=mariadb:10.11`,
+  `performance_mode=none` (direct mount).
 - DDEV manages `wp-config.php`; the `wpqg_` table prefix comes from
   `web_environment: DB_PREFIX=wpqg_`; URLs rewrite to `*.ddev.site` at runtime (no DB
   search-replace).
+
+### Sharing the local site over Tailscale
+
+The [`atj4me/ddev-tailscale-router`](https://github.com/atj4me/ddev-tailscale-router) add-on
+(committed under `.ddev/`) makes the running mirror reachable on your tailnet at
+`https://<project>.<your-tailnet>.ts.net` — handy for previewing on a phone or sharing with
+others, without exposing the box publicly. `tailscaled` runs *inside* the web container, so
+there's no host install.
+
+```bash
+export TS_AUTHKEY=tskey-auth-…    # a Tailscale auth key, in your shell env (never committed)
+ddev tailscale launch            # authenticate + share, open the .ts.net URL
+ddev tailscale stop              # stop sharing
+```
+
+The auth key is read from `TS_AUTHKEY` at start time and only ever lands in DDEV's gitignored
+generated compose — keep it out of tracked files. A `ddev stop` logs the node out, so re-run
+`ddev tailscale launch` after each start. If your DDEV router ports are remapped off the
+defaults, share with an explicit internal port: `ddev tailscale share --port=80`.
 
 ---
 
