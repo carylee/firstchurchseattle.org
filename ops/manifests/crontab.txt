@@ -7,3 +7,4 @@
 #           day of week   0-7 (0 or 7 is Sun, or use names)
 */15 * * * * /usr/local/bin/php /usr/local/bin/wp --path=/home3/seattle1/public_html cron event run --due-now >/dev/null 2>&1
 */30 * * * * /usr/local/bin/php /usr/local/bin/wp --path=/home3/seattle1/public_html eval-file /home3/seattle1/bin/update-enews-redirect.php >> /home3/seattle1/logs/enews-cron.log 2>&1
+30 3 * * * /home3/seattle1/bin/db-backup.sh >> /home3/seattle1/logs/db-backup.log 2>&1

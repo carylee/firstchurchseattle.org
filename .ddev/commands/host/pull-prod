@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 ## Description: PULL production into this local mirror (files via rsync + DB via wp export)
-## Usage: pull-prod [--files-only | --db-only] [-n]
-## Example: "ddev pull-prod"          # files + database
+## Usage: pull-prod [--files-only | --db-only] [--no-sanitize] [-n]
+## Example: "ddev pull-prod"          # files + database (+ sanitize the local DB)
 ##          "ddev pull-prod -n"       # dry run (rsync preview, no DB import)
 ##          "ddev pull-prod --files-only"
 ##          "ddev pull-prod --db-only"
+##          "ddev pull-prod --no-sanitize"  # keep raw prod data locally (PII!) for debugging
 ## CanRunGlobally: false
 
 # Pull half of the sync boundary (prod -> local). The push half is ops/deploy.sh.
@@ -28,12 +29,13 @@ else
   RSH="ssh"
 fi
 
-DRY=""; DO_FILES=1; DO_DB=1
+DRY=""; DO_FILES=1; DO_DB=1; DO_SANITIZE=1
 for arg in "$@"; do
   case "$arg" in
-    -n|--dry-run) DRY="--dry-run" ;;
-    --files-only) DO_DB=0 ;;
-    --db-only)    DO_FILES=0 ;;
+    -n|--dry-run)  DRY="--dry-run" ;;
+    --files-only)  DO_DB=0 ;;
+    --db-only)     DO_FILES=0 ;;
+    --no-sanitize) DO_SANITIZE=0 ;;
     *) echo "unknown flag: $arg" >&2; exit 2 ;;
   esac
 done
@@ -74,6 +76,15 @@ if [ "$DO_DB" = 1 ]; then
     ddev import-db --file="$dump"
     ddev wp cache flush >/dev/null 2>&1 || true
   fi
+fi
+
+# --- Sanitize (local-only PII/bloat scrub) ---------------------------------
+# Strip visitor IPs, the subscriber list, and staff emails from the freshly
+# imported LOCAL copy. Prod is untouched (export above is read-only). Skip with
+# --no-sanitize if you specifically need raw data to debug.
+if [ "$DO_DB" = 1 ] && [ "$DO_SANITIZE" = 1 ] && [ -z "$DRY" ]; then
+  echo "==> Sanitizing local DB (PII/bloat scrub; --no-sanitize to skip)"
+  ddev sanitize-db
 fi
 
 # --- Stamp -----------------------------------------------------------------

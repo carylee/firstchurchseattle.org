@@ -25,7 +25,11 @@ The litmus test: **A** = "we wrote it" → tracked + deployed. **B** = "prod own
 - **Class B is pulled** and **gitignored** (the `.gitignore` is the inverse of this table):
   `git status` only ever shows Class A even though the tree is ~6 GB.
 - **The database** is always pulled (prod content lives there; it's edited on prod via the
-  MCP server, not in files).
+  MCP server, not in files). The pulled copy is then **sanitized locally** (`ddev sanitize-db`,
+  run automatically by `pull-prod` unless `--no-sanitize`): visitor IPs, the maintenance-mode
+  subscriber list, and staff emails are scrubbed so dev machines don't carry production PII.
+  This is local-only and never touches prod. Production *backups*, by contrast, are full and
+  unsanitized — see [`../docs/backups.md`](../docs/backups.md).
 
 ## Push nuances (in `ops/deploy.sh`)
 

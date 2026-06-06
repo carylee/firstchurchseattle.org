@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+## Description: Restore the latest prod DB backup into a throwaway DB and assert it's sound (proves backups are restorable, not just present).
+## Usage: restore-test [--file=PATH]
+## Example: "ddev restore-test"                                  # pulls prod ~/backups/db/latest.sql.gz
+##          "ddev restore-test --file=db/firstchurchseattle-2026-06-06-0730.sql.gz"
+## CanRunGlobally: false
+
+# Untested backups are Schrödinger's backups. This imports a dump into a scratch
+# database in the DDEV db container (never your working DB), checks it actually
+# carries content, then drops it. Pairs with ops/bin/db-backup.sh.
+#
+# All SQL is fed via stdin rather than `mysql -e ...`, because `ddev exec`
+# re-parses its argument string through a shell (which would mangle quotes).
+set -euo pipefail
+
+SSH_HOST="firstchurch"
+REMOTE_DUMP="backups/db/latest.sql.gz"   # relative to the ssh home dir
+TESTDB="restore_test"
+SRC=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --file=*) SRC="${arg#--file=}" ;;
+    *) echo "unknown flag: $arg" >&2; exit 2 ;;
+  esac
+done
+
+# mysql client in the db container, as root (DDEV's conventional root password).
+# SQL arrives on stdin; trailing args (e.g. a default database) are passed through.
+sql() { ddev exec -s db mysql -uroot -proot "$@"; }
+
+tmp="$(mktemp "${TMPDIR:-/tmp}/restore-test.XXXXXX.sql.gz")"
+trap 'rm -f "$tmp"' EXIT
+
+if [ -n "$SRC" ]; then
+  echo "==> Source: local dump $SRC"
+  cp "$SRC" "$tmp"
+else
+  echo "==> Source: ${SSH_HOST}:${REMOTE_DUMP}"
+  # REMOTE_DUMP is a fixed relative path; client-side expansion into the remote cat is intended.
+  # shellcheck disable=SC2029
+  ssh "$SSH_HOST" "cat $REMOTE_DUMP" > "$tmp"
+fi
+
+echo "==> (Re)creating throwaway database '$TESTDB'"
+printf 'DROP DATABASE IF EXISTS %s; CREATE DATABASE %s;\n' "$TESTDB" "$TESTDB" | sql
+
+echo "==> Importing dump"
+gunzip -c "$tmp" | sql "$TESTDB"
+
+echo "==> Asserting content"
+fail=0
+prefix="$(printf "SELECT table_name FROM information_schema.tables WHERE table_schema='%s' AND table_name LIKE '%%options' ORDER BY LENGTH(table_name) LIMIT 1;\n" "$TESTDB" | sql -N | sed 's/options$//')"
+prefix="${prefix:-wpqg_}"
+home="$(printf "SELECT option_value FROM %s.%soptions WHERE option_name='home';\n" "$TESTDB" "$prefix" | sql -N)"
+events="$(printf "SELECT COUNT(*) FROM %s.%sposts WHERE post_type='ctc_event' AND post_status='publish';\n" "$TESTDB" "$prefix" | sql -N)"
+posts="$(printf "SELECT COUNT(*) FROM %s.%sposts WHERE post_status='publish';\n" "$TESTDB" "$prefix" | sql -N)"
+
+if [ -n "$home" ]; then echo "    home option ....... $home"; else echo "    FAIL: no home option"; fail=1; fi
+if [ "${events:-0}" -gt 0 ] 2>/dev/null; then echo "    published events .. $events"; else echo "    FAIL: 0 published events"; fail=1; fi
+if [ "${posts:-0}" -gt 0 ] 2>/dev/null; then echo "    published posts ... $posts"; else echo "    FAIL: 0 published posts"; fail=1; fi
+
+echo "==> Dropping throwaway database"
+printf 'DROP DATABASE IF EXISTS %s;\n' "$TESTDB" | sql
+
+if [ "$fail" -eq 0 ]; then
+  echo "==> RESTORE-TEST PASSED"
+else
+  echo "==> RESTORE-TEST FAILED" >&2
+  exit 1
+fi
