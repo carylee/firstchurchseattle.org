@@ -161,8 +161,16 @@
 
 	function advance() {
 		if ( state.items.length < 2 ) { return; }
-		state.idx = ( state.idx + 1 ) % state.items.length;
-		show( state.idx );
+		var stages = deck.children;
+		var cur = stages[ state.idx ];
+		var next = ( state.idx + 1 ) % state.items.length;
+		state.idx = next;
+		// Fade the current card out, then fade the next one in once it's gone —
+		// never two cards at half-opacity with overlapping text.
+		if ( cur ) { cur.classList.remove( 'is-active' ); }
+		setTimeout( function () {
+			if ( stages[ next ] ) { stages[ next ].classList.add( 'is-active' ); }
+		}, 480 );
 	}
 
 	function startLoop() {

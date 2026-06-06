@@ -57,10 +57,13 @@ html, body {
 	background-color: #1f1f1f;
 	box-sizing: border-box;
 	opacity: 0;
-	transition: opacity .6s ease;
+	transition: opacity .45s ease;
 	pointer-events: none;
 }
 .ann-stage * { box-sizing: border-box; }
+/* Only the active card is visible; the player fades the old one out before
+   fading the new one in (fade-through-black), so two cards' text never
+   superimpose mid-transition. */
 .ann-stage.is-active { opacity: 1; }
 
 .ann-bg {
