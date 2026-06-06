@@ -155,7 +155,10 @@ The `ddev pull-prod` command itself lives at `.ddev/commands/host/pull-prod`.
 - **MCP server:** `wp-json/mcp/mcp-adapter-default-server` — two identities: `mcp-client`
   (read) and `mcp-editor` (scoped writes). Details in
   `wp-content/mu-plugins/firstchurch-mcp-abilities.php`.
-- **Backups:** UpdraftPlus, monthly, to Google Drive (DB/content are not in git).
+- **Backups:** UpdraftPlus monthly full (files+DB) to Google Drive, **plus** a daily DB
+  dump (`ops/bin/db-backup.sh` via cron → `~/backups/db/` + off-site rclone, 14-day
+  retention). Restorability is checked with `ddev restore-test`. See
+  [`ops/docs/backups.md`](./ops/docs/backups.md). DB/content are not in git.
 - **Note:** the same `public_html` also serves `paxchristiyoga.org/` (a separate site) —
   mirrored locally but not ours.
 
