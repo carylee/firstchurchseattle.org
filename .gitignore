@@ -8,12 +8,13 @@
 # 1) Ignore everything by default.
 /*
 
-# 2) Repo meta + docs + ops tooling + DDEV config.
+# 2) Repo meta + docs + ops tooling + DDEV config + CI/CD.
 !/.gitignore
 !/README.md
 !/CLAUDE.md
 !/ops/
 !/.ddev/
+!/.github/
 
 # 3) Local-only artifacts (DB dumps).
 /db/
