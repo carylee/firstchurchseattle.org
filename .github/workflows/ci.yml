@@ -1,0 +1,62 @@
+name: CI
+
+# Runs on every PR into main, and on pushes to main (so the deploy workflow,
+# which waits for a green CI run, has something to gate on). Fast, no DB, no WP:
+# our tracked code is a child theme + a few plugins, and the breeze-forms test
+# suite is standalone (its bootstrap shims the handful of WP functions it uses).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: PHP lint (php ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3'] # prod runs 8.2 (web) / 8.3 (cli)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Syntax-check every tracked PHP file
+        run: |
+          fail=0
+          while read -r f; do
+            php -l "$f" >/dev/null || { echo "::error file=$f::php -l failed"; fail=1; }
+          done < <(git ls-files '*.php')
+          if [ "$fail" -eq 0 ]; then
+            echo "All $(git ls-files '*.php' | wc -l) PHP files OK."
+          fi
+          exit $fail
+
+  breeze-forms:
+    name: breeze-forms PHPUnit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wp-content/plugins/firstchurch-breeze-forms
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: PHPUnit
+        run: vendor/bin/phpunit
