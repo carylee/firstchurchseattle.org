@@ -1,0 +1,23 @@
+# Durable auto-serve for the Tailscale router addon.
+#
+# The addon registers the web container as the tailnet node `$DDEV_SITENAME`
+# (firstchurchseattle) and its pre-stop hook runs `tailscale logout`, so a node
+# does NOT survive `ddev stop`/`restart` on its own. This post-start hook brings
+# it back automatically on every `ddev start`:
+#   1. if TS_AUTHKEY is set (see below), re-authenticate the node, then
+#   2. (re)serve the local site privately within the tailnet at
+#      https://<sitename>.<tailnet>.ts.net/  ->  the web container's :80.
+#
+# Provide a REUSABLE + EPHEMERAL, TAGGED auth key (the node is a tagged device)
+# from the Tailscale admin console in a gitignored file the addon reads:
+#
+#   .ddev/.env :
+#       TS_AUTHKEY=tskey-auth-xxxxxxraw-...   # reusable, ephemeral, tag:devices
+#
+# Then `ddev restart` and the site comes back up with no browser approval.
+# Without a key, this hook is a harmless no-op (serve still runs if the node was
+# logged in interactively via `ddev tailscale login` / `tailscale up`).
+
+hooks:
+  post-start:
+    - exec: 'if [ -n "${TS_AUTHKEY:-}" ]; then tailscale up --auth-key="$TS_AUTHKEY" --hostname="$DDEV_SITENAME" >/dev/null 2>&1 || true; fi; tailscale serve --bg 127.0.0.1:80 >/dev/null 2>&1 || true'
