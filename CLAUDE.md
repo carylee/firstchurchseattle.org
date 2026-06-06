@@ -61,6 +61,11 @@ Both honor one ownership model so they can't conflict — see `ops/sync/ownershi
 directly on prod. The pull excludes tracked code, so a direct-prod edit won't come back and
 the next deploy will overwrite it. (This is the drift the old two-repo setup suffered.)
 
+**Commits:** prefer small, self-contained commits, one per milestone. The test is
+cherry-pickability — could someone lift this commit onto another branch on its own and have
+it make sense? If so, it's the right size. Commit each distinct fix/feature separately rather
+than batching unrelated changes; keep theme version bumps with the change that needs them.
+
 ## What's tracked vs. mirrored
 
 ```
