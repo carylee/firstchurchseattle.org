@@ -138,6 +138,12 @@ class FCCar_CLI {
 				'body'   => 'Visit our library on the third floor! It is filled with religious topics, social justice topics, the First Church Book Club books, reference collections and archival materials. Browse the library or check out a book!',
 			),
 			array(
+				'layout'  => 'feature',
+				'title'   => 'Minute for Mother Earth Videos',
+				'details' => 'Wake Up World — a comprehensive curriculum on the climate crisis for faith and community groups, by Anita and Bob Dygert-Gearheart.',
+				'qr_url'  => 'https://firstchurchseattle.org/events/take-a-minute-for-mother-earth-every-week-in-2026/',
+			),
+			array(
 				'layout'   => 'qr_callout',
 				'title'    => 'Upcoming Events',
 				'prompt'   => 'Upcoming Events',
