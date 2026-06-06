@@ -40,6 +40,28 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Single-post featured image (hero)
+ *
+ * Injected by inc/single-featured-image.php at the top of single blog posts,
+ * which the parent's single template omits. Breaks out of the 700px text
+ * measure to a ~980px centered hero, clamped to the viewport on small screens.
+ * Cross-viewport.
+ * --------------------------------------------------------------------- */
+.maranatha-entry-full-content .fcs-single-featured {
+	width: min(980px, 92vw);
+	margin: 0 0 1.75em;
+	margin-left: 50%;
+	transform: translateX(-50%);
+}
+
+.fcs-single-featured img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 6px;
+}
+
+/* -------------------------------------------------------------------------
  * Announcement / Featured CTA cards
  *
  * Rendered by the [fcs_announcements] shortcode (inc/announcements-cta.php),
