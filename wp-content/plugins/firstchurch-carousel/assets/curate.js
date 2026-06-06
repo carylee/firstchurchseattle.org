@@ -49,14 +49,20 @@
 					'<div class="fccar-meta">' + esc( when ) + '</div>' +
 					'<details class="fccar-overrides">' +
 						'<summary>Overrides</summary>' +
-						'<label>Title <input type="text" class="fccar-f-title" value="' + attr( e.title ) + '" placeholder="' + attr( e.srcTitle ) + '"></label>' +
-						'<label>When <input type="text" class="fccar-f-when" value="' + attr( e.when ) + '" placeholder="' + attr( e.srcWhen || '—' ) + '"></label>' +
-						'<label class="fccar-bg-row">Background ' +
-							'<button type="button" class="button fccar-bg">Choose…</button> ' +
-							'<button type="button" class="button-link fccar-bg-clear"' + ( e.image ? '' : ' style="display:none"' ) + '>clear</button>' +
-							'<span class="fccar-bg-url">' + esc( bg ) + '</span>' +
-						'</label>' +
-						'<label class="fccar-presvc"><input type="checkbox" class="fccar-f-presvc"' + ( e.preserviceOnly ? ' checked' : '' ) + '> Preservice-only</label>' +
+						'<div class="fccar-ov-grid">' +
+							'<label class="fccar-field"><span>Title</span>' +
+								'<input type="text" class="fccar-f-title" value="' + attr( e.title ) + '" placeholder="' + attr( e.srcTitle ) + '"></label>' +
+							'<label class="fccar-field"><span>When</span>' +
+								'<input type="text" class="fccar-f-when" value="' + attr( e.when ) + '" placeholder="' + attr( e.srcWhen || '—' ) + '"></label>' +
+							'<div class="fccar-field fccar-bg-row"><span>Background</span>' +
+								'<div class="fccar-bg-control">' +
+									'<span class="fccar-bg-thumb' + ( bg ? '' : ' is-empty' ) + '"' + ( bg ? ' style="background-image:url(\'' + attr( bg ) + '\')"' : '' ) + '></span>' +
+									'<button type="button" class="button fccar-bg">' + ( bg ? 'Replace…' : 'Choose…' ) + '</button>' +
+									'<button type="button" class="button-link fccar-bg-clear"' + ( e.image ? '' : ' style="display:none"' ) + '>Clear</button>' +
+								'</div>' +
+							'</div>' +
+							'<label class="fccar-presvc"><input type="checkbox" class="fccar-f-presvc"' + ( e.preserviceOnly ? ' checked' : '' ) + '> Preservice-only</label>' +
+						'</div>' +
 					'</details>' +
 				'</div>' +
 			'</li>'
@@ -139,7 +145,9 @@
 		frame.on( 'select', function () {
 			var a = frame.state().get( 'selection' ).first().toJSON();
 			e.image = a.url;
-			$item.find( '.fccar-bg-url' ).text( a.url );
+			var thumb = ( a.sizes && a.sizes.thumbnail && a.sizes.thumbnail.url ) || a.url;
+			$item.find( '.fccar-bg-thumb' ).css( 'background-image', "url('" + thumb + "')" ).removeClass( 'is-empty' );
+			$item.find( '.fccar-bg' ).text( 'Replace…' );
 			$item.find( '.fccar-bg-clear' ).show();
 		} );
 		frame.open();
@@ -147,7 +155,14 @@
 	$deck.on( 'click', '.fccar-bg-clear', function () {
 		var $item = $( this ).closest( '.fccar-item' );
 		var e = entryById( $item.data( 'id' ) );
-		if ( e ) { e.image = ''; $item.find( '.fccar-bg-url' ).text( e.srcImage || '' ); $( this ).hide(); }
+		if ( ! e ) { return; }
+		e.image = '';
+		var src = e.srcImage || '';
+		var $thumb = $item.find( '.fccar-bg-thumb' );
+		if ( src ) { $thumb.css( 'background-image', "url('" + src + "')" ).removeClass( 'is-empty' ); }
+		else { $thumb.css( 'background-image', '' ).addClass( 'is-empty' ); }
+		$item.find( '.fccar-bg' ).text( src ? 'Replace…' : 'Choose…' );
+		$( this ).hide();
 	} );
 
 	/* ---- save / reset ---- */

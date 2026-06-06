@@ -38,9 +38,25 @@
 .fccar-remove { border: 0; background: none; color: #b32d2e; cursor: pointer; font-size: 14px; line-height: 1; }
 .fccar-remove:hover { color: #8a2424; }
 
-.fccar-overrides { margin-top: 6px; }
+.fccar-overrides { margin-top: 8px; border-top: 1px solid #f0f0f1; padding-top: 6px; }
 .fccar-overrides summary { cursor: pointer; color: #2271b1; font-size: 12px; }
-.fccar-overrides label { display: block; margin: 8px 0; font-size: 12px; color: #1d2327; }
-.fccar-overrides input[type="text"] { width: 100%; max-width: 420px; display: block; margin-top: 2px; }
-.fccar-bg-row .fccar-bg-url { display: inline-block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; color: #646970; font-size: 11px; }
-.fccar-presvc { display: flex !important; align-items: center; gap: 6px; }
+.fccar-overrides[open] summary { margin-bottom: 4px; }
+
+/* Two-column field grid; background + preservice span the full width. */
+.fccar-ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; align-items: start; max-width: 640px; }
+.fccar-field { display: block; font-size: 12px; color: #1d2327; margin: 0; }
+.fccar-field > span { display: block; font-weight: 600; color: #50575e; margin-bottom: 3px; }
+.fccar-field input[type="text"] { width: 100%; display: block; }
+.fccar-bg-row { grid-column: 1 / -1; }
+
+.fccar-bg-control { display: flex; align-items: center; gap: 10px; }
+.fccar-bg-thumb {
+	flex: 0 0 auto; width: 64px; height: 36px; border-radius: 4px;
+	border: 1px solid #dcdcde; background-size: cover; background-position: center;
+}
+.fccar-bg-thumb.is-empty {
+	background-image: repeating-linear-gradient( 45deg, #e9e9ea 0 6px, #f4f4f5 6px 12px );
+}
+.fccar-bg-clear { color: #b32d2e; }
+
+.fccar-presvc { grid-column: 1 / -1; display: flex !important; align-items: center; gap: 6px; }
