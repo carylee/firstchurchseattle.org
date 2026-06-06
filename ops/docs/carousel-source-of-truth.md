@@ -1,6 +1,7 @@
 # The website as the source of truth for the announcement carousel
 
-**Status:** Phases 1–4 built (CPT + resolver + feed + curation screen).
+**Status:** Phases 1–4 built (CPT + resolver + feed + curation screen) + a live web
+renderer (the `/carousel/` kiosk page — see §12).
 **Date:** 2026-06-06
 **Scope:** WordPress (`firstchurchseattle.org`) — content model, curation UI, and a feed.
 **Consumer:** the slides app in `../hocuspocus/apps/slides` (render only; not changed by this).
@@ -258,3 +259,40 @@ manifesto in `../hocuspocus/CLAUDE.md` calls for, delivered through one screen.
 
 Phase 2 is the smallest end-to-end vertical that makes real cards flow; everything else
 layers on top.
+
+---
+
+## 12. The live web renderer (`/carousel/`)
+
+**Decision (2026-06-06):** render the carousel **as a live web page served by WordPress**,
+not by reproducing the slides app's GIF/PPTX bake in PHP.
+
+The realization that makes this cheap: the slides app's "renderer" is already a *browser* —
+each card is an HTML/CSS string Chromium lays out; everything downstream (`fontkit` auto-fit,
+the SVG-`foreignObject`→canvas trick, `gifenc`, `pptxgenjs`) exists only because the playback
+medium is a **PowerPoint file**, so the live HTML has to be frozen into a looping GIF. Point a
+browser at a URL instead and all of that machinery is unnecessary — none of which has a good
+PHP equivalent on shared hosting anyway.
+
+So `wp-content/plugins/firstchurch-carousel/inc/render.php` adds a `/carousel/` route that:
+- resolves the feed **in-process** (`fccar_resolve()`, no HTTP round-trip),
+- emits a bare, full-screen document (no theme chrome) with the items inlined as JSON,
+- and lets `assets/carousel.js` render the six layouts, generate QR codes client-side
+  (vendored MIT `assets/vendor/qrcode-generator.js`, UTM-tagged), scale a fixed 1280×720
+  stage to the viewport, crossfade through the deck, and silently re-pull the feed every
+  5 min so a newly published event appears without touching the screen.
+
+`?variant=preservice|postservice` selects the loop; `?seconds=N` tunes dwell time. The look is
+a **close-enough** echo of the slides cards (gold `#D4A256` accent, white Raleway, darkened
+photo backgrounds) — deliberately *not* a pixel-faithful port of the baked font-size ladders,
+since the browser does live layout.
+
+**Playback:** point a smart-TV browser / kiosk box / fullscreen tab at
+`https://firstchurchseattle.org/carousel/?variant=preservice`. This is a *separate display
+moment* from the worship PowerPoint, shown before/after service.
+
+**Still deferred (intentionally):** the GIF/PPTX path stays in `apps/slides` for now — the
+announcement slides remain embedded in the worship deck the AV operator runs. The live page is
+an additional surface, not yet a replacement. Wiring the slides bake to source from this feed
+(or retiring it in favor of the live page) is future work; offline/own-a-file fallback for the
+booth is an open question (the live page needs network at the projector).
