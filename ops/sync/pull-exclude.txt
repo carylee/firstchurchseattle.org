@@ -14,6 +14,9 @@
 # Local-only dev login helper (companion of `ddev login`; never on prod, never
 # deployed) — protect it so a pull's rsync --delete doesn't remove it.
 /wp-content/mu-plugins/wp-cli-login-server.php
+# Local-only dev shim: keeps the Endurance Page Cache off in the mirror (a
+# path-keyed cache breaks dual-host serving — ddev.site + the Tailscale name).
+/wp-content/mu-plugins/0-fc-dev-no-page-cache.php
 /wp-content/debug.log
 
 # --- Tracked custom code (Class A): git is the source of truth; deploy FROM here ---
