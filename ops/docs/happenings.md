@@ -1,6 +1,7 @@
 # The Happenings spine — author once, project everywhere
 
-**Status:** Phase 0 (this contract) + Phase 1 (announcement lifecycle) built.
+**Status:** Phases 0–2 built — the contract, announcement lifecycle, and the extracted
+`firstchurch-happenings` spine (resolver + `GET /v1/happenings` + `firstchurch/get-happenings`).
 **Date:** 2026-06-07
 **Scope:** site-wide content architecture for "things happening at First Church."
 **Generalizes:** [`carousel-source-of-truth.md`](./carousel-source-of-truth.md) — the carousel
@@ -131,22 +132,27 @@ Each surface is a **filter + curation lens** over the one feed — never its own
 
 ---
 
-## 6. Spine-ownership charter (Phase 2)
+## 6. Spine ownership (Phase 2 — done)
 
-Today the resolver lives **inside** `firstchurch-carousel`. Phase 2 lifts `inc/resolve.php`
-into a new standalone **`firstchurch-happenings`** plugin that owns the `Happening` contract and
-exposes it two ways already wired for the carousel:
+The resolver now lives in the standalone **`firstchurch-happenings`** plugin, which owns the
+`Happening` contract and exposes it two ways:
 
-- **REST** `GET /wp-json/firstchurch/v1/happenings?surface=…`
+- **REST** `GET /wp-json/firstchurch/v1/happenings?weeks=…&days=…` (`surface` reserved)
 - **MCP** `firstchurch/get-happenings`
 
-The carousel keeps its **renderer and deck curation UI** but stops owning the data model; it
-becomes one consumer among several. Acceptance test for the extraction: the carousel renders
-**identically** before and after. The new plugin needs a `deploy.sh` rsync line and a one-time
-`wp plugin activate` on prod (per the new-plugin checklist in `CLAUDE.md`).
+The spine feed is **events + announcements** — the website-facing Happenings. Evergreen
+`carousel_card`s stay with `firstchurch-carousel`, which now **consumes** the spine
+(`happenings_event_items()`/`happenings_news_items()`/`happenings_item_by_id()` + the
+`happenings_item()/text()` helpers) and composes its cards on top, keeping its renderer + deck
+curation UI. The extraction was behavior-preserving: the `/v1/carousel` feed is byte-identical
+before and after. The pure projection logic (`Id`, `Item`, `Layout`, `Text`, `EventWhen`) is
+unit-tested under `firstchurch-happenings/tests/`.
 
-`tags[]`, `starts`, and a generalized `weight`/`expires` across all sources are the natural
-v2 extensions once the spine is its own home.
+> `firstchurch-carousel` now **requires `firstchurch-happenings` active** — after the first
+> deploy run `ssh firstchurch 'wp plugin activate firstchurch-happenings'`.
+
+`tags[]`, `starts`, and a source-registry filter for additional sources are the natural
+extensions now that the spine is its own home.
 
 ---
 
@@ -156,7 +162,7 @@ v2 extensions once the spine is its own home.
 |---|---|---|
 | 0 | This contract | — |
 | 1 | Announcement `weight` + `expires` (meta, staff UI, MCP, resolver) | self-maintaining feed |
-| 2 | Extract `firstchurch-happenings`; carousel consumes it | the spine |
+| 2 | ✅ Extract `firstchurch-happenings`; carousel consumes it | the spine |
 | 3 | `/engage` becomes spine-driven (block); nav link; retire `featured` category | **v1 public hub** |
 | 4 | `/live` + carousel share a worship-now set | unify the two renderings |
 | 5 | Taxonomy collapse; finish native connection-card; purge review queue | structural cleanup |
