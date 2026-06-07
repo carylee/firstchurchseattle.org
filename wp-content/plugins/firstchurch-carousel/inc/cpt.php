@@ -65,36 +65,50 @@ function fccar_render_metabox( WP_Post $post ): void {
 	$color  = (string) get_post_meta( $post->ID, FCCAR_META_BGCOLOR, true );
 	$presvc = (bool) get_post_meta( $post->ID, FCCAR_META_PRESVC, true );
 	?>
-	<style>
-		.fccar-grid label{display:block;font-weight:600;margin:14px 0 4px}
-		.fccar-grid input[type=text],.fccar-grid input[type=url],.fccar-grid textarea,.fccar-grid select{width:100%;max-width:640px}
-		.fccar-grid .desc{font-weight:400;color:#666;font-size:12px}
-	</style>
+	<?php $curate_url = admin_url( 'edit.php?post_type=' . FCCAR_CPT . '&page=' . FCCAR_CURATE_SLUG ); ?>
+	<div class="fccar-edit-preview">
+		<div class="fccar-edit-thumb" id="fccar-edit-thumb"></div>
+		<p class="fccar-edit-hint">Live preview. This is a <strong>standing card</strong> — <a href="<?php echo esc_url( $curate_url ); ?>">arrange the deck in Curate&nbsp;→</a></p>
+	</div>
 	<div class="fccar-grid">
-		<label for="fccar_layout">Layout</label>
-		<select name="fccar_layout" id="fccar_layout">
-			<?php foreach ( FCCAR_LAYOUTS as $l ) : ?>
-				<option value="<?php echo esc_attr( $l ); ?>" <?php selected( $layout, $l ); ?>><?php echo esc_html( $l ); ?></option>
-			<?php endforeach; ?>
-		</select>
-		<p class="desc">The slide layout this card renders as. The post <strong>title</strong> is the card title; the <strong>featured image</strong> is the background photo.</p>
+		<div class="fccar-fieldrow">
+			<label for="fccar_layout">Layout</label>
+			<select name="fccar_layout" id="fccar_layout">
+				<?php foreach ( FCCAR_LAYOUTS as $l ) : ?>
+					<option value="<?php echo esc_attr( $l ); ?>" <?php selected( $layout, $l ); ?>><?php echo esc_html( $l ); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<p class="desc">The slide layout this card renders as. The post <strong>title</strong> is the card title; the <strong>featured image</strong> is the background photo.</p>
+		</div>
 
-		<label for="fccar_body">Body <span class="desc">(info cards: one <code>- </code> per bulleted line)</span></label>
-		<textarea name="fccar_body" id="fccar_body" rows="4"><?php echo esc_textarea( $body ); ?></textarea>
+		<div class="fccar-fieldrow" data-layouts="intro info">
+			<label for="fccar_body">Body <span class="desc">(info cards: one <code>- </code> per bulleted line)</span></label>
+			<textarea name="fccar_body" id="fccar_body" rows="4"><?php echo esc_textarea( $body ); ?></textarea>
+		</div>
 
-		<label for="fccar_prompt">Prompt <span class="desc">(qr_callout)</span></label>
-		<textarea name="fccar_prompt" id="fccar_prompt" rows="2"><?php echo esc_textarea( $prompt ); ?></textarea>
+		<div class="fccar-fieldrow" data-layouts="qr_callout">
+			<label for="fccar_prompt">Prompt <span class="desc">(qr_callout)</span></label>
+			<textarea name="fccar_prompt" id="fccar_prompt" rows="2"><?php echo esc_textarea( $prompt ); ?></textarea>
+		</div>
 
-		<label for="fccar_details">Details <span class="desc">(feature — italic line)</span></label>
-		<textarea name="fccar_details" id="fccar_details" rows="2"><?php echo esc_textarea( $detail ); ?></textarea>
+		<div class="fccar-fieldrow" data-layouts="feature">
+			<label for="fccar_details">Details <span class="desc">(feature — italic line)</span></label>
+			<textarea name="fccar_details" id="fccar_details" rows="2"><?php echo esc_textarea( $detail ); ?></textarea>
+		</div>
 
-		<label for="fccar_qr_url">QR link <span class="desc">(becomes the card's QR target)</span></label>
-		<input type="url" name="fccar_qr_url" id="fccar_qr_url" value="<?php echo esc_attr( $qr ); ?>">
+		<div class="fccar-fieldrow" data-layouts="divider qr_callout event info feature">
+			<label for="fccar_qr_url">QR link <span class="desc">(becomes the card's QR target)</span></label>
+			<input type="url" name="fccar_qr_url" id="fccar_qr_url" value="<?php echo esc_attr( $qr ); ?>">
+		</div>
 
-		<label for="fccar_bg_color">Background color <span class="desc">(solid fallback when no photo, e.g. <code>#7FA888</code>)</span></label>
-		<input type="text" name="fccar_bg_color" id="fccar_bg_color" value="<?php echo esc_attr( $color ); ?>" placeholder="#1F1F1F">
+		<div class="fccar-fieldrow" data-layouts="divider qr_callout feature">
+			<label for="fccar_bg_color">Background color <span class="desc">(solid fallback when no photo, e.g. <code>#7FA888</code>)</span></label>
+			<input type="text" name="fccar_bg_color" id="fccar_bg_color" value="<?php echo esc_attr( $color ); ?>" placeholder="#1F1F1F">
+		</div>
 
-		<label><input type="checkbox" name="fccar_preservice" value="1" <?php checked( $presvc ); ?>> Preservice-only <span class="desc">(dropped from the post-service loop)</span></label>
+		<div class="fccar-fieldrow">
+			<label><input type="checkbox" name="fccar_preservice" id="fccar_preservice" value="1" <?php checked( $presvc ); ?>> Preservice-only <span class="desc">(dropped from the post-service loop)</span></label>
+		</div>
 	</div>
 	<?php
 }
@@ -136,6 +150,9 @@ add_filter( 'manage_' . FCCAR_CPT . '_posts_columns', static function ( $cols ) 
 	$out = array();
 	foreach ( $cols as $k => $v ) {
 		$out[ $k ] = $v;
+		if ( 'cb' === $k ) {
+			$out['fccar_preview'] = 'Preview';
+		}
 		if ( 'title' === $k ) {
 			$out['fccar_layout'] = 'Layout';
 			$out['fccar_presvc'] = 'Preservice-only';
@@ -146,7 +163,12 @@ add_filter( 'manage_' . FCCAR_CPT . '_posts_columns', static function ( $cols ) 
 } );
 
 add_action( 'manage_' . FCCAR_CPT . '_posts_custom_column', static function ( $col, $post_id ) {
-	if ( 'fccar_layout' === $col ) {
+	if ( 'fccar_preview' === $col ) {
+		// A rendered mini of the card, drawn client-side by FCCarCard (list-cards.js)
+		// from this item's resolved data — so the list matches the curator.
+		$item = fccar_card_to_item( get_post( $post_id ) );
+		echo '<div class="fccar-list-thumb" data-fccar="' . esc_attr( (string) wp_json_encode( $item ) ) . '"></div>';
+	} elseif ( 'fccar_layout' === $col ) {
 		echo esc_html( (string) get_post_meta( $post_id, FCCAR_META_LAYOUT, true ) );
 	} elseif ( 'fccar_presvc' === $col ) {
 		echo get_post_meta( $post_id, FCCAR_META_PRESVC, true ) ? '✓' : '';
@@ -154,3 +176,39 @@ add_action( 'manage_' . FCCAR_CPT . '_posts_custom_column', static function ( $c
 		echo (int) get_post_field( 'menu_order', $post_id );
 	}
 }, 10, 2 );
+
+add_filter( 'manage_edit-' . FCCAR_CPT . '_sortable_columns', static function ( $cols ) {
+	$cols['fccar_order'] = 'menu_order';
+	return $cols;
+} );
+
+/* ---- Shared card renderer on the CPT screens: live edit preview + list thumbs ---- */
+
+add_action( 'admin_enqueue_scripts', static function ( $hook ) {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || FCCAR_CPT !== $screen->post_type ) {
+		return;
+	}
+	$base = plugin_dir_url( dirname( __FILE__ ) ) . 'assets/';
+	wp_enqueue_style( 'fccar-raleway', 'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,600;0,700;1,400&display=swap', array(), null );
+	wp_enqueue_style( 'fccar-card', $base . 'card.css', array(), FCCAR_VERSION );
+	wp_enqueue_style( 'fccar-admin-card', $base . 'admin-card.css', array( 'fccar-card' ), FCCAR_VERSION );
+	wp_enqueue_script( 'fccar-qrcode', $base . 'vendor/qrcode-generator.js', array(), FCCAR_VERSION, true );
+	wp_enqueue_script( 'fccar-card-render', $base . 'card-render.js', array( 'fccar-qrcode' ), FCCAR_VERSION, true );
+
+	if ( 'post' === $screen->base ) {            // single card add/edit
+		wp_enqueue_script( 'fccar-edit-card', $base . 'edit-card.js', array( 'jquery', 'fccar-card-render' ), FCCAR_VERSION, true );
+	} elseif ( 'edit' === $screen->base ) {      // the Carousel Cards list
+		wp_enqueue_script( 'fccar-list-cards', $base . 'list-cards.js', array( 'fccar-card-render' ), FCCAR_VERSION, true );
+	}
+} );
+
+// Frame the list as the standing-card library and point at the curator.
+add_action( 'admin_notices', static function () {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || 'edit-' . FCCAR_CPT !== $screen->id ) {
+		return;
+	}
+	$curate = admin_url( 'edit.php?post_type=' . FCCAR_CPT . '&page=' . FCCAR_CURATE_SLUG );
+	echo '<div class="notice notice-info"><p>These are the <strong>standing (evergreen) cards</strong> — reusable announcements (intro, dividers, QR callouts, housekeeping) shown every week. Events and news come from their own posts. <a href="' . esc_url( $curate ) . '">Curate the deck →</a></p></div>';
+} );

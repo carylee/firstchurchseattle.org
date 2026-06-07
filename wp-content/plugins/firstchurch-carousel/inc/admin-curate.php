@@ -76,6 +76,7 @@ function fccar_render_curate_page(): void {
 			<a class="button" href="<?php echo esc_url( rest_url( 'firstchurch/v1/carousel' ) ); ?>" target="_blank" rel="noopener">Preview feed ↗</a>
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=preservice' ) ); ?>" target="_blank" rel="noopener">Play preservice ↗</a>
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=postservice' ) ); ?>" target="_blank" rel="noopener">Play postservice ↗</a>
+			<a class="button" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . FCCAR_CPT ) ); ?>">＋ New evergreen card</a>
 			<span class="fccar-status" id="fccar-status" role="status"></span>
 		</div>
 
