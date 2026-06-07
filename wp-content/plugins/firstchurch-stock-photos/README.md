@@ -4,11 +4,17 @@ Find attribution-safe, openly-licensed photos from [Openverse](https://openverse
 and pull them into the WordPress media library — from the admin or from an AI agent —
 with full provenance recorded on every import.
 
-This plugin is **fully ours** and intentionally replaces the third-party *Instant Images*
-plugin for this site. We only need free stock photos in two places (the admin and the MCP
-server), and Openverse covers both without an API key, without pro upsells, and with
-license/attribution metadata baked into every result — so there's nothing worth maintaining
-a React media-modal integration for.
+This plugin is **fully ours** and runs in a **dual setup alongside Instant Images**:
+
+- **Instant Images** stays installed as the in-editor picker humans browse (its media-modal
+  tab + block-editor sidebar) — the one piece not worth rebuilding ourselves.
+- **This plugin** owns the gaps II can't reach: the **MCP/agent path** (II has no clean
+  server-side search/import API) and a standalone **Tools ▸ Stock Photos** admin screen, both
+  via Openverse (no API key, no pro upsells, license/attribution baked into every result).
+
+It also **ties the two together**: a `instant_images_after_upload` bridge records the same
+provenance for II uploads, and code-level policy filters lock II's safe-search/attribution
+config so it can't drift on prod. Nothing here deactivates or modifies Instant Images.
 
 ## What it does
 
@@ -17,13 +23,18 @@ a React media-modal integration for.
 | **Admin** | *Tools ▸ Stock Photos* — a plain search box + results grid; "Add to Library" on any image. No block-editor integration by design. |
 | **AI agent (MCP)** | Abilities `firstchurch/search-stock-photo` and `firstchurch/import-stock-photo` (category `firstchurch`, promoted to first-class MCP tools). |
 | **Programmatic** | REST: `GET firstchurch/v1/stock-photos/search`, `POST firstchurch/v1/stock-photos/import`. Or call `fcsp_search()` / `fcsp_import()` directly. |
-| **Provenance** | Every import stamps creator/license/attribution/source as `_fcsp_*` attachment meta, surfaced in a "Source" column in the Media library. `fcsp_attachment_credit( $id )` returns a credit line. |
+| **Provenance** | Every import — **ours and Instant Images'** — stamps creator/license/attribution/source as `_fcsp_*` attachment meta, surfaced in a "Source" column in the Media library. `fcsp_attachment_credit( $id )` returns a credit line. |
 
 ## Policy baked in
 
+**Our Openverse path:**
 - Only results that **allow commercial use AND modification** are surfaced (`FCSP_DEFAULT_LICENSE_TYPE`), so editors never have to reason about license edge cases.
 - **Mature content is excluded** at the API level.
 - Access gated on `upload_files` (filter: `fcsp_capability`).
+
+**Instant Images (`inc/policy.php`):** force safe search across providers (Unsplash content
+filter, Openverse mature off, Pixabay safe search) and one attribution template — baked in
+code rather than the prod settings screen. Tunable via the `FCSP_II_*` constants.
 
 ## Configuration
 
@@ -49,4 +60,5 @@ define( 'FCSP_OPENVERSE_CLIENT_SECRET', '…' );
 
 - Wired into `ops/deploy.sh` (fully ours → `--delete` mirror).
 - After first deploy: `ssh firstchurch 'wp plugin activate firstchurch-stock-photos'`.
-- Dropping Instant Images is a separate, manual prod step: `ssh firstchurch 'wp plugin deactivate instant-images'` (then remove if desired). This plugin does not touch it.
+- **Leave Instant Images active** — this is a dual setup. The bridge and policy filters are
+  no-ops if II is ever removed, so nothing breaks either way.
