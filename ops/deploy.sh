@@ -26,6 +26,8 @@ rsync -av $DRY --delete -e "$RSH" wp-content/themes/maranatha-child/ \
   "$REMOTE/themes/maranatha-child/"
 rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-connection-card/ \
   "$REMOTE/plugins/firstchurch-connection-card/"
+rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-carousel/ \
+  "$REMOTE/plugins/firstchurch-carousel/"
 
 # breeze-forms is fully ours too, but its working tree carries dev-only artifacts
 # (Composer deps, PHPUnit cache/config, tests) that must NOT ship to prod.
