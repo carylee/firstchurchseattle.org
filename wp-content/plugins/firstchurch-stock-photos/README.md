@@ -36,17 +36,41 @@ config so it can't drift on prod. Nothing here deactivates or modifies Instant I
 filter, Openverse mature off, Pixabay safe search) and one attribution template — baked in
 code rather than the prod settings screen. Tunable via the `FCSP_II_*` constants.
 
-## Configuration
+## Configuration — Openverse authentication
 
-Works anonymously out of the box. To raise Openverse rate limits, register a client at
-`https://api.openverse.org/v1/auth_tokens/register/` and add to `wp-config.php`:
+Works anonymously out of the box, but **anonymous requests are hard-capped at 20 results
+per page** (Openverse returns `401` for any `page_size > 20`) plus a low rate limit. The
+client clamps to 20 when unauthenticated, so search still works — it just can't pull larger
+pages. Authenticating lifts the cap to **50/page** and raises the rate limit.
+
+There's no signup web form — registration is itself an API call:
+
+**1. Register an application** (one time):
+
+```bash
+curl -X POST https://api.openverse.org/v1/auth_tokens/register/ \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"First Church Seattle","description":"Website stock photo search","email":"YOU@example.com"}'
+# → { "client_id": "...", "client_secret": "...", "name": "...", "msg": "check your email ..." }
+```
+
+**2. Verify the email.** Openverse emails a verification link to that address. **Until you
+click it, the credentials are still throttled at the anonymous tier (and still capped at
+20/page)** — verification is what actually unlocks the authenticated limits.
+
+**3. Add the credentials to `wp-config.php`** (out of git):
 
 ```php
 define( 'FCSP_OPENVERSE_CLIENT_ID', '…' );
 define( 'FCSP_OPENVERSE_CLIENT_SECRET', '…' );
 ```
 
-(Keep these out of git.)
+The client then exchanges these for a short-lived bearer token automatically (cached as a
+transient until just before it expires) — see `fcsp_openverse_token()`. No further code
+changes needed.
+
+Endpoints used: `POST /v1/auth_tokens/register/`, `POST /v1/auth_tokens/token/`
+(`grant_type=client_credentials`), and `Authorization: Bearer <token>` on search requests.
 
 ## Agent flow
 
