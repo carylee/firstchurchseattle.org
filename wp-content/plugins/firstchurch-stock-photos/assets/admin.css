@@ -1,0 +1,48 @@
+.fcsp-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.fcsp-card {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.fcsp-card img {
+	width: 100%;
+	height: 160px;
+	object-fit: cover;
+	background: #f0f0f1;
+	display: block;
+}
+
+.fcsp-card .fcsp-meta {
+	padding: 8px 10px;
+	font-size: 12px;
+	flex: 1;
+}
+
+.fcsp-card .fcsp-meta a {
+	text-decoration: none;
+}
+
+.fcsp-card .fcsp-license {
+	color: #646970;
+	text-transform: uppercase;
+	font-size: 11px;
+}
+
+.fcsp-card .fcsp-actions {
+	padding: 8px 10px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.fcsp-card.fcsp-done {
+	outline: 2px solid #00a32a;
+}
