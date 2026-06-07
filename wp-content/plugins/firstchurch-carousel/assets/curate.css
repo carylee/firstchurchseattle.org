@@ -63,6 +63,15 @@
 .fccar-badge--announcement { background: #d6e6f5; }
 .fccar-badge--card { background: #efe2c8; }
 .fccar-badge--pre { background: #f3d9b1; color: #7a4b00; }
+.fccar-badge--warn { background: #fbeaa8; color: #8a6100; cursor: help; }
+
+/* readiness strip */
+.fccar-readiness {
+	margin: 4px 0 14px; padding: 8px 12px; border-radius: 6px;
+	background: #f6f7f7; border: 1px solid #e0e0e0; font-size: 13px; color: #3c434a; max-width: 60em;
+}
+.fccar-readiness .fccar-warn-count { color: #8a6100; font-weight: 600; }
+.fccar-readiness .fccar-ok { color: #1a7d3c; font-weight: 600; }
 
 .fccar-edit, .fccar-remove { border: 0; background: none; cursor: pointer; font-size: 13px; line-height: 1; padding: 2px; }
 .fccar-edit { color: #646970; }

@@ -109,12 +109,40 @@
 		return r.srcDate ? '<span class="fccar-tdate">' + esc( r.srcDate ) + '</span>' : '';
 	}
 
+	/* ---- readiness: per-card warnings + a deck-level summary ---- */
+	var PHOTO_LAYOUTS = [ 'intro', 'event', 'info', 'divider' ];
+
+	function entryWarnings( e ) {
+		var w = [];
+		if ( ! ( e.title || e.srcTitle ) ) { w.push( 'No title' ); }
+		if ( e.isPast ) { w.push( 'This event has already passed' ); }
+		if ( PHOTO_LAYOUTS.indexOf( e.layout ) !== -1 && ! ( e.image || e.srcImage ) && ! e.backgroundColor ) {
+			w.push( 'No background image' );
+		}
+		return w;
+	}
+	function warnBadge( list ) {
+		return list.length ? '<span class="fccar-badge fccar-badge--warn" title="' + attr( list.join( ' · ' ) ) + '">⚠</span>' : '';
+	}
+
+	function updateReadiness() {
+		var n = D.deck.length, pre = 0, warn = 0;
+		D.deck.forEach( function ( e ) { if ( e.preserviceOnly ) { pre++; } warn += entryWarnings( e ).length; } );
+		var post = n - pre;
+		var html = '<strong>' + n + '</strong> card' + ( 1 === n ? '' : 's' ) +
+			' · ' + pre + ' preservice-only · ' + post + ' play postservice';
+		html += warn
+			? ' · <span class="fccar-warn-count">⚠ ' + warn + ' to review</span>'
+			: ' · <span class="fccar-ok">✓ looks ready</span>';
+		$( '#fccar-readiness' ).html( html );
+	}
+
 	function deckTile( e ) {
 		return $(
 			'<li class="fccar-tile" data-id="' + attr( e.id ) + '">' +
 				'<div class="fccar-thumb" title="Drag to reorder"></div>' +
 				'<div class="fccar-tile-bar">' +
-					badge( e ) + ( e.preserviceOnly ? preBadge() : '' ) +
+					badge( e ) + ( e.preserviceOnly ? preBadge() : '' ) + warnBadge( entryWarnings( e ) ) +
 					'<span class="fccar-tname">' + esc( e.title || e.srcTitle ) + '</span>' +
 					dateTag( e ) +
 					'<button type="button" class="fccar-edit" title="Edit">✎</button>' +
@@ -146,6 +174,7 @@
 			paintThumb( $t, e );
 		} );
 		$count.text( '(' + D.deck.length + ')' );
+		updateReadiness();
 	}
 	var availFilter = { q: '', src: 'all' };
 
@@ -306,9 +335,11 @@
 			if ( $tile.length ) {
 				paintThumb( $tile, W );
 				$tile.find( '.fccar-tname' ).text( W.title || W.srcTitle );
-				$tile.find( '.fccar-badge--pre' ).remove();
-				if ( W.preserviceOnly ) { $tile.find( '.fccar-badge' ).first().after( preBadge() ); }
+				$tile.find( '.fccar-badge--pre, .fccar-badge--warn' ).remove();
 				$tile.find( '.fccar-badge' ).first().text( W.layout );
+				if ( W.preserviceOnly ) { $tile.find( '.fccar-badge' ).first().after( preBadge() ); }
+				$tile.find( '.fccar-badge' ).first().after( warnBadge( entryWarnings( W ) ) );
+				updateReadiness();
 			}
 		}
 	}

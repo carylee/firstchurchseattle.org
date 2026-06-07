@@ -124,6 +124,8 @@ function fccar_render_curate_page(): void {
 			<?php endif; ?>
 		</p>
 
+		<div class="fccar-readiness" id="fccar-readiness" role="status"></div>
+
 		<div class="fccar-actions">
 			<button type="button" class="button button-primary" id="fccar-save">Save deck</button>
 			<button type="button" class="button" id="fccar-reset" title="Discard the curated deck and revert to the auto-assembled default">Reset to default</button>

@@ -111,6 +111,7 @@ function fccar_deck_view_row( array $item, ?array $entry = null ): array {
 		'imageId'        => $image_id,
 		'srcDate'        => fccar_short_date( $date_raw ),
 		'srcDateRaw'     => $date_raw,
+		'isPast'         => fccar_is_past_date( $date_raw ),
 		'srcTitle'       => $item['title'] ?? '',
 		'srcWhen'        => $item['when'] ?? '',
 		'srcImage'       => $item['image'] ?? '',
