@@ -3,12 +3,18 @@
  * Openverse API client.
  *
  * Openverse (https://openverse.org) aggregates openly-licensed images from
- * Flickr, Wikimedia, museums, etc. Anonymous requests work out of the box;
- * supplying a registered client id/secret (constants FCSP_OPENVERSE_CLIENT_ID
- * and FCSP_OPENVERSE_CLIENT_SECRET, e.g. via wp-config) raises the rate limit.
+ * Flickr, Wikimedia, museums, etc. Anonymous requests work out of the box but
+ * are hard-capped at 20 results/page; supplying a registered, EMAIL-VERIFIED
+ * client id/secret (constants FCSP_OPENVERSE_CLIENT_ID / FCSP_OPENVERSE_CLIENT_SECRET,
+ * e.g. via wp-config) lifts that to 50/page and raises the rate limit. See README.
  */
 
 defined( 'ABSPATH' ) || exit;
+
+// Openverse rejects (HTTP 401) any anonymous request with page_size > 20.
+// Authenticated + verified apps may request up to 50.
+const FCSP_OV_MAX_PAGE_SIZE_ANON = 20;
+const FCSP_OV_MAX_PAGE_SIZE_AUTH = 50;
 
 /**
  * Search Openverse for images.
@@ -28,20 +34,10 @@ function fcsp_search( array $args ) {
 		return new WP_Error( 'fcsp_empty_query', 'A search query is required.' );
 	}
 
-	$count        = (int) ( $args['count'] ?? 12 );
-	$count        = max( 1, min( 50, $count ) );
 	$page         = max( 1, (int) ( $args['page'] ?? 1 ) );
 	$license_type = isset( $args['license_type'] ) && '' !== $args['license_type']
 		? (string) $args['license_type']
 		: FCSP_DEFAULT_LICENSE_TYPE;
-
-	$params = array(
-		'q'            => $query,
-		'page_size'    => $count,
-		'page'         => $page,
-		'license_type' => $license_type,
-		'mature'       => 'false',
-	);
 
 	$orientation = $args['orientation'] ?? '';
 	$ar_map      = array(
@@ -49,30 +45,60 @@ function fcsp_search( array $args ) {
 		'tall'   => 'tall',
 		'wide'   => 'wide',
 	);
-	if ( isset( $ar_map[ $orientation ] ) ) {
-		$params['aspect_ratio'] = $ar_map[ $orientation ];
-	}
 
-	$url      = add_query_arg( array_map( 'rawurlencode', $params ), FCSP_OPENVERSE_API );
-	$headers  = array( 'Accept' => 'application/json' );
-	$token    = fcsp_openverse_token();
+	// Authenticate if credentials are configured, then clamp page_size to the
+	// cap our tier actually allows so we don't trip Openverse's 401.
+	$headers = array( 'Accept' => 'application/json' );
+	$token   = fcsp_openverse_token();
 	if ( $token ) {
 		$headers['Authorization'] = 'Bearer ' . $token;
 	}
+	$max_page_size = $token ? FCSP_OV_MAX_PAGE_SIZE_AUTH : FCSP_OV_MAX_PAGE_SIZE_ANON;
+	$count         = max( 1, min( $max_page_size, (int) ( $args['count'] ?? 12 ) ) );
 
-	$response = wp_remote_get(
-		$url,
-		array(
-			'timeout'    => 15,
-			'headers'    => $headers,
-			'user-agent' => 'FirstChurchSeattle/' . FCSP_VERSION . ' (+https://firstchurchseattle.org)',
-		)
-	);
+	$build_url = static function ( int $page_size ) use ( $query, $page, $license_type, $orientation, $ar_map ) {
+		$params = array(
+			'q'            => $query,
+			'page_size'    => $page_size,
+			'page'         => $page,
+			'license_type' => $license_type,
+			'mature'       => 'false',
+		);
+		if ( isset( $ar_map[ $orientation ] ) ) {
+			$params['aspect_ratio'] = $ar_map[ $orientation ];
+		}
+		return add_query_arg( array_map( 'rawurlencode', $params ), FCSP_OPENVERSE_API );
+	};
+
+	$request = static function ( string $url ) use ( $headers ) {
+		return wp_remote_get(
+			$url,
+			array(
+				'timeout'    => 15,
+				'headers'    => $headers,
+				'user-agent' => 'FirstChurchSeattle/' . FCSP_VERSION . ' (+https://firstchurchseattle.org)',
+			)
+		);
+	};
+
+	$response = $request( $build_url( $count ) );
 	if ( is_wp_error( $response ) ) {
 		return $response;
 	}
-
 	$code = (int) wp_remote_retrieve_response_code( $response );
+
+	// A 401 on an over-cap page_size means our credentials aren't lifting the
+	// anonymous limit (missing/invalid, or registered-but-unverified). Degrade
+	// to the anonymous cap and retry once rather than failing the whole search.
+	if ( 401 === $code && $count > FCSP_OV_MAX_PAGE_SIZE_ANON ) {
+		$count    = FCSP_OV_MAX_PAGE_SIZE_ANON;
+		$response = $request( $build_url( $count ) );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		$code = (int) wp_remote_retrieve_response_code( $response );
+	}
+
 	$body = json_decode( wp_remote_retrieve_body( $response ), true );
 	if ( $code < 200 || $code >= 300 || ! is_array( $body ) ) {
 		$detail = is_array( $body ) && isset( $body['detail'] ) ? (string) $body['detail'] : 'Unexpected response.';
