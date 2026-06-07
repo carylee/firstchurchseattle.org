@@ -98,11 +98,14 @@ add_action( 'admin_enqueue_scripts', static function ( $hook ) {
 
 	$view = fccar_curate_view();
 	wp_localize_script( 'fccar-curate', 'FCCAR', array(
-		'deck'      => $view['deck'],
-		'available' => $view['available'],
-		'restUrl'   => esc_url_raw( rest_url( 'firstchurch/v1/carousel/deck' ) ),
-		'feedUrl'   => esc_url_raw( rest_url( 'firstchurch/v1/carousel' ) ),
-		'nonce'     => wp_create_nonce( 'wp_rest' ),
+		'deck'        => $view['deck'],
+		'available'   => $view['available'],
+		'restUrl'     => esc_url_raw( rest_url( 'firstchurch/v1/carousel/deck' ) ),
+		'restCardUrl' => esc_url_raw( rest_url( 'firstchurch/v1/carousel/card' ) ),
+		'feedUrl'     => esc_url_raw( rest_url( 'firstchurch/v1/carousel' ) ),
+		'layouts'     => FCCAR_LAYOUTS,
+		'adminPostUrl' => esc_url_raw( admin_url( 'post.php' ) ),
+		'nonce'       => wp_create_nonce( 'wp_rest' ),
 	) );
 } );
 
@@ -127,9 +130,12 @@ function fccar_render_curate_page(): void {
 			<a class="button" href="<?php echo esc_url( rest_url( 'firstchurch/v1/carousel' ) ); ?>" target="_blank" rel="noopener">Preview feed ↗</a>
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=preservice' ) ); ?>" target="_blank" rel="noopener">Play preservice ↗</a>
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=postservice' ) ); ?>" target="_blank" rel="noopener">Play postservice ↗</a>
-			<a class="button" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . FCCAR_CPT ) ); ?>">＋ New evergreen card</a>
+			<button type="button" class="button" id="fccar-new-card">＋ New standing card</button>
 			<span class="fccar-status" id="fccar-status" role="status"></span>
 		</div>
+
+		<div class="fccar-drawer-backdrop" id="fccar-drawer-backdrop" hidden></div>
+		<aside class="fccar-drawer" id="fccar-drawer" hidden aria-hidden="true" aria-label="Card editor"></aside>
 
 		<div class="fccar-cols">
 			<section class="fccar-col">

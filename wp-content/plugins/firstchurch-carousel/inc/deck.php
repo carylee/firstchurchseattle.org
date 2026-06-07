@@ -90,10 +90,18 @@ function fccar_resolve_from_deck( array $deck ): array {
  * (entry null → defaults from the source).
  */
 function fccar_deck_view_row( array $item, ?array $entry = null ): array {
+	// Standing cards are edited in place from the drawer, so the curation screen
+	// needs their featured-image attachment id (kept out of the public feed).
+	$image_id = 0;
+	if ( 'card' === $item['source'] && preg_match( '/^card-(\d+)$/', (string) $item['id'], $m ) ) {
+		$image_id = (int) get_post_thumbnail_id( (int) $m[1] );
+	}
+
 	return array(
 		'id'             => $item['id'],
 		'source'         => $item['source'],
 		'layout'         => $item['layout'],
+		'imageId'        => $image_id,
 		'srcTitle'       => $item['title'] ?? '',
 		'srcWhen'        => $item['when'] ?? '',
 		'srcImage'       => $item['image'] ?? '',

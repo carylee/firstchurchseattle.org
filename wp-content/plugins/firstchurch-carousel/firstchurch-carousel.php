@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const FCCAR_VERSION = '0.2.0';
+const FCCAR_VERSION = '0.3.0';
 
 // Card post type + its meta keys (featured image = background photo; the post
 // title = the card title; menu_order = sequence within the evergreen run).
@@ -42,6 +42,7 @@ require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/resolve.php';
 require_once __DIR__ . '/inc/deck.php';
 require_once __DIR__ . '/inc/rest.php';
+require_once __DIR__ . '/inc/rest-card.php';
 require_once __DIR__ . '/inc/mcp.php';
 // Live web carousel: the /carousel/ kiosk page (the website renders the deck,
 // not just the feed). See design doc Phase 5.

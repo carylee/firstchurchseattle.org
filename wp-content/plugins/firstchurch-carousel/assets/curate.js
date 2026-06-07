@@ -1,19 +1,34 @@
-/* Carousel curation screen — a WYSIWYG deck editor. Each card is a real,
- * scaled-down render of the live carousel card (via the shared FCCarCard
- * renderer), laid out in a wrapping grid. Drag a thumbnail to reorder, click it
- * to add/remove, and open its editor to override title/when/background/
- * preservice — the thumbnail re-renders live as you type. Save POSTs the ordered
- * references + overrides to the deck endpoint. Plain jQuery + jquery-ui-sortable
- * + wp.media — no build step. */
+/* Carousel curation screen — a WYSIWYG deck editor with an adaptive slide-over
+ * editor. Each card is a real, scaled-down render of the live carousel card (via
+ * the shared FCCarCard renderer). Drag a deck thumbnail to reorder, click an
+ * available one to add it, and click ✎ to open the drawer:
+ *
+ *   - a STANDING CARD opens a full content editor (layout/title/body/prompt/
+ *     details/QR/background) that saves the card itself over REST — no leaving
+ *     the workbench; "+ New standing card" opens the same drawer empty.
+ *   - an EVENT or ANNOUNCEMENT opens an OVERRIDE editor (title/when/background/
+ *     preservice) plus a deep link to edit the original — the public post is
+ *     never touched; overrides ride along in the deck.
+ *
+ * Plain jQuery + jquery-ui-sortable + wp.media — no build step. */
 ( function ( $ ) {
 	'use strict';
 
-	var D = window.FCCAR || { deck: [], available: [], restUrl: '', nonce: '' };
+	var D = window.FCCAR || { deck: [], available: [], layouts: [], restUrl: '', restCardUrl: '', nonce: '' };
 	var Card = window.FCCarCard;
 	var $deck = $( '#fccar-deck' );
 	var $avail = $( '#fccar-available' );
 	var $status = $( '#fccar-status' );
 	var $count = $( '#fccar-deck-count' );
+
+	// Which card fields each layout actually uses (mirrors the metabox's data-layouts).
+	var FIELD_LAYOUTS = {
+		body:     [ 'intro', 'info' ],
+		prompt:   [ 'qr_callout' ],
+		details:  [ 'feature' ],
+		qr_url:   [ 'divider', 'qr_callout', 'event', 'info', 'feature' ],
+		bg_color: [ 'divider', 'qr_callout', 'feature' ]
+	};
 
 	function esc( s ) { return $( '<div/>' ).text( s == null ? '' : String( s ) ).html(); }
 	function attr( s ) { return esc( s ).replace( /"/g, '&quot;' ); }
@@ -25,7 +40,7 @@
 		return null;
 	}
 
-	/** The effective card (source values + overrides) the thumbnail renders. */
+	/** The effective card (source values + overrides) a thumbnail renders. */
 	function effItem( e ) {
 		return {
 			id: e.id, source: e.source, layout: e.layout,
@@ -38,42 +53,32 @@
 		};
 	}
 
-	/** Render the scaled card preview into a tile's .fccar-thumb. */
-	function paintThumb( $tile, e ) {
-		var $thumb = $tile.find( '.fccar-thumb' );
-		$thumb.empty();
+	/** Render the scaled card preview into a well element, sized to its width. */
+	function paintWell( $well, e ) {
+		$well.empty();
 		var stage = Card.buildStage( effItem( e ), {} );
-		$thumb.append( stage );
-		var w = $thumb.width() || 240;
+		$well.append( stage );
+		var w = $well.width() || 240;
 		stage.style.transform = 'scale(' + ( w / 1280 ) + ')';
 	}
+	function paintThumb( $tile, e ) { paintWell( $tile.find( '.fccar-thumb' ), e ); }
 
 	function badge( e ) {
 		return '<span class="fccar-badge fccar-badge--' + esc( e.source ) + '">' + esc( e.layout ) + '</span>';
 	}
+	function preBadge() {
+		return '<span class="fccar-badge fccar-badge--pre" title="Preservice-only">PRE</span>';
+	}
 
 	function deckTile( e ) {
-		var presvc = e.preserviceOnly ? '<span class="fccar-badge fccar-badge--pre" title="Preservice-only">PRE</span>' : '';
 		return $(
 			'<li class="fccar-tile" data-id="' + attr( e.id ) + '">' +
 				'<div class="fccar-thumb" title="Drag to reorder"></div>' +
 				'<div class="fccar-tile-bar">' +
-					badge( e ) + presvc +
+					badge( e ) + ( e.preserviceOnly ? preBadge() : '' ) +
 					'<span class="fccar-tname">' + esc( e.title || e.srcTitle ) + '</span>' +
-					'<button type="button" class="fccar-edit" title="Edit overrides">✎</button>' +
+					'<button type="button" class="fccar-edit" title="Edit">✎</button>' +
 					'<button type="button" class="fccar-remove" title="Remove from deck">✕</button>' +
-				'</div>' +
-				'<div class="fccar-editor" hidden>' +
-					'<label class="fccar-field"><span>Title</span>' +
-						'<input type="text" class="fccar-f-title" value="' + attr( e.title ) + '" placeholder="' + attr( e.srcTitle ) + '"></label>' +
-					'<label class="fccar-field"><span>When</span>' +
-						'<input type="text" class="fccar-f-when" value="' + attr( e.when ) + '" placeholder="' + attr( e.srcWhen || '—' ) + '"></label>' +
-					'<div class="fccar-field"><span>Background</span>' +
-						'<span class="fccar-bg-buttons">' +
-							'<button type="button" class="button button-small fccar-bg">' + ( ( e.image || e.srcImage ) ? 'Replace…' : 'Choose…' ) + '</button> ' +
-							'<button type="button" class="button-link fccar-bg-clear"' + ( e.image ? '' : ' style="display:none"' ) + '>Clear</button>' +
-						'</span></div>' +
-					'<label class="fccar-presvc"><input type="checkbox" class="fccar-f-presvc"' + ( e.preserviceOnly ? ' checked' : '' ) + '> Preservice-only</label>' +
 				'</div>' +
 			'</li>'
 		);
@@ -116,7 +121,7 @@
 		placeholder: 'fccar-placeholder',
 		forcePlaceholderSize: true,
 		tolerance: 'pointer',
-		cancel: 'input,textarea,button,a,.fccar-editor',
+		cancel: 'input,textarea,button,a',
 		stop: function () {
 			var order = $deck.children( '.fccar-tile' ).map( function () { return String( $( this ).data( 'id' ) ); } ).get();
 			D.deck.sort( function ( a, b ) { return order.indexOf( a.id ) - order.indexOf( b.id ); } );
@@ -144,67 +149,224 @@
 		renderAvail();
 	} );
 
-	/* ---- open / close the per-tile editor ---- */
-	$deck.on( 'click', '.fccar-edit', function () {
-		var $ed = $( this ).closest( '.fccar-tile' ).find( '.fccar-editor' );
-		$ed.prop( 'hidden', ! $ed.prop( 'hidden' ) );
-	} );
+	/* ================= the adaptive drawer ================= */
 
-	/* ---- per-entry overrides: edit the model + repaint the thumb live ---- */
-	function liveUpdate( el, apply ) {
-		var $tile = $( el ).closest( '.fccar-tile' );
-		var e = entryById( String( $tile.data( 'id' ) ) );
-		if ( ! e ) { return; }
-		apply( e, $tile );
-		$tile.find( '.fccar-tname' ).text( e.title || e.srcTitle );
-		paintThumb( $tile, e );
+	var $drawer = $( '#fccar-drawer' );
+	var $back = $( '#fccar-drawer-backdrop' );
+	var W = null;        // working entry being edited
+	var isCard = false;  // card content edit vs. override edit
+	var isNew = false;   // creating a new standing card
+
+	function field( label, name, type, value, ph ) {
+		return '<label class="fccar-field"><span>' + esc( label ) + '</span>' +
+			'<input type="' + type + '" class="fccar-d-' + name + '" value="' + attr( value ) + '"' +
+			( ph ? ' placeholder="' + attr( ph ) + '"' : '' ) + '></label>';
 	}
-	$deck.on( 'input', '.fccar-f-title', function () { liveUpdate( this, function ( e ) { e.title = this.value; }.bind( this ) ); } );
-	$deck.on( 'input', '.fccar-f-when', function () { liveUpdate( this, function ( e ) { e.when = this.value; }.bind( this ) ); } );
-	$deck.on( 'change', '.fccar-f-presvc', function () {
-		var checked = this.checked;
-		liveUpdate( this, function ( e, $tile ) {
-			e.preserviceOnly = checked;
-			$tile.find( '.fccar-badge--pre' ).remove();
-			if ( checked ) { $tile.find( '.fccar-tile-bar .fccar-badge' ).first().after( '<span class="fccar-badge fccar-badge--pre" title="Preservice-only">PRE</span>' ); }
-		} );
-	} );
+	function textarea( label, name, value, hint ) {
+		return '<label class="fccar-field"><span>' + esc( label ) +
+			( hint ? ' <em>' + esc( hint ) + '</em>' : '' ) + '</span>' +
+			'<textarea class="fccar-d-' + name + '" rows="3">' + esc( value ) + '</textarea></label>';
+	}
 
-	$deck.on( 'click', '.fccar-bg', function () {
-		var $tile = $( this ).closest( '.fccar-tile' );
-		var e = entryById( String( $tile.data( 'id' ) ) );
-		if ( ! e || ! window.wp || ! window.wp.media ) { return; }
+	function cardFormHtml() {
+		var opts = ( D.layouts || [] ).map( function ( l ) {
+			return '<option value="' + attr( l ) + '"' + ( l === W.layout ? ' selected' : '' ) + '>' + esc( l ) + '</option>';
+		} ).join( '' );
+		var hasImg = !!( W.srcImage );
+		return field( 'Title', 'title', 'text', W.srcTitle || '' ) +
+			'<label class="fccar-field"><span>Layout</span><select class="fccar-d-layout">' + opts + '</select></label>' +
+			'<div data-when="body">' + textarea( 'Body', 'body', W.body || '', 'info cards: one "- " per bullet' ) + '</div>' +
+			'<div data-when="prompt">' + textarea( 'Prompt', 'prompt', W.prompt || '' ) + '</div>' +
+			'<div data-when="details">' + textarea( 'Details', 'details', W.details || '' ) + '</div>' +
+			'<div data-when="qr_url">' + field( 'QR link', 'qr_url', 'url', W.ctaUrl || '' ) + '</div>' +
+			'<div data-when="bg_color">' + field( 'Background color', 'bg_color', 'text', W.backgroundColor || '', '#1F1F1F' ) + '</div>' +
+			'<div class="fccar-field"><span>Background image</span><span class="fccar-bg-buttons">' +
+				'<button type="button" class="button button-small fccar-bg">' + ( hasImg ? 'Replace…' : 'Choose…' ) + '</button> ' +
+				'<button type="button" class="button-link fccar-bg-clear"' + ( hasImg ? '' : ' style="display:none"' ) + '>Clear</button>' +
+			'</span></div>' +
+			'<label class="fccar-presvc"><input type="checkbox" class="fccar-d-presvc"' + ( W.preserviceOnly ? ' checked' : '' ) + '> Preservice-only</label>' +
+			'<div class="fccar-drawer-actions">' +
+				'<button type="button" class="button button-primary fccar-d-save">' + ( isNew ? 'Add card' : 'Save card' ) + '</button>' +
+				'<button type="button" class="button fccar-d-cancel">Cancel</button>' +
+			'</div>';
+	}
+
+	function overrideFormHtml() {
+		var num = String( W.id ).replace( /^[a-z]+-/, '' );
+		var editUrl = D.adminPostUrl + '?post=' + encodeURIComponent( num ) + '&action=edit';
+		var kind = 'event' === W.source ? 'event' : 'post';
+		var hasImg = !!( W.image );
+		return '<p class="fccar-drawer-note">Overrides only change how this ' + esc( kind ) +
+				' appears in the carousel — the original isn\'t touched. ' +
+				'<a href="' + attr( editUrl ) + '" target="_blank" rel="noopener">Edit the full ' + esc( kind ) + ' ↗</a></p>' +
+			field( 'Title', 'title', 'text', W.title || '', W.srcTitle ) +
+			field( 'When', 'when', 'text', W.when || '', W.srcWhen || '—' ) +
+			'<div class="fccar-field"><span>Background</span><span class="fccar-bg-buttons">' +
+				'<button type="button" class="button button-small fccar-bg">' + ( ( W.image || W.srcImage ) ? 'Replace…' : 'Choose…' ) + '</button> ' +
+				'<button type="button" class="button-link fccar-bg-clear"' + ( hasImg ? '' : ' style="display:none"' ) + '>Clear</button>' +
+			'</span></div>' +
+			'<label class="fccar-presvc"><input type="checkbox" class="fccar-d-presvc"' + ( W.preserviceOnly ? ' checked' : '' ) + '> Preservice-only</label>' +
+			'<div class="fccar-drawer-actions">' +
+				'<button type="button" class="button button-primary fccar-d-cancel">Done</button>' +
+			'</div>';
+	}
+
+	function renderDrawer() {
+		var title = isNew ? 'New standing card' : ( isCard ? 'Edit standing card' : 'Edit ' + ( 'event' === W.source ? 'event' : 'announcement' ) + ' overrides' );
+		$drawer.html(
+			'<div class="fccar-drawer-head">' +
+				'<h2>' + esc( title ) + '</h2>' +
+				'<button type="button" class="fccar-drawer-x fccar-d-cancel" aria-label="Close">✕</button>' +
+			'</div>' +
+			'<div class="fccar-drawer-preview"><div class="fccar-thumb fccar-d-preview"></div></div>' +
+			'<div class="fccar-drawer-body">' + ( isCard ? cardFormHtml() : overrideFormHtml() ) + '</div>'
+		);
+		applyCardFieldVisibility();
+		repaintWorking();
+	}
+
+	function applyCardFieldVisibility() {
+		if ( ! isCard ) { return; }
+		$drawer.find( '[data-when]' ).each( function () {
+			var uses = FIELD_LAYOUTS[ $( this ).data( 'when' ) ] || [];
+			$( this ).toggle( uses.indexOf( W.layout ) !== -1 );
+		} );
+	}
+
+	/** Repaint the drawer preview and, for an in-deck entry, its tile. */
+	function repaintWorking() {
+		paintWell( $drawer.find( '.fccar-d-preview' ), W );
+		if ( ! isNew ) {
+			var $tile = $deck.children( '.fccar-tile' ).filter( function () { return String( $( this ).data( 'id' ) ) === String( W.id ); } );
+			if ( $tile.length ) {
+				paintThumb( $tile, W );
+				$tile.find( '.fccar-tname' ).text( W.title || W.srcTitle );
+				$tile.find( '.fccar-badge--pre' ).remove();
+				if ( W.preserviceOnly ) { $tile.find( '.fccar-badge' ).first().after( preBadge() ); }
+				$tile.find( '.fccar-badge' ).first().text( W.layout );
+			}
+		}
+	}
+
+	function openDrawer( entry, opts ) {
+		opts = opts || {};
+		isNew = !! opts.isNew;
+		isCard = isNew || ( entry && 'card' === entry.source );
+		// Card edits are transactional (committed on Save); override edits ride
+		// the live deck entry so they repaint the tile as you type.
+		W = isCard ? $.extend( {}, entry ) : entry;
+		renderDrawer();
+		$back.prop( 'hidden', false );
+		$drawer.prop( 'hidden', false ).attr( 'aria-hidden', 'false' ).addClass( 'is-open' );
+		setTimeout( function () { $drawer.find( 'input,select,textarea' ).first().trigger( 'focus' ); }, 30 );
+	}
+
+	function closeDrawer() {
+		$drawer.removeClass( 'is-open' ).prop( 'hidden', true ).attr( 'aria-hidden', 'true' ).empty();
+		$back.prop( 'hidden', true );
+		W = null; isCard = false; isNew = false;
+	}
+
+	/* open triggers */
+	$deck.on( 'click', '.fccar-edit', function () {
+		var e = entryById( String( $( this ).closest( '.fccar-tile' ).data( 'id' ) ) );
+		if ( e ) { openDrawer( e ); }
+	} );
+	$( '#fccar-new-card' ).on( 'click', function () {
+		openDrawer( { id: '', source: 'card', layout: 'info', srcTitle: '', srcImage: '', imageId: 0,
+			body: '', prompt: '', details: '', ctaUrl: '', backgroundColor: '', preserviceOnly: false,
+			title: '', when: '', image: '', srcWhen: '' }, { isNew: true } );
+	} );
+	$back.on( 'click', closeDrawer );
+	$( document ).on( 'keydown', function ( ev ) { if ( 27 === ev.keyCode && ! $drawer.prop( 'hidden' ) ) { closeDrawer(); } } );
+	$drawer.on( 'click', '.fccar-d-cancel', closeDrawer );
+
+	/* live field edits */
+	function bindIn( sel, fn ) {
+		$drawer.on( 'input', sel, function () { fn( this.value, this ); repaintWorking(); } );
+	}
+	// Card-mode writers (edit the card's own fields, stored as source values).
+	bindIn( '.fccar-d-title', function ( v ) { if ( isCard ) { W.srcTitle = v; } else { W.title = v; } } );
+	bindIn( '.fccar-d-when', function ( v ) { W.when = v; } );
+	bindIn( '.fccar-d-body', function ( v ) { W.body = v; } );
+	bindIn( '.fccar-d-prompt', function ( v ) { W.prompt = v; } );
+	bindIn( '.fccar-d-details', function ( v ) { W.details = v; } );
+	bindIn( '.fccar-d-qr_url', function ( v ) { W.ctaUrl = v; } );
+	bindIn( '.fccar-d-bg_color', function ( v ) { W.backgroundColor = v; } );
+	$drawer.on( 'change', '.fccar-d-layout', function () { W.layout = this.value; applyCardFieldVisibility(); repaintWorking(); } );
+	$drawer.on( 'change', '.fccar-d-presvc', function () { W.preserviceOnly = this.checked; repaintWorking(); } );
+
+	$drawer.on( 'click', '.fccar-bg', function () {
+		if ( ! window.wp || ! window.wp.media ) { return; }
 		var frame = window.wp.media( { title: 'Background image', multiple: false, library: { type: 'image' } } );
 		frame.on( 'select', function () {
 			var a = frame.state().get( 'selection' ).first().toJSON();
-			e.image = a.url;
-			$tile.find( '.fccar-bg' ).text( 'Replace…' );
-			$tile.find( '.fccar-bg-clear' ).show();
-			paintThumb( $tile, e );
+			if ( isCard ) { W.srcImage = a.url; W.imageId = a.id; } else { W.image = a.url; }
+			$drawer.find( '.fccar-bg' ).text( 'Replace…' );
+			$drawer.find( '.fccar-bg-clear' ).show();
+			repaintWorking();
 		} );
 		frame.open();
 	} );
-	$deck.on( 'click', '.fccar-bg-clear', function () {
-		var $tile = $( this ).closest( '.fccar-tile' );
-		var e = entryById( String( $tile.data( 'id' ) ) );
-		if ( ! e ) { return; }
-		e.image = '';
+	$drawer.on( 'click', '.fccar-bg-clear', function () {
+		if ( isCard ) { W.srcImage = ''; W.imageId = 0; } else { W.image = ''; }
 		$( this ).hide();
-		$tile.find( '.fccar-bg' ).text( e.srcImage ? 'Replace…' : 'Choose…' );
-		paintThumb( $tile, e );
+		$drawer.find( '.fccar-bg' ).text( ( isCard ? W.srcImage : ( W.image || W.srcImage ) ) ? 'Replace…' : 'Choose…' );
+		repaintWorking();
 	} );
 
-	/* ---- save / reset ---- */
+	/* save a standing card over REST, then fold the result back into the deck */
+	$drawer.on( 'click', '.fccar-d-save', function () {
+		var $btn = $( this ).prop( 'disabled', true ).text( 'Saving…' );
+		var payload = {
+			id: W.id || undefined,
+			title: W.srcTitle || '', layout: W.layout || 'info',
+			body: W.body || '', prompt: W.prompt || '', details: W.details || '',
+			qr_url: W.ctaUrl || '', bg_color: W.backgroundColor || '',
+			preservice: W.preserviceOnly ? 1 : 0, image_id: W.imageId || 0
+		};
+		fetch( D.restCardUrl, {
+			method: 'POST', credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': D.nonce },
+			body: JSON.stringify( payload )
+		} ).then( function ( r ) { return r.ok ? r.json() : r.json().then( function ( j ) { return Promise.reject( j ); } ); } )
+			.then( function ( j ) {
+				var it = j.item || {};
+				var merged = {
+					id: j.id, source: 'card', layout: it.layout || 'info',
+					srcTitle: it.title || '', srcWhen: '', srcImage: it.image || '', imageId: j.imageId || 0,
+					body: it.body || '', prompt: it.prompt || '', details: it.details || '',
+					ctaUrl: it.ctaUrl || '', backgroundColor: it.backgroundColor || '',
+					preserviceOnly: !! it.preserviceOnly, title: '', when: '', image: ''
+				};
+				if ( isNew ) {
+					D.deck.push( merged );
+				} else {
+					var e = entryById( W.id );
+					if ( e ) { $.extend( e, merged ); }
+				}
+				closeDrawer();
+				renderDeck();
+				flash( 'is-ok', 'Card saved.' );
+			} )
+			.catch( function ( j ) {
+				$btn.prop( 'disabled', false ).text( isNew ? 'Add card' : 'Save card' );
+				flash( 'is-error', ( j && j.message ) ? j.message : 'Card save failed.' );
+			} );
+	} );
+
+	/* ---- deck save / reset ---- */
+	function flash( cls, msg ) { $status.removeClass( 'is-error is-ok' ).addClass( cls ).text( msg ); }
+
 	function post( body, done ) {
-		$status.removeClass( 'is-error is-ok' ).text( 'Saving…' );
+		flash( '', 'Saving…' );
 		fetch( D.restUrl, {
-			method: 'POST',
-			credentials: 'same-origin',
+			method: 'POST', credentials: 'same-origin',
 			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': D.nonce },
 			body: JSON.stringify( body )
 		} ).then( function ( r ) { return r.ok ? r.json() : Promise.reject( r ); } )
 			.then( function ( j ) { done( j ); } )
-			.catch( function () { $status.addClass( 'is-error' ).text( 'Save failed.' ); } );
+			.catch( function () { flash( 'is-error', 'Save failed.' ); } );
 	}
 
 	$( '#fccar-save' ).on( 'click', function () {
@@ -212,7 +374,7 @@
 			return { id: e.id, title: e.title || '', when: e.when || '', image: e.image || '', preserviceOnly: !!e.preserviceOnly };
 		} );
 		post( { deck: deck }, function ( j ) {
-			$status.addClass( 'is-ok' ).text( 'Saved ' + ( j.count != null ? j.count : deck.length ) + ' cards.' );
+			flash( 'is-ok', 'Saved ' + ( j.count != null ? j.count : deck.length ) + ' cards.' );
 		} );
 	} );
 

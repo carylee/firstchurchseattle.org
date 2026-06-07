@@ -60,11 +60,39 @@
 .fccar-remove { color: #b32d2e; }
 .fccar-remove:hover { color: #8a2424; }
 
-/* per-tile override editor */
-.fccar-editor { padding: 8px; border-top: 1px solid #f0f0f1; background: #fbfbfc; }
-.fccar-editor .fccar-field { display: block; font-size: 12px; margin: 0 0 8px; }
-.fccar-editor .fccar-field > span { display: block; font-weight: 600; color: #50575e; margin-bottom: 2px; }
-.fccar-editor input[type="text"] { width: 100%; }
+/* ---- slide-over drawer (adaptive card / override editor) ---- */
+.fccar-drawer-backdrop {
+	position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 9990;
+}
+.fccar-drawer {
+	position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 92vw;
+	background: #fff; box-shadow: -2px 0 16px rgba(0,0,0,.18); z-index: 9991;
+	display: flex; flex-direction: column; overflow-y: auto;
+	transform: translateX(100%); transition: transform .18s ease;
+}
+.fccar-drawer.is-open { transform: translateX(0); }
+.fccar-drawer-head {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 14px 16px; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; background: #fff; z-index: 1;
+}
+.fccar-drawer-head h2 { margin: 0; font-size: 15px; }
+.fccar-drawer-x { border: 0; background: none; font-size: 15px; cursor: pointer; color: #646970; padding: 4px; }
+.fccar-drawer-x:hover { color: #1d2327; }
+.fccar-drawer-preview { padding: 14px 16px 0; }
+.fccar-drawer-preview .fccar-thumb {
+	position: relative; width: 100%; aspect-ratio: 16 / 9; background: #1f1f1f; border-radius: 6px; overflow: hidden;
+}
+.fccar-drawer-preview .ann-stage {
+	position: absolute; top: 0; left: 0; width: 1280px; height: 720px; transform-origin: top left;
+}
+.fccar-drawer-body { padding: 14px 16px 24px; }
+.fccar-drawer-note { font-size: 12px; color: #50575e; margin: 0 0 12px; line-height: 1.5; }
+
+.fccar-field { display: block; font-size: 12px; margin: 0 0 12px; }
+.fccar-field > span { display: block; font-weight: 600; color: #50575e; margin-bottom: 3px; }
+.fccar-field > span em { font-weight: 400; color: #787c82; font-style: italic; }
+.fccar-field input[type="text"], .fccar-field input[type="url"], .fccar-field select, .fccar-field textarea { width: 100%; }
 .fccar-bg-buttons { display: flex; align-items: center; gap: 8px; }
 .fccar-bg-clear { color: #b32d2e; }
 .fccar-presvc { display: flex !important; align-items: center; gap: 6px; font-size: 12px; margin: 4px 0 0; }
+.fccar-drawer-actions { display: flex; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0f0f1; }

@@ -110,6 +110,12 @@ if ( ! function_exists( 'esc_textarea' ) ) {
 	}
 }
 
+if ( ! function_exists( 'absint' ) ) {
+	function absint( $n ): int {
+		return abs( (int) $n );
+	}
+}
+
 if ( ! function_exists( 'wp_json_encode' ) ) {
 	function wp_json_encode( $data, $flags = 0 ) {
 		return json_encode( $data, $flags );
