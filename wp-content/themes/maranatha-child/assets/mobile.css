@@ -178,10 +178,18 @@
 	text-decoration: underline;
 }
 
-.fcs-card__date {
+.fcs-card__date,
+.fcs-card__meta {
 	margin: 0 !important;
 	font-size: 0.8rem;
 	color: #8a7d86;
+}
+
+/* Optional section heading for the Happenings block (/engage). */
+.fcs-happenings__heading {
+	margin: 1.5em 0 0.6em;
+	font-size: 1.4rem;
+	color: var( --fcs-maroon, #70334e );
 }
 
 .fcs-card__excerpt {

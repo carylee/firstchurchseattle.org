@@ -23,20 +23,6 @@ function happenings_card_view(array $item): array
     return CardView::fromHappening($item);
 }
 
-/**
- * Recent announcements promoted to the Featured row: weight > 0, already
- * weight-sorted by happenings_news_items(), capped to $count.
- */
-function happenings_featured_news(int $days, int $count): array
-{
-    $featured = array_filter(
-        happenings_news_items($days),
-        static fn ($i) => !empty($i['weight'])
-    );
-
-    return array_slice(array_values($featured), 0, max(0, $count));
-}
-
 /** Build one feed item, dropping empty values. @param array<string,mixed> $fields */
 function happenings_item(array $fields): array
 {

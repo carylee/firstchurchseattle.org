@@ -101,6 +101,44 @@ function happenings_news_items(int $days): array
     return array_map('happenings_news_to_item', $posts);
 }
 
+/**
+ * Posts promoted to the Featured row: any published post with fcs_weight > 0,
+ * honoring expiry, sorted by weight (desc) then date (desc), capped. Featured is
+ * curated by weight — it is NOT recency-bound and not limited to the
+ * Announcements category (the weight meta is post-wide). A promoted post stays
+ * featured until its weight is cleared or it expires. Projected like news.
+ */
+function happenings_featured_news(int $count): array
+{
+    $today = current_time('Y-m-d');
+
+    $q = new WP_Query([
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'posts_per_page' => 50,
+        'no_found_rows'  => true,
+        'meta_query'     => [
+            'relation' => 'AND',
+            ['key' => 'fcs_weight', 'value' => 0, 'compare' => '>', 'type' => 'NUMERIC'],
+            [
+                'relation' => 'OR',
+                ['key' => 'fcs_expires', 'compare' => 'NOT EXISTS'],
+                ['key' => 'fcs_expires', 'value' => '', 'compare' => '='],
+                ['key' => 'fcs_expires', 'value' => $today, 'compare' => '>=', 'type' => 'DATE'],
+            ],
+        ],
+    ]);
+
+    $posts = $q->posts;
+    usort($posts, static function ($a, $b) {
+        $wa = (int) get_post_meta($a->ID, 'fcs_weight', true);
+        $wb = (int) get_post_meta($b->ID, 'fcs_weight', true);
+        return ($wb <=> $wa) ?: strcmp($b->post_date, $a->post_date);
+    });
+
+    return array_slice(array_map('happenings_news_to_item', $posts), 0, max(0, $count));
+}
+
 function happenings_news_to_item(WP_Post $post): array
 {
     $body = happenings_text(wp_strip_all_tags(
