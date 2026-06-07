@@ -87,9 +87,13 @@
 	position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 92vw;
 	background: #fff; box-shadow: -2px 0 16px rgba(0,0,0,.18); z-index: 9991;
 	display: flex; flex-direction: column; overflow-y: auto;
-	transform: translateX(100%); transition: transform .18s ease;
+	/* Hide via transform + visibility (not the `hidden` attribute, which
+	 * display:flex would override) so the slide animates AND a closed drawer is
+	 * out of the focus/AT order. visibility flips after the slide on close. */
+	transform: translateX(100%); visibility: hidden;
+	transition: transform .18s ease, visibility 0s linear .18s;
 }
-.fccar-drawer.is-open { transform: translateX(0); }
+.fccar-drawer.is-open { transform: translateX(0); visibility: visible; transition: transform .18s ease, visibility 0s; }
 .fccar-drawer-head {
 	display: flex; align-items: center; justify-content: space-between;
 	padding: 14px 16px; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; background: #fff; z-index: 1;
@@ -121,6 +125,10 @@
 	position: fixed; inset: 0; z-index: 99990; background: rgba(15,15,18,.92);
 	display: flex; flex-direction: column;
 }
+/* The display:flex above beats the UA [hidden]{display:none}, so restore it
+ * explicitly — otherwise the modal (and its empty state) show on page load. */
+.fccar-preview-modal[hidden] { display: none; }
+.fccar-preview-empty[hidden] { display: none; }
 .fccar-preview-head {
 	display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 	padding: 10px 16px; color: #e6e6e6; background: rgba(0,0,0,.4);

@@ -139,7 +139,7 @@ function fccar_render_curate_page(): void {
 		</div>
 
 		<div class="fccar-drawer-backdrop" id="fccar-drawer-backdrop" hidden></div>
-		<aside class="fccar-drawer" id="fccar-drawer" hidden aria-hidden="true" aria-label="Card editor"></aside>
+		<aside class="fccar-drawer" id="fccar-drawer" aria-hidden="true" aria-label="Card editor"></aside>
 
 		<div class="fccar-preview-modal" id="fccar-preview-modal" hidden aria-hidden="true" aria-label="Deck preview">
 			<div class="fccar-preview-head">
