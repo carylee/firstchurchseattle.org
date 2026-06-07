@@ -50,6 +50,7 @@ function happenings_event_to_item(WP_Post $post): array
         'when'   => happenings_event_when($post->ID),
         'ctaUrl' => $reg ?: (string) get_permalink($post),
         'image'  => (string) get_the_post_thumbnail_url($post, 'full'),
+        'url'    => (string) get_permalink($post),
     ]);
 }
 
@@ -119,5 +120,7 @@ function happenings_news_to_item(WP_Post $post): array
         'ctaText' => happenings_text(get_post_meta($post->ID, 'fcs_cta_text', true)),
         'image'   => (string) get_the_post_thumbnail_url($post, 'full'),
         'weight'  => $weight > 0 ? $weight : '',
+        'url'     => (string) get_permalink($post),
+        'date'    => (string) get_post_time('Y-m-d', false, $post),
     ]);
 }

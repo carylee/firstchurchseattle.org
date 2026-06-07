@@ -51,7 +51,9 @@ Happening {
   title     string
   blurb     string   // short body / excerpt (the resolver's `body`)
   image     string   // full-size URL, optional
+  url       string   // canonical permalink (the title links here)
   when      string?  // human date/time, events only ("Sundays at 10:30 am · Sanctuary")
+  date      string?  // YYYY-MM-DD publish date, news only
   cta       { url, text }?   // optional call-to-action
   tags      string[]         // future: topic/audience facets (see §6)
   starts    string?  // YYYY-MM-DD, when it begins surfacing (future)
