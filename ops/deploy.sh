@@ -34,6 +34,8 @@ rsync -av $DRY --delete \
   --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
   -e "$RSH" wp-content/plugins/firstchurch-carousel/ \
   "$REMOTE/plugins/firstchurch-carousel/"
+rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-stock-photos/ \
+  "$REMOTE/plugins/firstchurch-stock-photos/"
 
 # breeze-forms is fully ours too, but its working tree carries dev-only artifacts
 # (Composer deps, PHPUnit cache/config, tests) that must NOT ship to prod.
