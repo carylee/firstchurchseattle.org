@@ -174,6 +174,11 @@ function fccar_news_items( int $days ): array {
 	if ( ! $cat ) {
 		return array();
 	}
+	// Lifecycle (ops/docs/happenings.md Â§4): drop expired posts (fcs_expires set
+	// and in the past). Posts without the key â older announcements â never expire.
+	// Applies to the auto-assembled feed only; explicit deck pins are honored
+	// regardless (see fccar_item_by_id).
+	$today = current_time( 'Y-m-d' );
 	$q = new WP_Query( array(
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
@@ -183,8 +188,21 @@ function fccar_news_items( int $days ): array {
 		'orderby'        => 'date',
 		'order'          => 'DESC',
 		'date_query'     => array( array( 'after' => $days . ' days ago' ) ),
+		'meta_query'     => array(
+			'relation' => 'OR',
+			array( 'key' => 'fcs_expires', 'compare' => 'NOT EXISTS' ),
+			array( 'key' => 'fcs_expires', 'value' => '', 'compare' => '=' ),
+			array( 'key' => 'fcs_expires', 'value' => $today, 'compare' => '>=', 'type' => 'DATE' ),
+		),
 	) );
-	return array_map( 'fccar_news_to_item', $q->posts );
+	// Weight floats important items up; equal weights keep the query's date-desc
+	// order (PHP 8 sort is stable). Sorted in PHP so posts lacking the meta key
+	// (weight 0) aren't dropped by an INNER JOIN order-by.
+	$posts = $q->posts;
+	usort( $posts, static function ( $a, $b ) {
+		return (int) get_post_meta( $b->ID, 'fcs_weight', true ) <=> (int) get_post_meta( $a->ID, 'fcs_weight', true );
+	} );
+	return array_map( 'fccar_news_to_item', $posts );
 }
 
 function fccar_news_to_item( WP_Post $post ): array {
@@ -193,6 +211,7 @@ function fccar_news_to_item( WP_Post $post ): array {
 	) );
 	$title = fccar_text( get_the_title( $post ) );
 	$cta   = (string) get_post_meta( $post->ID, 'fcs_cta_url', true );
+	$weight = (int) get_post_meta( $post->ID, 'fcs_weight', true );
 
 	return fccar_item( array(
 		'id'      => 'announcement-' . $post->ID,
@@ -203,6 +222,7 @@ function fccar_news_to_item( WP_Post $post ): array {
 		'ctaUrl'  => $cta,
 		'ctaText' => fccar_text( get_post_meta( $post->ID, 'fcs_cta_text', true ) ),
 		'image'   => (string) get_the_post_thumbnail_url( $post, 'full' ),
+		'weight'  => $weight > 0 ? $weight : '',
 	) );
 }
 
