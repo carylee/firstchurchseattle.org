@@ -86,3 +86,21 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
       - name: PHPUnit
         run: vendor/bin/phpunit
+
+  stock-photos:
+    name: stock-photos PHPUnit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wp-content/plugins/firstchurch-stock-photos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: PHPUnit
+        run: vendor/bin/phpunit
