@@ -40,7 +40,7 @@ final class OpenverseTest extends TestCase
 
     public function testNormalizeMapsAllFields(): void
     {
-        $out = \fcsp_normalize_result($this->sampleItem());
+        $out = \fcsp_normalize_openverse($this->sampleItem());
 
         self::assertSame('abc-123', $out['id']);
         self::assertSame('https://img.example.com/full.jpg', $out['url']);
@@ -57,7 +57,7 @@ final class OpenverseTest extends TestCase
         $item = $this->sampleItem();
         unset($item['thumbnail']);
 
-        $out = \fcsp_normalize_result($item);
+        $out = \fcsp_normalize_openverse($item);
 
         self::assertSame($out['url'], $out['thumbnail']);
     }
@@ -67,7 +67,7 @@ final class OpenverseTest extends TestCase
         $item = $this->sampleItem();
         unset($item['url']);
 
-        self::assertNull(\fcsp_normalize_result($item));
+        self::assertNull(\fcsp_normalize_openverse($item));
     }
 
     public function testEmptyQueryReturnsError(): void

@@ -25,12 +25,22 @@ function fcsp_render_admin_page(): void {
 	if ( ! current_user_can( fcsp_capability() ) ) {
 		wp_die( esc_html__( 'You do not have permission to access this page.', 'default' ) );
 	}
+	$providers = fcsp_provider_choices();
+
 	echo '<div class="wrap fcsp-wrap">';
 	echo '<h1>Stock Photos</h1>';
-	echo '<p class="description">Search openly-licensed photos from <a href="https://openverse.org" target="_blank" rel="noopener noreferrer">Openverse</a> and add them straight to the media library. Attribution and license are recorded automatically.</p>';
+	echo '<p class="description">Search free, openly-licensed photos and add them straight to the media library. Attribution and license are recorded automatically.</p>';
 	echo '<form id="fcsp-search-form"><p>';
 	echo '<input type="search" id="fcsp-query" class="regular-text" placeholder="e.g. autumn leaves, community, candle" autofocus> ';
 	echo '<select id="fcsp-orientation"><option value="">Any shape</option><option value="wide">Wide</option><option value="tall">Tall</option><option value="square">Square</option></select> ';
+	// Only show the provider picker when there's a real choice to make.
+	if ( count( $providers ) > 1 ) {
+		echo '<select id="fcsp-provider">';
+		foreach ( $providers as $slug => $label ) {
+			printf( '<option value="%s">%s</option>', esc_attr( $slug ), esc_html( $label ) );
+		}
+		echo '</select> ';
+	}
 	echo '<button type="submit" class="button button-primary">Search</button>';
 	echo '</p></form>';
 	echo '<p id="fcsp-status" class="description" aria-live="polite"></p>';
