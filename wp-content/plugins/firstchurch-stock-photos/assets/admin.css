@@ -14,12 +14,40 @@
 	flex-direction: column;
 }
 
-.fcsp-card img {
+/* Clickable thumbnail (button reset) with a dimensions badge overlay. */
+.fcsp-thumb {
+	position: relative;
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	cursor: zoom-in;
+	background: #f0f0f1;
+}
+
+.fcsp-thumb img {
 	width: 100%;
 	height: 160px;
 	object-fit: cover;
 	background: #f0f0f1;
 	display: block;
+}
+
+.fcsp-thumb:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}
+
+.fcsp-dims {
+	position: absolute;
+	right: 6px;
+	bottom: 6px;
+	padding: 1px 6px;
+	border-radius: 3px;
+	background: rgba( 0, 0, 0, 0.65 );
+	color: #fff;
+	font-size: 11px;
+	line-height: 1.6;
 }
 
 .fcsp-card .fcsp-meta {
@@ -43,6 +71,120 @@
 	border-top: 1px solid #f0f0f1;
 }
 
+.fcsp-lib-link {
+	margin-left: 8px;
+}
+
 .fcsp-card.fcsp-done {
 	outline: 2px solid #00a32a;
+}
+
+/* ---- Lightbox ---- */
+
+.fcsp-lightbox[hidden] {
+	display: none;
+}
+
+.fcsp-lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.fcsp-lb-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba( 0, 0, 0, 0.75 );
+}
+
+.fcsp-lb-panel {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	max-width: min( 1100px, 92vw );
+	max-height: 88vh;
+	padding: 16px;
+	overflow: auto;
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 10px 40px rgba( 0, 0, 0, 0.4 );
+}
+
+.fcsp-lb-close {
+	position: absolute;
+	top: 6px;
+	right: 8px;
+	width: 32px;
+	height: 32px;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	color: #1d2327;
+}
+
+.fcsp-lb-close:hover {
+	background: #f0f0f1;
+}
+
+.fcsp-lb-stage {
+	flex: 1 1 380px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	background: #f6f7f7;
+	border-radius: 4px;
+}
+
+.fcsp-lb-stage img {
+	max-width: 100%;
+	max-height: 78vh;
+	object-fit: contain;
+	display: block;
+}
+
+.fcsp-lb-info {
+	flex: 1 1 260px;
+	min-width: 240px;
+	max-width: 340px;
+}
+
+.fcsp-lb-title {
+	margin: 4px 24px 12px 0;
+	font-size: 16px;
+}
+
+.fcsp-lb-rows {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 4px 10px;
+	font-size: 13px;
+}
+
+.fcsp-lb-label {
+	color: #646970;
+}
+
+.fcsp-lb-attribution {
+	margin: 12px 0;
+	padding: 8px 10px;
+	background: #f6f7f7;
+	border-radius: 4px;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.fcsp-lb-actions {
+	margin-top: 12px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }

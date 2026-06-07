@@ -25,6 +25,7 @@ add_action(
 					'page'         => array( 'type' => 'integer', 'default' => 1 ),
 					'orientation'  => array( 'type' => 'string', 'default' => '', 'enum' => array( '', 'square', 'tall', 'wide' ) ),
 					'license_type' => array( 'type' => 'string', 'default' => '' ),
+					'provider'     => array( 'type' => 'string', 'default' => '' ),
 				),
 				'callback'            => static function ( WP_REST_Request $request ) {
 					$result = fcsp_search(
@@ -34,6 +35,7 @@ add_action(
 							'page'         => $request->get_param( 'page' ),
 							'orientation'  => $request->get_param( 'orientation' ),
 							'license_type' => $request->get_param( 'license_type' ),
+							'provider'     => $request->get_param( 'provider' ),
 						)
 					);
 					if ( is_wp_error( $result ) ) {
@@ -55,6 +57,7 @@ add_action(
 					'title'       => array( 'type' => 'string' ),
 					'alt'         => array( 'type' => 'string' ),
 					'post_id'     => array( 'type' => 'integer' ),
+					'provider'    => array( 'type' => 'string' ),
 					'openverse_id' => array( 'type' => 'string' ),
 					'creator'     => array( 'type' => 'string' ),
 					'creator_url' => array( 'type' => 'string' ),

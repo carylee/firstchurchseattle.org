@@ -96,6 +96,7 @@ function fcsp_import( array $data ) {
  */
 function fcsp_store_provenance( int $attachment_id, array $data ): void {
 	$map = array(
+		FCSP_META_PROVIDER    => 'provider',
 		FCSP_META_OV_ID       => 'openverse_id',
 		FCSP_META_CREATOR     => 'creator',
 		FCSP_META_CREATOR_URL => 'creator_url',

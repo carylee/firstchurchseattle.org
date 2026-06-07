@@ -28,11 +28,8 @@ const FCSP_OV_MAX_PAGE_SIZE_AUTH = 50;
  * }
  * @return array|WP_Error { results: array<normalized image>, total: int, page: int, page_count: int }
  */
-function fcsp_search( array $args ) {
-	$query = isset( $args['query'] ) ? trim( (string) $args['query'] ) : '';
-	if ( '' === $query ) {
-		return new WP_Error( 'fcsp_empty_query', 'A search query is required.' );
-	}
+function fcsp_search_openverse( array $args ) {
+	$query = trim( (string) ( $args['query'] ?? '' ) );
 
 	$page         = max( 1, (int) ( $args['page'] ?? 1 ) );
 	$license_type = isset( $args['license_type'] ) && '' !== $args['license_type']
@@ -107,7 +104,7 @@ function fcsp_search( array $args ) {
 
 	$results = array();
 	foreach ( (array) ( $body['results'] ?? array() ) as $item ) {
-		$normalized = fcsp_normalize_result( $item );
+		$normalized = fcsp_normalize_openverse( $item );
 		if ( $normalized ) {
 			$results[] = $normalized;
 		}
@@ -125,7 +122,7 @@ function fcsp_search( array $args ) {
  * Reduce a raw Openverse result to the fields we surface and store. Returns
  * null if the item lacks a usable full-size URL.
  */
-function fcsp_normalize_result( $item ): ?array {
+function fcsp_normalize_openverse( $item ): ?array {
 	if ( ! is_array( $item ) || empty( $item['url'] ) ) {
 		return null;
 	}

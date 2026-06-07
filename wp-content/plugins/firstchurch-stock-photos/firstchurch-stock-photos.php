@@ -20,7 +20,8 @@ const FCSP_OPENVERSE_API = 'https://api.openverse.org/v1/images/';
 const FCSP_DEFAULT_LICENSE_TYPE = 'commercial,modification';
 
 // Attachment meta keys recording where an imported image came from.
-const FCSP_META_SOURCE      = '_fcsp_source';        // openverse "source" (e.g. flickr, wikimedia)
+const FCSP_META_PROVIDER    = '_fcsp_provider';      // top-level provider (openverse, pexels, …)
+const FCSP_META_SOURCE      = '_fcsp_source';        // provider's sub-source (e.g. flickr, wikimedia)
 const FCSP_META_OV_ID       = '_fcsp_openverse_id';
 const FCSP_META_CREATOR     = '_fcsp_creator';
 const FCSP_META_CREATOR_URL = '_fcsp_creator_url';
@@ -29,7 +30,9 @@ const FCSP_META_LICENSE_URL = '_fcsp_license_url';
 const FCSP_META_ATTRIBUTION = '_fcsp_attribution';    // ready-made credit string
 const FCSP_META_FOREIGN_URL = '_fcsp_foreign_url';    // landing page on the source site
 
-require_once __DIR__ . '/inc/openverse.php';
+require_once __DIR__ . '/inc/providers.php';
+require_once __DIR__ . '/inc/provider-openverse.php';
+require_once __DIR__ . '/inc/provider-pexels.php';
 require_once __DIR__ . '/inc/import.php';
 require_once __DIR__ . '/inc/rest.php';
 require_once __DIR__ . '/inc/mcp.php';

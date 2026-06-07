@@ -52,7 +52,7 @@ add_action(
 			'firstchurch/search-stock-photo',
 			array(
 				'label'               => 'Search stock photos',
-				'description'         => 'Search Openverse for openly-licensed, attribution-safe photos (commercial use + modification allowed, mature content excluded). Returns candidates with thumbnail, full-size URL, creator, license, and a ready-made attribution string. Read-only — pass a chosen candidate to import-stock-photo to add it to the media library.',
+				'description'         => 'Search free stock photos across providers (' . implode( ', ', array_keys( fcsp_provider_choices() ) ) . '). Defaults to Openverse (openly-licensed, attribution-safe: commercial use + modification, mature excluded). Returns candidates with thumbnail, full-size URL, creator, license, and a ready-made attribution string. Read-only — pass a chosen candidate to import-stock-photo to add it to the media library.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',
@@ -60,6 +60,7 @@ add_action(
 						'query'       => array( 'type' => 'string', 'description' => 'What to search for, e.g. "autumn trees" or "diverse community".' ),
 						'count'       => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 30, 'default' => 8 ),
 						'orientation' => array( 'type' => 'string', 'enum' => array( '', 'square', 'tall', 'wide' ), 'default' => '' ),
+						'provider'    => array( 'type' => 'string', 'enum' => array_merge( array( '' ), array_keys( fcsp_provider_choices() ) ), 'default' => '', 'description' => 'Which provider to search; defaults to Openverse.' ),
 					),
 					'required'             => array( 'query' ),
 					'additionalProperties' => false,
@@ -70,6 +71,7 @@ add_action(
 							'query'       => $input['query'] ?? '',
 							'count'       => $input['count'] ?? 8,
 							'orientation' => $input['orientation'] ?? '',
+							'provider'    => $input['provider'] ?? '',
 						)
 					);
 				},
@@ -82,7 +84,7 @@ add_action(
 			'firstchurch/import-stock-photo',
 			array(
 				'label'               => 'Import stock photo',
-				'description'         => 'Download an Openverse photo into the media library and record its provenance (creator, license, attribution, source). Pass the fields returned by search-stock-photo. Optionally set it as a post\'s featured image via post_id. Returns the new attachment_id.',
+				'description'         => 'Download a stock photo into the media library and record its provenance (provider, creator, license, attribution, source). Pass the fields returned by search-stock-photo. Optionally set it as a post\'s featured image via post_id. Returns the new attachment_id.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',
@@ -91,6 +93,7 @@ add_action(
 						'title'        => array( 'type' => 'string' ),
 						'alt'          => array( 'type' => 'string', 'description' => 'Alt text. Defaults to title.' ),
 						'post_id'      => array( 'type' => 'integer', 'description' => 'If set, also use this image as the post\'s featured image.' ),
+						'provider'     => array( 'type' => 'string' ),
 						'openverse_id' => array( 'type' => 'string' ),
 						'creator'      => array( 'type' => 'string' ),
 						'creator_url'  => array( 'type' => 'string' ),

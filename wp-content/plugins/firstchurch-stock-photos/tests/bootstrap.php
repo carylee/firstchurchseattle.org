@@ -27,6 +27,7 @@ define('ABSPATH', __DIR__ . '/');
 // shim answers based on the per-test token flag.
 define('FCSP_OPENVERSE_CLIENT_ID', 'test-id');
 define('FCSP_OPENVERSE_CLIENT_SECRET', 'test-secret');
+define('FCSP_PEXELS_API_KEY', 'test-pexels-key');
 
 /* -------------------------------------------------------------------------
  * Test-controlled state + helpers
@@ -35,16 +36,23 @@ define('FCSP_OPENVERSE_CLIENT_SECRET', 'test-secret');
 $GLOBALS['fcsp_test_hooks']      = [];   // hook name => [callbacks]
 $GLOBALS['fcsp_test_http_queue'] = [];   // FIFO of canned wp_remote_get responses
 $GLOBALS['fcsp_test_requests']   = [];   // URLs requested via wp_remote_get
+$GLOBALS['fcsp_test_request_args'] = []; // the $args (headers etc.) of each wp_remote_get
 $GLOBALS['fcsp_test_token']      = null; // when a string, wp_remote_post returns it as a bearer token
 $GLOBALS['fcsp_test_meta']       = [];   // attachment id => [meta key => value]
 
-/** Reset per-test mutable state (hooks persist — they're registered at load). */
+/**
+ * Reset per-test mutable state. Hooks are restored to the load-time baseline
+ * (captured at the end of this file) so a filter/action a test adds doesn't
+ * leak into the next one.
+ */
 function fcsp_test_reset(): void
 {
-    $GLOBALS['fcsp_test_http_queue'] = [];
-    $GLOBALS['fcsp_test_requests']   = [];
-    $GLOBALS['fcsp_test_token']      = null;
-    $GLOBALS['fcsp_test_meta']       = [];
+    $GLOBALS['fcsp_test_http_queue']   = [];
+    $GLOBALS['fcsp_test_requests']     = [];
+    $GLOBALS['fcsp_test_request_args'] = [];
+    $GLOBALS['fcsp_test_token']        = null;
+    $GLOBALS['fcsp_test_meta']         = [];
+    $GLOBALS['fcsp_test_hooks']        = $GLOBALS['fcsp_test_hooks_baseline'] ?? [];
 }
 
 /** Queue a canned response for the next wp_remote_get(). */
@@ -60,6 +68,12 @@ function fcsp_test_enqueue(int $code, $body): void
 function fcsp_test_requests(): array
 {
     return $GLOBALS['fcsp_test_requests'];
+}
+
+/** The $args (headers, timeout, …) passed to each wp_remote_get(), in order. */
+function fcsp_test_request_args(): array
+{
+    return $GLOBALS['fcsp_test_request_args'];
 }
 
 /** Callbacks registered for a hook. */
@@ -122,7 +136,17 @@ if (!function_exists('add_filter')) {
 if (!function_exists('apply_filters')) {
     function apply_filters(string $hook, $value, ...$args)
     {
+        foreach (($GLOBALS['fcsp_test_hooks'][$hook] ?? []) as $callback) {
+            $value = $callback($value, ...$args);
+        }
         return $value;
+    }
+}
+
+if (!function_exists('sanitize_key')) {
+    function sanitize_key($key): string
+    {
+        return preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $key));
     }
 }
 
@@ -173,7 +197,8 @@ if (!function_exists('add_query_arg')) {
 if (!function_exists('wp_remote_get')) {
     function wp_remote_get(string $url, array $args = [])
     {
-        $GLOBALS['fcsp_test_requests'][] = $url;
+        $GLOBALS['fcsp_test_requests'][]     = $url;
+        $GLOBALS['fcsp_test_request_args'][] = $args;
         if (empty($GLOBALS['fcsp_test_http_queue'])) {
             return new WP_Error('fcsp_test_no_response', 'No canned response queued.');
         }
@@ -245,3 +270,6 @@ if (!function_exists('update_post_meta')) {
  * ---------------------------------------------------------------------- */
 
 require_once __DIR__ . '/../firstchurch-stock-photos.php';
+
+// Snapshot the hooks registered at load so each test starts from a clean slate.
+$GLOBALS['fcsp_test_hooks_baseline'] = $GLOBALS['fcsp_test_hooks'];
