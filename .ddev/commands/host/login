@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+## Description: Magic one-time login URL for the local WordPress (dev only)
+## Usage: login [user_login_or_email]
+## Example: "ddev login"            # first administrator
+## Example: "ddev login firstchurch"
+## ProjectTypes: wordpress
+
+# Generates a short-lived, single-use magic login link via wp-cli-login, so you
+# can reach wp-admin on the local mirror without knowing the prod admin password
+# (the mirrored users carry prod password hashes). No standing auth bypass: each
+# link is one-time. The companion server mu-plugin it installs is local-only —
+# gitignored, never deployed by ops/deploy.sh, and protected in
+# ops/sync/pull-exclude.txt so a pull doesn't delete it.
+
+set -e
+
+APPROOT="${DDEV_APPROOT:-$PWD}"
+
+# 1) Ensure the wp-cli `login` command is installed (idempotent; ~once/container).
+if ! ddev exec wp cli has-command login >/dev/null 2>&1; then
+	echo "Installing wp-cli-login-command (first run)…"
+	ddev exec wp package install aaemnnosttv/wp-cli-login-command
+fi
+
+# 2) Ensure the companion server mu-plugin exists.
+if [ ! -f "${APPROOT}/wp-content/mu-plugins/wp-cli-login-server.php" ]; then
+	echo "Installing the wp-cli-login server mu-plugin (local-only)…"
+	ddev exec wp login install --activate --yes
+fi
+
+# 3) Default to the first administrator when no user is given.
+USER_LOCATOR="${1:-}"
+if [ -z "${USER_LOCATOR}" ]; then
+	USER_LOCATOR="$(ddev exec wp user list --role=administrator --field=user_login --number=1 | tr -d '\r\n')"
+fi
+
+# 4) Create a one-time magic URL bound to the DDEV primary URL (keeps host:port).
+echo "Magic login URL for '${USER_LOCATOR}' (one-time, expires soon):"
+ddev exec "wp login create '${USER_LOCATOR}' --url=\"\${DDEV_PRIMARY_URL}\" --url-only"

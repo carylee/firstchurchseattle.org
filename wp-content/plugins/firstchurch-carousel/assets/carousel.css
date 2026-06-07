@@ -1,0 +1,53 @@
+/*
+ * Live carousel page chrome (kiosk surface) + the play/fade behavior. The card
+ * visual language (.ann-*) lives in the shared card.css; this file only sets up
+ * the full-screen letterboxed stage and the card-to-card fade. See carousel.js.
+ */
+
+html, body {
+	margin: 0;
+	height: 100%;
+	background: #000;
+	overflow: hidden;
+	font-family: 'Raleway', -apple-system, system-ui, sans-serif;
+	color: #fff;
+	cursor: none; /* kiosk: hide the pointer */
+}
+
+.fccar-viewport {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	background: #000;
+}
+
+/* The 16:9 stage. carousel.js sets transform: scale() to fit the viewport;
+   grid centering keeps it pinned regardless of scale. */
+.fccar-deck {
+	position: relative;
+	width: 1280px;
+	height: 720px;
+	transform: scale(var(--fccar-scale, 1));
+}
+
+.fccar-empty {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	font-size: 36px;
+	color: #888;
+}
+/* author display:grid would otherwise beat the UA [hidden] rule */
+.fccar-empty[hidden] { display: none; }
+
+/* Play behavior: only the active card is visible; the player fades the old one
+   out before fading the new one in (fade-through-black), so two cards' text
+   never superimpose mid-transition. */
+.fccar-deck .ann-stage {
+	opacity: 0;
+	transition: opacity .45s ease;
+	pointer-events: none;
+}
+.fccar-deck .ann-stage.is-active { opacity: 1; }

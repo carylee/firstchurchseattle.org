@@ -14,6 +14,10 @@
 !/CLAUDE.md
 !/ops/
 !/.ddev/
+# but never the local secrets / personal overrides under .ddev/
+/.ddev/.env
+/.ddev/.env.*
+/.ddev/config.local.yaml
 !/.github/
 
 # 3) Local-only artifacts (DB dumps).
@@ -37,6 +41,7 @@
 /wp-content/plugins/*
 !/wp-content/plugins/firstchurch-connection-card/
 !/wp-content/plugins/firstchurch-breeze-forms/
+!/wp-content/plugins/firstchurch-carousel/
 !/wp-content/mu-plugins/
 /wp-content/mu-plugins/*
 !/wp-content/mu-plugins/firstchurch-mcp-abilities.php
