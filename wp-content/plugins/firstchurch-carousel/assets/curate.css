@@ -1,62 +1,70 @@
-/* Carousel curation screen. */
+/* Carousel curation screen — a WYSIWYG grid of draggable card thumbnails.
+ * Card visuals come from the shared card.css; this file is the editor chrome:
+ * the grid, the tiles, the scaled thumbnail wells, and the per-tile editor. */
+
 .fccar-curate .fccar-intro { max-width: 60em; }
-.fccar-actions { margin: 12px 0 18px; display: flex; align-items: center; gap: 8px; }
+.fccar-actions { margin: 12px 0 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .fccar-status { margin-left: 8px; font-style: italic; color: #555; }
 .fccar-status.is-ok { color: #1a7d3c; }
 .fccar-status.is-error { color: #b32d2e; }
 .fccar-count { color: #777; font-weight: 400; }
 
-.fccar-cols { display: flex; gap: 24px; align-items: flex-start; }
-.fccar-col { flex: 1 1 0; min-width: 0; }
+/* Stacked sections: deck grid on top, available grid below. */
+.fccar-cols { display: block; }
+.fccar-col { margin: 0 0 26px; }
+.fccar-col > h2 { margin-bottom: 4px; }
 
-.fccar-list { margin: 0; padding: 0; list-style: none; min-height: 40px; }
-.fccar-list--avail { opacity: 0.96; }
-
-.fccar-item {
-	display: flex; align-items: flex-start; gap: 8px;
-	background: #fff; border: 1px solid #dcdcde; border-radius: 6px;
-	padding: 10px 12px; margin: 0 0 8px;
+.fccar-list {
+	display: flex; flex-wrap: wrap; gap: 14px;
+	margin: 10px 0 0; padding: 0; list-style: none; min-height: 150px;
 }
-.fccar-item--avail { background: #f6f7f7; }
-.fccar-placeholder { border: 2px dashed #c3c4c7; border-radius: 6px; background: #f0f6fc; height: 52px; margin: 0 0 8px; }
 
-.fccar-handle { cursor: grab; color: #8c8f94; font-size: 16px; line-height: 1.4; user-select: none; padding-top: 2px; }
-.fccar-main { flex: 1 1 auto; min-width: 0; }
-.fccar-head { display: flex; align-items: center; gap: 8px; }
-.fccar-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fccar-meta { color: #646970; font-size: 12px; margin-top: 2px; min-height: 14px; }
+/* tile */
+.fccar-tile {
+	box-sizing: border-box; width: 240px;
+	background: #fff; border: 1px solid #dcdcde; border-radius: 8px; overflow: hidden;
+	box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.fccar-tile--avail { background: #f6f7f7; }
+
+/* scaled card preview well */
+.fccar-thumb {
+	position: relative; width: 100%; aspect-ratio: 16 / 9;
+	background: #1f1f1f; overflow: hidden; cursor: grab;
+}
+.fccar-tile--avail .fccar-thumb { cursor: pointer; }
+.fccar-thumb .ann-stage {
+	position: absolute; top: 0; left: 0; inset: auto;
+	width: 1280px; height: 720px; transform-origin: top left;
+}
+.fccar-placeholder {
+	box-sizing: border-box; width: 240px; height: 135px;
+	border: 2px dashed #c3c4c7; border-radius: 8px; background: #f0f6fc;
+}
+
+.fccar-tile-bar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 12px; }
+.fccar-tname { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1d2327; }
 
 .fccar-badge {
-	font-size: 10px; text-transform: uppercase; letter-spacing: .03em;
-	padding: 2px 6px; border-radius: 10px; background: #e0e0e0; color: #2c3338; white-space: nowrap;
+	font-size: 9px; text-transform: uppercase; letter-spacing: .03em;
+	padding: 1px 5px; border-radius: 10px; background: #e0e0e0; color: #2c3338; white-space: nowrap;
 }
 .fccar-badge--event { background: #d8e7d1; }
 .fccar-badge--announcement { background: #d6e6f5; }
 .fccar-badge--card { background: #efe2c8; }
-.fccar-badge--layout { background: #eee; color: #555; }
+.fccar-badge--pre { background: #f3d9b1; color: #7a4b00; }
 
-.fccar-remove { border: 0; background: none; color: #b32d2e; cursor: pointer; font-size: 14px; line-height: 1; }
+.fccar-edit, .fccar-remove { border: 0; background: none; cursor: pointer; font-size: 13px; line-height: 1; padding: 2px; }
+.fccar-edit { color: #646970; }
+.fccar-edit:hover { color: #2271b1; }
+.fccar-remove { color: #b32d2e; }
 .fccar-remove:hover { color: #8a2424; }
 
-.fccar-overrides { margin-top: 8px; border-top: 1px solid #f0f0f1; padding-top: 6px; }
-.fccar-overrides summary { cursor: pointer; color: #2271b1; font-size: 12px; }
-.fccar-overrides[open] summary { margin-bottom: 4px; }
-
-/* Two-column field grid; background + preservice span the full width. */
-.fccar-ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; align-items: start; max-width: 640px; }
-.fccar-field { display: block; font-size: 12px; color: #1d2327; margin: 0; }
-.fccar-field > span { display: block; font-weight: 600; color: #50575e; margin-bottom: 3px; }
-.fccar-field input[type="text"] { width: 100%; display: block; }
-.fccar-bg-row { grid-column: 1 / -1; }
-
-.fccar-bg-control { display: flex; align-items: center; gap: 10px; }
-.fccar-bg-thumb {
-	flex: 0 0 auto; width: 64px; height: 36px; border-radius: 4px;
-	border: 1px solid #dcdcde; background-size: cover; background-position: center;
-}
-.fccar-bg-thumb.is-empty {
-	background-image: repeating-linear-gradient( 45deg, #e9e9ea 0 6px, #f4f4f5 6px 12px );
-}
+/* per-tile override editor */
+.fccar-editor { padding: 8px; border-top: 1px solid #f0f0f1; background: #fbfbfc; }
+.fccar-editor .fccar-field { display: block; font-size: 12px; margin: 0 0 8px; }
+.fccar-editor .fccar-field > span { display: block; font-weight: 600; color: #50575e; margin-bottom: 2px; }
+.fccar-editor input[type="text"] { width: 100%; }
+.fccar-bg-buttons { display: flex; align-items: center; gap: 8px; }
 .fccar-bg-clear { color: #b32d2e; }
-
-.fccar-presvc { grid-column: 1 / -1; display: flex !important; align-items: center; gap: 6px; }
+.fccar-presvc { display: flex !important; align-items: center; gap: 6px; font-size: 12px; margin: 4px 0 0; }

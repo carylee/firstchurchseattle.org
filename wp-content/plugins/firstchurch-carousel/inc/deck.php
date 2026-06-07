@@ -101,6 +101,13 @@ function fccar_deck_view_row( array $item, ?array $entry = null ): array {
 		'when'           => $entry['when'] ?? '',
 		'image'          => $entry['image'] ?? '',
 		'preserviceOnly' => $entry ? ! empty( $entry['preserviceOnly'] ) : ! empty( $item['preserviceOnly'] ),
+		// Non-overridable content fields, carried so the curation screen can
+		// render a faithful thumbnail of the card (same renderer as the live feed).
+		'body'            => $item['body'] ?? '',
+		'prompt'          => $item['prompt'] ?? '',
+		'details'         => $item['details'] ?? '',
+		'ctaUrl'          => $item['ctaUrl'] ?? '',
+		'backgroundColor' => $item['backgroundColor'] ?? '',
 	);
 }
 

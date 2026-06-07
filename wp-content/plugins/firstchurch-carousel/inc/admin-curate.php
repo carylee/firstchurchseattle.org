@@ -33,8 +33,17 @@ add_action( 'admin_enqueue_scripts', static function ( $hook ) {
 	}
 	$base = plugin_dir_url( dirname( __FILE__ ) ) . 'assets/';
 	wp_enqueue_media(); // background-image picker
-	wp_enqueue_style( 'fccar-curate', $base . 'curate.css', array(), FCCAR_VERSION );
-	wp_enqueue_script( 'fccar-curate', $base . 'curate.js', array( 'jquery', 'jquery-ui-sortable' ), FCCAR_VERSION, true );
+
+	// Raleway + the shared card styles so each tile is a faithful thumbnail.
+	wp_enqueue_style( 'fccar-raleway', 'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,600;0,700;1,400&display=swap', array(), null );
+	wp_enqueue_style( 'fccar-card', $base . 'card.css', array(), FCCAR_VERSION );
+	wp_enqueue_style( 'fccar-curate', $base . 'curate.css', array( 'fccar-card' ), FCCAR_VERSION );
+
+	// Thumbnails render through the same FCCarCard module the live page uses
+	// (which needs the QR lib); curate.js drives the grid + drag + editor.
+	wp_enqueue_script( 'fccar-qrcode', $base . 'vendor/qrcode-generator.js', array(), FCCAR_VERSION, true );
+	wp_enqueue_script( 'fccar-card-render', $base . 'card-render.js', array( 'fccar-qrcode' ), FCCAR_VERSION, true );
+	wp_enqueue_script( 'fccar-curate', $base . 'curate.js', array( 'jquery', 'jquery-ui-sortable', 'fccar-card-render' ), FCCAR_VERSION, true );
 
 	$view = fccar_curate_view();
 	wp_localize_script( 'fccar-curate', 'FCCAR', array(
