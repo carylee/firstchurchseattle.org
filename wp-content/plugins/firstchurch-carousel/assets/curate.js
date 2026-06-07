@@ -353,12 +353,12 @@
 		W = isCard ? $.extend( {}, entry ) : entry;
 		renderDrawer();
 		$back.prop( 'hidden', false );
-		$drawer.prop( 'hidden', false ).attr( 'aria-hidden', 'false' ).addClass( 'is-open' );
+		$drawer.attr( 'aria-hidden', 'false' ).addClass( 'is-open' );
 		setTimeout( function () { $drawer.find( 'input,select,textarea' ).first().trigger( 'focus' ); }, 30 );
 	}
 
 	function closeDrawer() {
-		$drawer.removeClass( 'is-open' ).prop( 'hidden', true ).attr( 'aria-hidden', 'true' ).empty();
+		$drawer.removeClass( 'is-open' ).attr( 'aria-hidden', 'true' ).empty();
 		$back.prop( 'hidden', true );
 		W = null; isCard = false; isNew = false;
 	}
@@ -374,7 +374,7 @@
 			title: '', when: '', image: '', srcWhen: '' }, { isNew: true } );
 	} );
 	$back.on( 'click', closeDrawer );
-	$( document ).on( 'keydown', function ( ev ) { if ( 27 === ev.keyCode && ! $drawer.prop( 'hidden' ) ) { closeDrawer(); } } );
+	$( document ).on( 'keydown', function ( ev ) { if ( 27 === ev.keyCode && $drawer.hasClass( 'is-open' ) ) { closeDrawer(); } } );
 	$drawer.on( 'click', '.fccar-d-cancel', closeDrawer );
 
 	/* live field edits. Override-mode edits mutate the live deck entry, so they
