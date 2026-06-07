@@ -42,6 +42,12 @@ rsync -av $DRY --delete \
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php "$REMOTE/mu-plugins/"
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/sso.php                       "$REMOTE/mu-plugins/"
 
+# Uploads CORS: one .htaccess that lets the slides editor fetch upload images
+# cross-origin to bake the announcement carousel GIF (Apache serves uploads
+# statically, so this can't be a PHP/mu-plugin hook). Sync ONLY this file —
+# uploads/ is the prod image library and must NEVER be --deleted.
+rsync -av $DRY -e "$RSH" wp-content/uploads/.htaccess "$REMOTE/uploads/.htaccess"
+
 # Server-side cron script, kept OUTSIDE the webroot (~/bin, not web-served).
 rsync -av $DRY -e "$RSH" ops/bin/ firstchurch:bin/
 

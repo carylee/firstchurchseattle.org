@@ -1,0 +1,19 @@
+# CORS for upload images — enables the worship-slides announcement carousel.
+#
+# The slides editor (apps/slides in the ../hocuspocus repo, a separate origin)
+# pulls the curated carousel feed and bakes the pre-/post-service announcement
+# loop into a GIF. To bake an image it must read its bytes via fetch() and inline
+# them as a data URL, and a cross-origin fetch needs the image response to permit
+# it. Apache serves /wp-content/uploads/* as static files (bypassing PHP), so a
+# plugin / mu-plugin hook can never add this header — it has to live here.
+#
+# Scope: already-public images, GET only. Nothing private is exposed. If
+# mod_headers is unavailable the block is skipped and slide backgrounds simply
+# fall back to solid colors (the carousel still works).
+<IfModule mod_headers.c>
+  <FilesMatch "(?i)\.(jpe?g|png|gif|webp|avif|svg)$">
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header append Vary "Origin"
+  </FilesMatch>
+</IfModule>
