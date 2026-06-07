@@ -83,6 +83,14 @@ function fcsp_import( array $data ) {
 		set_post_thumbnail( $post_id, $attachment_id );
 	}
 
+	// Let the source provider run any post-import side effect (e.g. Unsplash's
+	// ToS-required download ping). Best-effort — never fails the import.
+	$provider  = isset( $data['provider'] ) ? sanitize_key( (string) $data['provider'] ) : '';
+	$providers = fcsp_providers();
+	if ( '' !== $provider && ! empty( $providers[ $provider ]['on_import'] ) && is_callable( $providers[ $provider ]['on_import'] ) ) {
+		call_user_func( $providers[ $provider ]['on_import'], $data );
+	}
+
 	return array(
 		'attachment_id'  => $attachment_id,
 		'attachment_url' => (string) wp_get_attachment_url( $attachment_id ),

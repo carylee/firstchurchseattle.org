@@ -102,6 +102,7 @@ add_action(
 						'attribution'  => array( 'type' => 'string' ),
 						'source'       => array( 'type' => 'string' ),
 						'foreign_url'  => array( 'type' => 'string' ),
+						'download_location' => array( 'type' => 'string', 'description' => 'Provider download-tracking URL to pass back from search (Unsplash).' ),
 					),
 					'required'             => array( 'image_url' ),
 					'additionalProperties' => false,

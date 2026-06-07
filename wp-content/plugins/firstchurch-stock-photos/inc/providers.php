@@ -23,6 +23,9 @@ const FCSP_DEFAULT_PROVIDER = 'pexels';
  *   - label:     human name for the picker
  *   - search:    callable( array $args ): array|WP_Error
  *   - available: whether it's usable right now (e.g. has its API key)
+ *   - on_import: optional callable( array $data ): void, run after a successful
+ *                import of one of this provider's images (e.g. Unsplash's
+ *                ToS-required download ping)
  *
  * Filter `fcsp_providers` to add or gate providers.
  *

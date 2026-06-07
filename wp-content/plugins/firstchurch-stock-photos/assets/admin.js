@@ -186,7 +186,8 @@
 				license_url: item.license_url,
 				attribution: item.attribution,
 				source: item.source,
-				foreign_url: item.foreign_url
+				foreign_url: item.foreign_url,
+				download_location: item.download_location
 			} )
 		} ).then( toJson );
 	}

@@ -2,13 +2,13 @@
 /**
  * Plugin Name: First Church Stock Photos
  * Description: Find attribution-safe, openly-licensed photos from Openverse and pull them into the media library — from the WP admin (Tools ▸ Stock Photos) or programmatically via the MCP server. Captures provider/creator/license provenance on every import.
- * Version:     0.2.0
+ * Version:     0.3.0
  * Author:      First Church Seattle
  */
 
 defined( 'ABSPATH' ) || exit;
 
-const FCSP_VERSION = '0.2.0';
+const FCSP_VERSION = '0.3.0';
 
 // Openverse REST API. No key required for our volume; an optional client
 // credential can be supplied to raise rate limits (see inc/openverse.php).
@@ -33,6 +33,7 @@ const FCSP_META_FOREIGN_URL = '_fcsp_foreign_url';    // landing page on the sou
 require_once __DIR__ . '/inc/providers.php';
 require_once __DIR__ . '/inc/provider-openverse.php';
 require_once __DIR__ . '/inc/provider-pexels.php';
+require_once __DIR__ . '/inc/provider-unsplash.php';
 require_once __DIR__ . '/inc/import.php';
 require_once __DIR__ . '/inc/rest.php';
 require_once __DIR__ . '/inc/mcp.php';
