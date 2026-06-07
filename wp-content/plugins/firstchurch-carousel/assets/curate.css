@@ -46,6 +46,14 @@
 
 .fccar-tile-bar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 12px; }
 .fccar-tname { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1d2327; }
+.fccar-tdate { flex: 0 0 auto; font-size: 11px; color: #646970; white-space: nowrap; }
+
+/* available shelf toolbar */
+.fccar-avail-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 6px 0 0; }
+.fccar-search { min-width: 200px; }
+.fccar-chips { display: inline-flex; gap: 4px; }
+.fccar-chips .is-active { box-shadow: inset 0 0 0 2px #2271b1; font-weight: 600; }
+.fccar-avail-empty { color: #646970; font-style: italic; margin: 12px 0; }
 
 .fccar-badge {
 	font-size: 9px; text-transform: uppercase; letter-spacing: .03em;

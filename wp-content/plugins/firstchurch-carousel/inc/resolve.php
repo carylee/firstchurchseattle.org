@@ -222,6 +222,12 @@ function fccar_text( $s ): string {
 	return trim( html_entity_decode( (string) $s, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
 }
 
+/** Compact human date label ("Jun 26") for a Y-m-d string; '' if unparseable. */
+function fccar_short_date( string $ymd ): string {
+	$ts = '' !== $ymd ? strtotime( $ymd ) : false;
+	return $ts ? date_i18n( 'M j', $ts ) : '';
+}
+
 /** Does this string read as a clock time ("7:00 pm", "9 am")? */
 function fccar_is_clocklike( string $s ): bool {
 	return (bool) preg_match( '/\d{1,2}:\d{2}|\d\s*[ap]\.?m\.?/i', $s );

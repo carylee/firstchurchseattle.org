@@ -97,11 +97,20 @@ function fccar_deck_view_row( array $item, ?array $entry = null ): array {
 		$image_id = (int) get_post_thumbnail_id( (int) $m[1] );
 	}
 
+	// Event tiles carry a start date so the shelf reads at a glance and the
+	// readiness pass can flag events that have already happened.
+	$date_raw = '';
+	if ( 'event' === $item['source'] && preg_match( '/^event-(\d+)$/', (string) $item['id'], $m ) ) {
+		$date_raw = (string) get_post_meta( (int) $m[1], '_ctc_event_start_date', true );
+	}
+
 	return array(
 		'id'             => $item['id'],
 		'source'         => $item['source'],
 		'layout'         => $item['layout'],
 		'imageId'        => $image_id,
+		'srcDate'        => fccar_short_date( $date_raw ),
+		'srcDateRaw'     => $date_raw,
 		'srcTitle'       => $item['title'] ?? '',
 		'srcWhen'        => $item['when'] ?? '',
 		'srcImage'       => $item['image'] ?? '',

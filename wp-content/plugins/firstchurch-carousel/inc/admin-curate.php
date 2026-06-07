@@ -165,9 +165,19 @@ function fccar_render_curate_page(): void {
 				<ul class="fccar-list" id="fccar-deck"></ul>
 			</section>
 			<section class="fccar-col">
-				<h2>Available</h2>
+				<h2>Available <span class="fccar-count" id="fccar-avail-count"></span></h2>
 				<p class="description">Published events, announcements, and cards not in the deck.</p>
+				<div class="fccar-avail-tools">
+					<input type="search" id="fccar-avail-search" class="fccar-search" placeholder="Search available…" aria-label="Search available cards">
+					<span class="fccar-chips">
+						<button type="button" class="button button-small is-active" data-src="all">All</button>
+						<button type="button" class="button button-small" data-src="card">Cards</button>
+						<button type="button" class="button button-small" data-src="event">Events</button>
+						<button type="button" class="button button-small" data-src="announcement">News</button>
+					</span>
+				</div>
 				<ul class="fccar-list fccar-list--avail" id="fccar-available"></ul>
+				<p class="fccar-avail-empty" id="fccar-avail-empty" hidden>Nothing matches.</p>
 			</section>
 		</div>
 	</div>

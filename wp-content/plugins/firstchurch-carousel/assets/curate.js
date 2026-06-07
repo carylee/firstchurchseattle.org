@@ -105,6 +105,10 @@
 		return '<span class="fccar-badge fccar-badge--pre" title="Preservice-only">PRE</span>';
 	}
 
+	function dateTag( r ) {
+		return r.srcDate ? '<span class="fccar-tdate">' + esc( r.srcDate ) + '</span>' : '';
+	}
+
 	function deckTile( e ) {
 		return $(
 			'<li class="fccar-tile" data-id="' + attr( e.id ) + '">' +
@@ -112,6 +116,7 @@
 				'<div class="fccar-tile-bar">' +
 					badge( e ) + ( e.preserviceOnly ? preBadge() : '' ) +
 					'<span class="fccar-tname">' + esc( e.title || e.srcTitle ) + '</span>' +
+					dateTag( e ) +
 					'<button type="button" class="fccar-edit" title="Edit">✎</button>' +
 					'<button type="button" class="fccar-remove" title="Remove from deck">✕</button>' +
 				'</div>' +
@@ -126,6 +131,7 @@
 				'<div class="fccar-tile-bar">' +
 					badge( r ) +
 					'<span class="fccar-tname">' + esc( r.srcTitle ) + '</span>' +
+					dateTag( r ) +
 					'<button type="button" class="button button-small fccar-add">+ Add</button>' +
 				'</div>' +
 			'</li>'
@@ -141,14 +147,35 @@
 		} );
 		$count.text( '(' + D.deck.length + ')' );
 	}
+	var availFilter = { q: '', src: 'all' };
+
+	function availMatches( r ) {
+		if ( 'all' !== availFilter.src && r.source !== availFilter.src ) { return false; }
+		if ( availFilter.q && String( r.srcTitle || '' ).toLowerCase().indexOf( availFilter.q ) === -1 ) { return false; }
+		return true;
+	}
+
 	function renderAvail() {
 		$avail.empty();
+		var shown = 0;
 		D.available.forEach( function ( r ) {
+			if ( ! availMatches( r ) ) { return; }
 			var $t = availTile( r );
 			$avail.append( $t );
 			paintThumb( $t, r );
+			shown++;
 		} );
+		$( '#fccar-avail-count' ).text( '(' + shown + ')' );
+		$( '#fccar-avail-empty' ).prop( 'hidden', shown > 0 || D.available.length === 0 );
 	}
+
+	$( '#fccar-avail-search' ).on( 'input', function () { availFilter.q = this.value.trim().toLowerCase(); renderAvail(); } );
+	$( '.fccar-chips' ).on( 'click', 'button', function () {
+		availFilter.src = $( this ).data( 'src' );
+		$( '.fccar-chips button' ).removeClass( 'is-active' );
+		$( this ).addClass( 'is-active' );
+		renderAvail();
+	} );
 
 	/* ---- ordering ---- */
 	$deck.sortable( {
