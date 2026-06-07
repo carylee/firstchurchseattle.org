@@ -98,6 +98,7 @@ function fccar_render_page( array $items, string $variant, int $seconds ): void 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="stylesheet" href="<?php echo esc_url( $font ); ?>">
+	<link rel="stylesheet" href="<?php echo esc_url( $base . '/assets/card.css?v=' . $ver ); ?>">
 	<link rel="stylesheet" href="<?php echo esc_url( $base . '/assets/carousel.css?v=' . $ver ); ?>">
 </head>
 <body>
@@ -107,6 +108,7 @@ function fccar_render_page( array $items, string $variant, int $seconds ): void 
 	</div>
 	<script>window.FCCAR = <?php echo wp_json_encode( $boot ); ?>;</script>
 	<script src="<?php echo esc_url( $base . '/assets/vendor/qrcode-generator.js?v=' . $ver ); ?>"></script>
+	<script src="<?php echo esc_url( $base . '/assets/card-render.js?v=' . $ver ); ?>"></script>
 	<script src="<?php echo esc_url( $base . '/assets/carousel.js?v=' . $ver ); ?>"></script>
 </body>
 </html>
