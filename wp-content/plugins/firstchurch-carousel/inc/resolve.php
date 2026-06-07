@@ -24,12 +24,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Is the firstchurch-happenings spine available? The carousel composes its feed
+ * from the spine's event/announcement sources and shared item/text helpers, so
+ * without it we degrade to an empty feed rather than fataling the public
+ * /carousel endpoint (the main plugin file warns about this in wp-admin).
+ */
+function fccar_spine_active(): bool {
+	return function_exists( 'happenings_resolve' );
+}
+
+/**
  * Resolve the carousel to an ordered array of feed items.
  *
  * @param array $args { variant?: 'preservice'|'postservice', weeks?: int, days?: int }
  * @return array<int,array<string,mixed>>
  */
 function fccar_resolve( array $args = array() ): array {
+	if ( ! fccar_spine_active() ) {
+		return array();
+	}
 	$variant = ( isset( $args['variant'] ) && 'postservice' === $args['variant'] ) ? 'postservice' : 'preservice';
 	$weeks   = max( 1, min( 52, (int) ( $args['weeks'] ?? FCCAR_DEFAULT_WEEKS ) ) );
 	$days    = max( 1, min( 365, (int) ( $args['days'] ?? FCCAR_DEFAULT_DAYS ) ) );
@@ -60,6 +73,9 @@ function fccar_resolve( array $args = array() ): array {
 
 /** The auto-assembled default deck (evergreen → events → news), default windows. */
 function fccar_autodeck_items(): array {
+	if ( ! fccar_spine_active() ) {
+		return array();
+	}
 	return array_merge(
 		fccar_evergreen_items(),
 		happenings_event_items( FCCAR_DEFAULT_WEEKS ),
@@ -69,6 +85,9 @@ function fccar_autodeck_items(): array {
 
 /** A generous candidate pool for the curation screen's "available" list. */
 function fccar_candidate_pool(): array {
+	if ( ! fccar_spine_active() ) {
+		return array();
+	}
 	return array_merge(
 		fccar_evergreen_items(),
 		happenings_event_items( 26 ),
@@ -82,6 +101,9 @@ function fccar_candidate_pool(): array {
  * Returns null if the referenced post is missing, the wrong type, or unpublished.
  */
 function fccar_item_by_id( string $id ): ?array {
+	if ( ! fccar_spine_active() ) {
+		return null;
+	}
 	if ( 0 === strpos( $id, 'card-' ) ) {
 		$p = get_post( (int) substr( $id, 5 ) );
 		return ( $p && FCCAR_CPT === $p->post_type && 'publish' === $p->post_status ) ? fccar_card_to_item( $p ) : null;

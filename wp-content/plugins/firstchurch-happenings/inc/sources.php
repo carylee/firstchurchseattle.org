@@ -15,6 +15,24 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Meta-query OR-clause for the announcement lifecycle: keep posts whose
+ * fcs_expires is unset, empty, or today-or-later. The single source of truth for
+ * the expiry rule (ops/docs/happenings.md §4).
+ *
+ * @return array<string,mixed>
+ */
+function happenings_unexpired_clause(): array
+{
+    $today = current_time('Y-m-d');
+    return [
+        'relation' => 'OR',
+        ['key' => 'fcs_expires', 'compare' => 'NOT EXISTS'],
+        ['key' => 'fcs_expires', 'value' => '', 'compare' => '='],
+        ['key' => 'fcs_expires', 'value' => $today, 'compare' => '>=', 'type' => 'DATE'],
+    ];
+}
+
 /* ---- Source 1: upcoming events (ctc_event) ---- */
 
 function happenings_event_items(int $weeks): array
@@ -69,10 +87,8 @@ function happenings_news_items(int $days): array
         return [];
     }
 
-    // Lifecycle (ops/docs/happenings.md §4): drop expired posts (fcs_expires set
-    // and in the past). Posts without the key — older announcements — never expire.
-    $today = current_time('Y-m-d');
-
+    // Lifecycle (ops/docs/happenings.md §4): drop expired posts; posts without
+    // the key — older announcements — never expire.
     $q = new WP_Query([
         'post_type'      => 'post',
         'post_status'    => 'publish',
@@ -82,21 +98,15 @@ function happenings_news_items(int $days): array
         'orderby'        => 'date',
         'order'          => 'DESC',
         'date_query'     => [['after' => $days . ' days ago']],
-        'meta_query'     => [
-            'relation' => 'OR',
-            ['key' => 'fcs_expires', 'compare' => 'NOT EXISTS'],
-            ['key' => 'fcs_expires', 'value' => '', 'compare' => '='],
-            ['key' => 'fcs_expires', 'value' => $today, 'compare' => '>=', 'type' => 'DATE'],
-        ],
+        'meta_query'     => happenings_unexpired_clause(),
     ]);
 
     // Weight floats important items up; equal weights keep the query's date-desc
     // order (PHP 8 sort is stable). Sorted in PHP so posts lacking the meta key
     // (weight 0) aren't dropped by an INNER JOIN order-by.
-    $posts = $q->posts;
-    usort($posts, static function ($a, $b) {
-        return (int) get_post_meta($b->ID, 'fcs_weight', true) <=> (int) get_post_meta($a->ID, 'fcs_weight', true);
-    });
+    $posts   = $q->posts;
+    $weights = happenings_weight_map($posts);
+    usort($posts, static fn ($a, $b) => $weights[$b->ID] <=> $weights[$a->ID]);
 
     return array_map('happenings_news_to_item', $posts);
 }
@@ -110,8 +120,6 @@ function happenings_news_items(int $days): array
  */
 function happenings_featured_news(int $count): array
 {
-    $today = current_time('Y-m-d');
-
     $q = new WP_Query([
         'post_type'      => 'post',
         'post_status'    => 'publish',
@@ -120,23 +128,27 @@ function happenings_featured_news(int $count): array
         'meta_query'     => [
             'relation' => 'AND',
             ['key' => 'fcs_weight', 'value' => 0, 'compare' => '>', 'type' => 'NUMERIC'],
-            [
-                'relation' => 'OR',
-                ['key' => 'fcs_expires', 'compare' => 'NOT EXISTS'],
-                ['key' => 'fcs_expires', 'value' => '', 'compare' => '='],
-                ['key' => 'fcs_expires', 'value' => $today, 'compare' => '>=', 'type' => 'DATE'],
-            ],
+            happenings_unexpired_clause(),
         ],
     ]);
 
-    $posts = $q->posts;
-    usort($posts, static function ($a, $b) {
-        $wa = (int) get_post_meta($a->ID, 'fcs_weight', true);
-        $wb = (int) get_post_meta($b->ID, 'fcs_weight', true);
-        return ($wb <=> $wa) ?: strcmp($b->post_date, $a->post_date);
+    $posts   = $q->posts;
+    $weights = happenings_weight_map($posts);
+    usort($posts, static function ($a, $b) use ($weights) {
+        return ($weights[$b->ID] <=> $weights[$a->ID]) ?: strcmp($b->post_date, $a->post_date);
     });
 
     return array_slice(array_map('happenings_news_to_item', $posts), 0, max(0, $count));
+}
+
+/** Read fcs_weight once per post into an [id => weight] map for sort comparators. */
+function happenings_weight_map(array $posts): array
+{
+    $map = [];
+    foreach ($posts as $p) {
+        $map[$p->ID] = (int) get_post_meta($p->ID, 'fcs_weight', true);
+    }
+    return $map;
 }
 
 function happenings_news_to_item(WP_Post $post): array
