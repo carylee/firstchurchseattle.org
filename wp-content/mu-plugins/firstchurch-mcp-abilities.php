@@ -647,6 +647,7 @@ add_action(
 						return new WP_Error( 'forbidden', 'Not permitted to view this announcement.' );
 					}
 					$data            = fcmcp_post_to_array( $post );
+					$data            = array_merge( $data, fcmcp_announcement_extra( $post ) );
 					$data['content'] = apply_filters( 'the_content', $post->post_content );
 					return $data;
 				},
@@ -671,6 +672,8 @@ add_action(
 						'excerpt' => array( 'type' => 'string' ),
 						'cta_text' => array( 'type' => 'string', 'description' => 'Call-to-action button label (e.g. "RSVP", "Learn more"). Optional; defaults to "Learn more" when a cta_url is set.' ),
 						'cta_url'  => array( 'type' => 'string', 'description' => 'Call-to-action button URL. The button only renders when this is set. Use mailto: for "contact X" asks.' ),
+						'weight'   => array( 'type' => 'integer', 'description' => 'Prominence on /engage and the carousel. 0 = normal; 10 floats it to the Featured row; 20 pins it to the top.' ),
+						'expires'  => array( 'type' => 'string', 'description' => 'Stop showing on /engage and the carousel after this date (YYYY-MM-DD). The post stays published in the news archive.' ),
 						'image_id'  => array( 'type' => 'integer', 'description' => 'Existing media library attachment ID to use as the featured image.' ),
 						'image_url' => array( 'type' => 'string', 'description' => 'URL of an image to download and set as the featured image.' ),
 						'date'      => array( 'type' => 'string', 'description' => 'Publication date/time as YYYY-MM-DD or YYYY-MM-DD HH:MM (site local). Past backdates; future schedules it to auto-publish then. Defaults to now.' ),
@@ -700,6 +703,8 @@ add_action(
 						'excerpt' => array( 'type' => 'string' ),
 						'cta_text' => array( 'type' => 'string', 'description' => 'Call-to-action button label.' ),
 						'cta_url'  => array( 'type' => 'string', 'description' => 'Call-to-action button URL (button renders only when set).' ),
+						'weight'   => array( 'type' => 'integer', 'description' => 'Prominence on /engage and the carousel. 0 = normal; 10 floats it to the Featured row; 20 pins it to the top.' ),
+						'expires'  => array( 'type' => 'string', 'description' => 'Stop showing on /engage and the carousel after this date (YYYY-MM-DD). The post stays published in the news archive.' ),
 						'image_id'  => array( 'type' => 'integer', 'description' => 'Existing media library attachment ID to use as the featured image.' ),
 						'image_url' => array( 'type' => 'string', 'description' => 'URL of an image to download and set as the featured image.' ),
 						'date'      => array( 'type' => 'string', 'description' => 'Publication date/time as YYYY-MM-DD or YYYY-MM-DD HH:MM (site local). Past backdates; future schedules it to auto-publish then.' ),
@@ -1789,7 +1794,7 @@ function fcmcp_list_announcements( $input = array() ) {
 		$args['date_query'] = array( array( 'after' => $input['since_date'], 'inclusive' => true ) );
 	}
 	$q   = new WP_Query( $args );
-	$out = array_map( 'fcmcp_post_to_array', $q->posts );
+	$out = array_map( static function ( $p ) { return array_merge( fcmcp_post_to_array( $p ), fcmcp_announcement_extra( $p ) ); }, $q->posts );
 	return array( 'count' => count( $out ), 'announcements' => $out );
 }
 
@@ -1801,6 +1806,24 @@ function fcmcp_apply_cta( int $post_id, array $input ): void {
 	if ( array_key_exists( 'cta_url', $input ) ) {
 		update_post_meta( $post_id, 'fcs_cta_url', esc_url_raw( (string) $input['cta_url'] ) );
 	}
+}
+
+/** Write announcement lifecycle meta: fcs_weight (prominence) + fcs_expires (date). See ops/docs/happenings.md. */
+function fcmcp_apply_announcement_lifecycle( int $post_id, array $input ): void {
+	if ( array_key_exists( 'weight', $input ) ) {
+		update_post_meta( $post_id, 'fcs_weight', absint( $input['weight'] ) );
+	}
+	if ( array_key_exists( 'expires', $input ) ) {
+		update_post_meta( $post_id, 'fcs_expires', fcmcp_sanitize_date( (string) $input['expires'] ) );
+	}
+}
+
+/** Lifecycle fields echoed back on announcement reads (kept off the shared post serializer so posts/pages don't carry them). */
+function fcmcp_announcement_extra( WP_Post $post ): array {
+	return array(
+		'weight'  => (int) get_post_meta( $post->ID, 'fcs_weight', true ),
+		'expires' => (string) get_post_meta( $post->ID, 'fcs_expires', true ),
+	);
 }
 
 function fcmcp_create_announcement( $input ) {
@@ -1826,12 +1849,13 @@ function fcmcp_create_announcement( $input ) {
 		return $post_id;
 	}
 	fcmcp_apply_cta( (int) $post_id, $input );
+	fcmcp_apply_announcement_lifecycle( (int) $post_id, $input );
 	$result = array( 'id' => (int) $post_id, 'status' => get_post_status( $post_id ), 'edit_url' => get_edit_post_link( $post_id, 'raw' ) );
 	$img    = fcmcp_set_featured_image( (int) $post_id, $input );
 	if ( is_wp_error( $img ) ) {
 		$result['image_warning'] = $img->get_error_message();
 	}
-	$result['announcement'] = fcmcp_post_to_array( get_post( $post_id ) );
+	$result['announcement'] = array_merge( fcmcp_post_to_array( get_post( $post_id ) ), fcmcp_announcement_extra( get_post( $post_id ) ) );
 	return $result;
 }
 
@@ -1859,12 +1883,13 @@ function fcmcp_update_announcement( $input ) {
 		}
 	}
 	fcmcp_apply_cta( $id, $input );
+	fcmcp_apply_announcement_lifecycle( $id, $input );
 	$result = array( 'id' => $id, 'status' => get_post_status( $id ) );
 	$img    = fcmcp_set_featured_image( $id, $input );
 	if ( is_wp_error( $img ) ) {
 		$result['image_warning'] = $img->get_error_message();
 	}
-	$result['announcement'] = fcmcp_post_to_array( get_post( $id ) );
+	$result['announcement'] = array_merge( fcmcp_post_to_array( get_post( $id ) ), fcmcp_announcement_extra( get_post( $id ) ) );
 	return $result;
 }
 
