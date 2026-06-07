@@ -1,6 +1,6 @@
 <?php
 /**
- * Tools ▸ Stock Photos — a lightweight search/import screen for human editors.
+ * Media ▸ Stock Photos — a lightweight search/import screen for human editors.
  * Deliberately plain (no block-editor / React integration): a search box, a
  * results grid, and an "Add to Library" button per image, all driven by the
  * firstchurch/v1 REST routes via hand-written JS.
@@ -11,7 +11,9 @@ defined( 'ABSPATH' ) || exit;
 add_action(
 	'admin_menu',
 	static function () {
-		add_management_page(
+		// Nest under Media; stash the hook suffix so the asset enqueue can match
+		// this exact screen without hardcoding WordPress's generated hook name.
+		$GLOBALS['fcsp_admin_hook'] = add_media_page(
 			'Stock Photos',
 			'Stock Photos',
 			fcsp_capability(),
@@ -35,9 +37,15 @@ function fcsp_render_admin_page(): void {
 	echo '<select id="fcsp-orientation"><option value="">Any shape</option><option value="wide">Wide</option><option value="tall">Tall</option><option value="square">Square</option></select> ';
 	// Only show the provider picker when there's a real choice to make.
 	if ( count( $providers ) > 1 ) {
+		$default = fcsp_default_provider();
 		echo '<select id="fcsp-provider">';
 		foreach ( $providers as $slug => $label ) {
-			printf( '<option value="%s">%s</option>', esc_attr( $slug ), esc_html( $label ) );
+			printf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $slug ),
+				selected( $slug, $default, false ),
+				esc_html( $label )
+			);
 		}
 		echo '</select> ';
 	}
@@ -51,7 +59,7 @@ function fcsp_render_admin_page(): void {
 add_action(
 	'admin_enqueue_scripts',
 	static function ( $hook ) {
-		if ( 'tools_page_fcsp-stock-photos' !== $hook ) {
+		if ( empty( $GLOBALS['fcsp_admin_hook'] ) || $hook !== $GLOBALS['fcsp_admin_hook'] ) {
 			return;
 		}
 		$base = plugin_dir_url( dirname( __FILE__ ) );
