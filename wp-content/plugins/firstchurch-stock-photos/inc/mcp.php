@@ -52,7 +52,7 @@ add_action(
 			'firstchurch/search-stock-photo',
 			array(
 				'label'               => 'Search stock photos',
-				'description'         => 'Search free stock photos across providers (' . implode( ', ', array_keys( fcsp_provider_choices() ) ) . '). Defaults to Openverse (openly-licensed, attribution-safe: commercial use + modification, mature excluded). Returns candidates with thumbnail, full-size URL, creator, license, and a ready-made attribution string. Read-only — pass a chosen candidate to import-stock-photo to add it to the media library.',
+				'description'         => 'Search free stock photos across providers (' . implode( ', ', array_keys( fcsp_provider_choices() ) ) . '). Defaults to ' . fcsp_default_provider() . '. Returns candidates with thumbnail, full-size URL, creator, license, and a ready-made attribution string. Read-only — pass a chosen candidate to import-stock-photo to add it to the media library.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',

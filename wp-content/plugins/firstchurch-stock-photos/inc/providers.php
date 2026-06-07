@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const FCSP_DEFAULT_PROVIDER = 'openverse';
+const FCSP_DEFAULT_PROVIDER = 'pexels';
 
 /**
  * The available providers, keyed by slug. Each entry:
@@ -59,6 +59,24 @@ function fcsp_provider_choices(): array {
 }
 
 /**
+ * The provider used when a caller doesn't specify one: FCSP_DEFAULT_PROVIDER if
+ * it's available, otherwise the first available provider. (Pexels is key-gated,
+ * so this keeps default searches working even if its key is ever missing.)
+ */
+function fcsp_default_provider(): string {
+	$providers = fcsp_providers();
+	if ( ! empty( $providers[ FCSP_DEFAULT_PROVIDER ]['available'] ) ) {
+		return FCSP_DEFAULT_PROVIDER;
+	}
+	foreach ( $providers as $slug => $p ) {
+		if ( ! empty( $p['available'] ) ) {
+			return $slug;
+		}
+	}
+	return FCSP_DEFAULT_PROVIDER; // nothing available; the dispatcher will surface the error
+}
+
+/**
  * Search a provider and return normalized results.
  *
  * @param array $args { query (required), count, page, orientation, provider, ... }
@@ -73,7 +91,7 @@ function fcsp_search( array $args ) {
 	$providers = fcsp_providers();
 	$slug      = isset( $args['provider'] ) && '' !== $args['provider']
 		? sanitize_key( (string) $args['provider'] )
-		: FCSP_DEFAULT_PROVIDER;
+		: fcsp_default_provider();
 
 	if ( ! isset( $providers[ $slug ] ) ) {
 		return new WP_Error(

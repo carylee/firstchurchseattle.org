@@ -27,7 +27,24 @@ final class ProvidersTest extends TestCase
         self::assertArrayHasKey('openverse', \fcsp_provider_choices());
     }
 
-    public function testDefaultsToOpenverseAndStampsProvider(): void
+    public function testDefaultResolvesToConfiguredProvider(): void
+    {
+        // FCSP_PEXELS_API_KEY is defined in the bootstrap, so Pexels is the
+        // available configured default.
+        self::assertSame('pexels', \fcsp_default_provider());
+    }
+
+    public function testDefaultFallsBackWhenConfiguredProviderUnavailable(): void
+    {
+        add_filter('fcsp_providers', static function (array $providers): array {
+            $providers['pexels']['available'] = false; // simulate a missing key
+            return $providers;
+        });
+
+        self::assertSame('openverse', \fcsp_default_provider());
+    }
+
+    public function testExplicitProviderRoutesAndStampsResults(): void
     {
         $GLOBALS['fcsp_test_token'] = null;
         \fcsp_test_enqueue(200, [
@@ -36,7 +53,7 @@ final class ProvidersTest extends TestCase
             'results'      => [['url' => 'https://img.example.com/a.jpg', 'thumbnail' => 'https://img.example.com/t.jpg']],
         ]);
 
-        $result = \fcsp_search(['query' => 'candles']); // no provider given
+        $result = \fcsp_search(['query' => 'candles', 'provider' => 'openverse']);
 
         self::assertSame('openverse', $result['provider']);
         self::assertSame('openverse', $result['results'][0]['provider']);

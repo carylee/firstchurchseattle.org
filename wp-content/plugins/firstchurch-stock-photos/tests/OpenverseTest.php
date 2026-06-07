@@ -84,7 +84,7 @@ final class OpenverseTest extends TestCase
         $GLOBALS['fcsp_test_token'] = null; // unauthenticated
         \fcsp_test_enqueue(200, ['result_count' => 5, 'page_count' => 1, 'results' => [$this->sampleItem()]]);
 
-        $result = \fcsp_search(['query' => 'autumn', 'count' => 24]);
+        $result = \fcsp_search_openverse(['query' => 'autumn', 'count' => 24]);
 
         self::assertIsArray($result);
         self::assertCount(1, $result['results']);
@@ -99,7 +99,7 @@ final class OpenverseTest extends TestCase
         $GLOBALS['fcsp_test_token'] = 'bearer-xyz'; // verified credentials
         \fcsp_test_enqueue(200, ['result_count' => 5, 'page_count' => 1, 'results' => [$this->sampleItem()]]);
 
-        \fcsp_search(['query' => 'autumn', 'count' => 24]);
+        \fcsp_search_openverse(['query' => 'autumn', 'count' => 24]);
 
         $requests = \fcsp_test_requests();
         self::assertStringContainsString('page_size=24', $requests[0]);
@@ -110,7 +110,7 @@ final class OpenverseTest extends TestCase
         $GLOBALS['fcsp_test_token'] = 'bearer-xyz';
         \fcsp_test_enqueue(200, ['result_count' => 5, 'page_count' => 1, 'results' => [$this->sampleItem()]]);
 
-        \fcsp_search(['query' => 'autumn', 'count' => 99]);
+        \fcsp_search_openverse(['query' => 'autumn', 'count' => 99]);
 
         $requests = \fcsp_test_requests();
         self::assertStringContainsString('page_size=50', $requests[0]);
@@ -124,7 +124,7 @@ final class OpenverseTest extends TestCase
         \fcsp_test_enqueue(401, ['detail' => 'Unauthorized']);
         \fcsp_test_enqueue(200, ['result_count' => 2, 'page_count' => 1, 'results' => [$this->sampleItem(), $this->sampleItem()]]);
 
-        $result = \fcsp_search(['query' => 'autumn', 'count' => 50]);
+        $result = \fcsp_search_openverse(['query' => 'autumn', 'count' => 50]);
 
         self::assertIsArray($result, 'Search should recover rather than return an error.');
         self::assertCount(2, $result['results']);
@@ -140,7 +140,7 @@ final class OpenverseTest extends TestCase
         \fcsp_test_enqueue(401, ['detail' => 'Unauthorized']);
         \fcsp_test_enqueue(401, ['detail' => 'Unauthorized']);
 
-        $result = \fcsp_search(['query' => 'autumn', 'count' => 50]);
+        $result = \fcsp_search_openverse(['query' => 'autumn', 'count' => 50]);
 
         self::assertInstanceOf(WP_Error::class, $result);
         self::assertSame('fcsp_openverse_http', $result->get_error_code());
