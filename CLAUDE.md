@@ -40,12 +40,27 @@ ddev pull-prod --db-only   # or --files-only
 ```
 
 **Push — deploy our code to production:**
+
+The normal path is **automatic via CI/CD: merging to `main` deploys.** You do *not*
+need to run anything by hand or SSH into prod. The `.github/workflows/deploy.yml`
+workflow runs the same `ops/deploy.sh` for you — it triggers when the **CI** workflow
+finishes *successfully* on `main` (a red build never deploys), checks out the exact
+commit CI validated, and rsyncs to HostGator. So the deliverable for a code change is a
+**merged PR**, not a manual deploy. (The `production` GitHub Environment can add a
+required-reviewer approval gate before the rsync fires — check there if a deploy is
+"stuck".) Full notes: `ops/docs/ci-cd.md`.
+
+Running `ops/deploy.sh` yourself is the **manual fallback** — for hotfixes, when CI is
+down, or to dry-run before merging. It needs `ssh firstchurch` access, which the CI
+runner has via secrets but a fresh Claude Code web session does **not**:
 ```bash
 ops/deploy.sh -n           # dry run
 ops/deploy.sh              # deploy
 ```
+You can also trigger the deploy workflow manually (`workflow_dispatch`, with an optional
+dry-run input) without merging.
 
-Both honor one ownership model so they can't conflict — see `ops/sync/ownership.md`.
+Both directions honor one ownership model so they can't conflict — see `ops/sync/ownership.md`.
 
 > **⚠️ A new plugin/theme is NOT deployed until you add it to `ops/deploy.sh`.**
 > The deploy is an **explicit allowlist of paths**, not a wildcard over `wp-content/` —
@@ -65,7 +80,7 @@ Both honor one ownership model so they can't conflict — see `ops/sync/ownershi
 
 | You want to… | Do this |
 |---|---|
-| Change the **theme / a custom plugin / the MCP mu-plugin** | Edit it in place under `wp-content/…` → preview live at `*.ddev.site` → commit → `ops/deploy.sh`. **Theme changes go in `maranatha-child` only** — never edit the `maranatha` parent (see below). |
+| Change the **theme / a custom plugin / the MCP mu-plugin** | Edit it in place under `wp-content/…` → preview live at `*.ddev.site` → commit → open a PR → **merge to `main` (CI/CD deploys; no manual step)**. **Theme changes go in `maranatha-child` only** — never edit the `maranatha` parent (see below). |
 | Edit **content** (events, posts, sermons, announcements) | That's data, edited on prod via the MCP server; `ddev pull-prod --db-only` to pull it down |
 | **Refresh** your local copy of prod | `ddev pull-prod` |
 | Run **wp-cli** locally | `ddev wp <args>` |
