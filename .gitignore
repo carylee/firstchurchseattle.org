@@ -46,6 +46,13 @@
 /wp-content/mu-plugins/*
 !/wp-content/mu-plugins/firstchurch-mcp-abilities.php
 !/wp-content/mu-plugins/sso.php
+# uploads/ is a prod mirror (gitignored), but we DO ship ONE file: an .htaccess
+# adding CORS headers to upload images so the slides editor can fetch them to bake
+# the announcement carousel GIF (Apache serves uploads statically — can't be a
+# PHP hook). Track only that file; never the mirrored image library.
+!/wp-content/uploads/
+/wp-content/uploads/*
+!/wp-content/uploads/.htaccess
 
 # Never commit these, even inside tracked dirs (later rules win).
 wp-config.php
