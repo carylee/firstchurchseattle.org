@@ -1,8 +1,8 @@
 # First Church Stock Photos
 
-Find attribution-safe, openly-licensed photos from [Openverse](https://openverse.org)
-and pull them into the WordPress media library — from the admin or from an AI agent —
-with full provenance recorded on every import.
+Find free stock photos — from [Openverse](https://openverse.org) and [Pexels](https://pexels.com) —
+and pull them into the WordPress media library, from the admin or from an AI agent, with full
+provenance recorded on every import.
 
 This plugin is **fully ours** and runs in a **dual setup alongside Instant Images**:
 
@@ -20,7 +20,7 @@ config so it can't drift on prod. Nothing here deactivates or modifies Instant I
 
 | Surface | How |
 |---|---|
-| **Admin** | *Tools ▸ Stock Photos* — a plain search box + results grid; "Add to Library" on any image. No block-editor integration by design. |
+| **Admin** | *Tools ▸ Stock Photos* — search box (+ provider picker when more than one is configured), a results grid with dimensions, and a click-to-enlarge full-size preview; "Add to Library" on any image. No block-editor integration by design. |
 | **AI agent (MCP)** | Abilities `firstchurch/search-stock-photo` and `firstchurch/import-stock-photo` (category `firstchurch`, promoted to first-class MCP tools). |
 | **Programmatic** | REST: `GET firstchurch/v1/stock-photos/search`, `POST firstchurch/v1/stock-photos/import`. Or call `fcsp_search()` / `fcsp_import()` directly. |
 | **Provenance** | Every import — **ours and Instant Images'** — stamps creator/license/attribution/source as `_fcsp_*` attachment meta, surfaced in a "Source" column in the Media library. `fcsp_attachment_credit( $id )` returns a credit line. |
@@ -35,6 +35,25 @@ config so it can't drift on prod. Nothing here deactivates or modifies Instant I
 **Instant Images (`inc/policy.php`):** force safe search across providers (Unsplash content
 filter, Openverse mature off, Pixabay safe search) and one attribution template — baked in
 code rather than the prod settings screen. Tunable via the `FCSP_II_*` constants.
+
+## Providers
+
+Search is pluggable: each provider registers a search adapter that returns one normalized
+shape, and a dispatcher (`fcsp_search()`) routes to it. Import stays provider-agnostic.
+Providers are equal peers — callers pass a `provider` (REST param, MCP `provider`, or the
+admin picker); when omitted it defaults to `FCSP_DEFAULT_PROVIDER` (Openverse, which needs no
+key). Add one by registering it on the `fcsp_providers` filter.
+
+| Provider | Key required | License model |
+|---|---|---|
+| **Openverse** | No | Per-item CC / public-domain; filtered to commercial-use + modification, mature excluded. The attribution-safe default. |
+| **Pexels** | `FCSP_PEXELS_API_KEY` | Uniform [Pexels License](https://www.pexels.com/license/) (free commercial use; attribution appreciated). Recorded as a generated credit string. |
+
+To enable Pexels, get a free key at <https://www.pexels.com/api/> and add to `wp-config.php`:
+
+```php
+define( 'FCSP_PEXELS_API_KEY', '…' );
+```
 
 ## Configuration — Openverse authentication
 

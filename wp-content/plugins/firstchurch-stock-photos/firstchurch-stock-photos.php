@@ -32,6 +32,7 @@ const FCSP_META_FOREIGN_URL = '_fcsp_foreign_url';    // landing page on the sou
 
 require_once __DIR__ . '/inc/providers.php';
 require_once __DIR__ . '/inc/provider-openverse.php';
+require_once __DIR__ . '/inc/provider-pexels.php';
 require_once __DIR__ . '/inc/import.php';
 require_once __DIR__ . '/inc/rest.php';
 require_once __DIR__ . '/inc/mcp.php';
