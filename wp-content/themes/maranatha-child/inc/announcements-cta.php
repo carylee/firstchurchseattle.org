@@ -27,6 +27,34 @@ const FCS_CTA_TEXT_KEY = 'fcs_cta_text';
 const FCS_CTA_URL_KEY  = 'fcs_cta_url';
 
 /**
+ * Happenings lifecycle meta (see ops/docs/happenings.md §3-4). `fcs_weight` is
+ * the prominence used to auto-sort the /engage Featured row and the carousel
+ * news block (0 = normal, higher floats up). `fcs_expires` drops the post from
+ * feed surfaces after that date while it stays published in the news archive.
+ */
+const FCS_WEIGHT_KEY  = 'fcs_weight';
+const FCS_EXPIRES_KEY = 'fcs_expires';
+
+/** Weight presets surfaced in the meta box (label => stored int). */
+function fcs_weight_choices() {
+	return array(
+		0  => __( 'Normal', 'maranatha-child' ),
+		10 => __( 'Featured', 'maranatha-child' ),
+		20 => __( 'Pinned (top)', 'maranatha-child' ),
+	);
+}
+
+/** Sanitize an expiry value: a YYYY-MM-DD date, or '' to clear. */
+function fcs_sanitize_expires( $value ) {
+	$value = trim( (string) $value );
+	if ( '' === $value ) {
+		return '';
+	}
+	$d = DateTime::createFromFormat( 'Y-m-d', $value );
+	return ( $d && $d->format( 'Y-m-d' ) === $value ) ? $value : '';
+}
+
+/**
  * Register CTA meta on the `post` type, exposed in REST so it can be set via
  * the authenticated REST API and read back. Only users who can edit the post
  * may write.
@@ -63,6 +91,32 @@ add_action(
 				'default'           => '',
 			)
 		);
+
+		register_post_meta(
+			'post',
+			FCS_WEIGHT_KEY,
+			array(
+				'type'              => 'integer',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'absint',
+				'auth_callback'     => $can_edit,
+				'default'           => 0,
+			)
+		);
+
+		register_post_meta(
+			'post',
+			FCS_EXPIRES_KEY,
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'fcs_sanitize_expires',
+				'auth_callback'     => $can_edit,
+				'default'           => '',
+			)
+		);
 	}
 );
 
@@ -77,6 +131,14 @@ add_action(
 			'fcs-cta',
 			__( 'Call to Action (button)', 'maranatha-child' ),
 			'fcs_cta_meta_box_render',
+			'post',
+			'side',
+			'default'
+		);
+		add_meta_box(
+			'fcs-promo',
+			__( 'Promotion & expiry', 'maranatha-child' ),
+			'fcs_promo_meta_box_render',
 			'post',
 			'side',
 			'default'
@@ -117,6 +179,42 @@ function fcs_cta_meta_box_render( $post ) {
 }
 
 /**
+ * Render the Promotion & expiry box: weight (prominence) + expiry date. These
+ * drive the /engage Featured ordering and feed-surface lifecycle — see
+ * ops/docs/happenings.md.
+ *
+ * @param WP_Post $post Current post.
+ */
+function fcs_promo_meta_box_render( $post ) {
+	$weight  = (int) get_post_meta( $post->ID, FCS_WEIGHT_KEY, true );
+	$expires = get_post_meta( $post->ID, FCS_EXPIRES_KEY, true );
+	?>
+	<p>
+		<label for="fcs_weight_field" style="display:block;font-weight:600;margin-bottom:4px;">
+			<?php esc_html_e( 'Prominence', 'maranatha-child' ); ?>
+		</label>
+		<select id="fcs_weight_field" name="fcs_weight_field" class="widefat">
+			<?php foreach ( fcs_weight_choices() as $value => $label ) : ?>
+				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $weight, $value ); ?>>
+					<?php echo esc_html( $label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+	</p>
+	<p>
+		<label for="fcs_expires_field" style="display:block;font-weight:600;margin-bottom:4px;">
+			<?php esc_html_e( 'Stop showing after', 'maranatha-child' ); ?>
+		</label>
+		<input type="date" id="fcs_expires_field" name="fcs_expires_field"
+		       value="<?php echo esc_attr( $expires ); ?>" class="widefat">
+	</p>
+	<p style="color:#666;font-size:12px;margin:0;">
+		<?php esc_html_e( 'Featured/Pinned float this up the What\'s Happening page and lobby screen. After the expiry date it drops off those surfaces but stays in the news archive.', 'maranatha-child' ); ?>
+	</p>
+	<?php
+}
+
+/**
  * Save the meta box values.
  *
  * @param int $post_id Post being saved.
@@ -144,6 +242,14 @@ add_action(
 
 		update_post_meta( $post_id, FCS_CTA_TEXT_KEY, $text );
 		update_post_meta( $post_id, FCS_CTA_URL_KEY, $url );
+
+		$weight = isset( $_POST['fcs_weight_field'] ) ? absint( wp_unslash( $_POST['fcs_weight_field'] ) ) : 0;
+		$expires = isset( $_POST['fcs_expires_field'] )
+			? fcs_sanitize_expires( wp_unslash( $_POST['fcs_expires_field'] ) )
+			: '';
+
+		update_post_meta( $post_id, FCS_WEIGHT_KEY, $weight );
+		update_post_meta( $post_id, FCS_EXPIRES_KEY, $expires );
 	}
 );
 
