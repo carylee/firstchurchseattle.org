@@ -47,13 +47,6 @@ $uploads = '/wp-content/uploads';
 // Secondary CTA tiles — rendered as a 2x2 grid below the livestream.
 $secondary_tiles = array(
 	array(
-		'title' => __( 'Peace with Justice Special Offering', 'maranatha-child' ),
-		'image' => $uploads . '/2026/05/peace-with-justice-tile-768x192-1.png',
-		'body'  => __( 'On Peace with Justice Sunday, your gift supports programs working toward a faithful, just, and peaceful world — in our region and around the globe.', 'maranatha-child' ),
-		'cta'   => __( 'Give to the offering', 'maranatha-child' ),
-		'url'   => 'https://firstchurchseattle.breezechms.com/give/online?fund_id=1618670',
-	),
-	array(
 		'title' => __( 'Check-in & Connection Card', 'maranatha-child' ),
 		'image' => $uploads . '/2025/07/Untitled-11-768x192.png',
 		'body'  => __( 'Let us know you were with us today by filling out our Check-in &amp; Connection Card.', 'maranatha-child' ),
