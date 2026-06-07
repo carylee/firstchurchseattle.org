@@ -399,6 +399,89 @@
 			} );
 	} );
 
+	/* ================= inline deck preview (the "show", not just the cards) ====
+	 * Plays the CURRENT in-memory arrangement — what you'd publish, not the saved
+	 * feed — so you can watch flow + timing before committing. Mirrors the kiosk's
+	 * fade-through-black loop, fed from effItem() and filtered by variant. */
+	var PV = { $modal: $( '#fccar-preview-modal' ), $deck: $( '#fccar-preview-deck' ), $empty: $( '#fccar-preview-empty' ),
+		$counter: $( '#fccar-pv-counter' ), $play: $( '#fccar-pv-play' ),
+		idx: 0, timer: null, playing: true, variant: 'preservice', secs: 5, n: 0 };
+
+	function pvItems() {
+		return D.deck.map( effItem ).filter( function ( it ) {
+			return 'postservice' === PV.variant ? ! it.preserviceOnly : true;
+		} );
+	}
+	function pvScale() {
+		var wrap = PV.$deck.parent();
+		var s = Math.min( wrap.width() / 1280, wrap.height() / 720 );
+		PV.$deck[ 0 ].style.setProperty( '--fccar-pv-scale', s > 0 ? s : 1 );
+	}
+	function pvShow( i ) {
+		var st = PV.$deck.children();
+		for ( var k = 0; k < st.length; k++ ) { st[ k ].classList.toggle( 'is-active', k === i ); }
+		PV.$counter.text( PV.n ? ( i + 1 ) + ' / ' + PV.n : '' );
+	}
+	function pvRender() {
+		var items = pvItems();
+		PV.n = items.length;
+		PV.$deck.empty();
+		items.forEach( function ( it ) {
+			var stage = Card.buildStage( it, {} );
+			stage.className += ' fccar-pv-stage';
+			PV.$deck.append( stage );
+		} );
+		PV.$empty.prop( 'hidden', PV.n > 0 );
+		PV.idx = 0;
+		pvScale();
+		pvShow( 0 );
+	}
+	function pvAdvance() {
+		if ( PV.n < 2 ) { return; }
+		var st = PV.$deck.children();
+		var cur = st[ PV.idx ];
+		PV.idx = ( PV.idx + 1 ) % PV.n;
+		var next = PV.idx;
+		if ( cur ) { cur.classList.remove( 'is-active' ); }
+		setTimeout( function () { if ( st[ next ] ) { st[ next ].classList.add( 'is-active' ); } pvShow( next ); }, 420 );
+	}
+	function pvLoop() { clearInterval( PV.timer ); if ( PV.playing ) { PV.timer = setInterval( pvAdvance, PV.secs * 1000 ); } }
+	function pvSetPlaying( on ) { PV.playing = on; PV.$play.text( on ? '⏸' : '▶' ); pvLoop(); }
+
+	function pvOpen() {
+		PV.$modal.prop( 'hidden', false ).attr( 'aria-hidden', 'false' ).addClass( 'is-open' );
+		pvRender();
+		pvSetPlaying( true );
+	}
+	function pvClose() {
+		clearInterval( PV.timer );
+		PV.$modal.removeClass( 'is-open' ).prop( 'hidden', true ).attr( 'aria-hidden', 'true' );
+		PV.$deck.empty();
+	}
+
+	$( '#fccar-preview' ).on( 'click', pvOpen );
+	$( '#fccar-pv-close' ).on( 'click', pvClose );
+	$( '#fccar-pv-play' ).on( 'click', function () { pvSetPlaying( ! PV.playing ); } );
+	$( '#fccar-pv-next' ).on( 'click', function () { pvSetPlaying( false ); pvAdvance(); } );
+	$( '#fccar-pv-prev' ).on( 'click', function () {
+		pvSetPlaying( false );
+		if ( PV.n < 2 ) { return; }
+		var st = PV.$deck.children();
+		st[ PV.idx ].classList.remove( 'is-active' );
+		PV.idx = ( PV.idx - 1 + PV.n ) % PV.n;
+		st[ PV.idx ].classList.add( 'is-active' );
+		pvShow( PV.idx );
+	} );
+	PV.$modal.find( '.fccar-preview-variant button' ).on( 'click', function () {
+		PV.variant = $( this ).data( 'variant' );
+		PV.$modal.find( '.fccar-preview-variant button' ).removeClass( 'is-active' );
+		$( this ).addClass( 'is-active' );
+		pvRender();
+		pvLoop();
+	} );
+	$( window ).on( 'resize', function () { if ( ! PV.$modal.prop( 'hidden' ) ) { pvScale(); } } );
+	$( document ).on( 'keydown', function ( ev ) { if ( 27 === ev.keyCode && ! PV.$modal.prop( 'hidden' ) ) { pvClose(); } } );
+
 	/* ---- deck save / reset ---- */
 	function flash( cls, msg ) { $status.removeClass( 'is-error is-ok' ).addClass( cls ).text( msg ); }
 

@@ -127,6 +127,7 @@ function fccar_render_curate_page(): void {
 		<div class="fccar-actions">
 			<button type="button" class="button button-primary" id="fccar-save">Save deck</button>
 			<button type="button" class="button" id="fccar-reset" title="Discard the curated deck and revert to the auto-assembled default">Reset to default</button>
+			<button type="button" class="button" id="fccar-preview" title="Play the current (unsaved) arrangement in a lightbox">▶ Preview deck</button>
 			<a class="button" href="<?php echo esc_url( rest_url( 'firstchurch/v1/carousel' ) ); ?>" target="_blank" rel="noopener">Preview feed ↗</a>
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=preservice' ) ); ?>" target="_blank" rel="noopener">Play preservice ↗</a>
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=postservice' ) ); ?>" target="_blank" rel="noopener">Play postservice ↗</a>
@@ -137,6 +138,26 @@ function fccar_render_curate_page(): void {
 
 		<div class="fccar-drawer-backdrop" id="fccar-drawer-backdrop" hidden></div>
 		<aside class="fccar-drawer" id="fccar-drawer" hidden aria-hidden="true" aria-label="Card editor"></aside>
+
+		<div class="fccar-preview-modal" id="fccar-preview-modal" hidden aria-hidden="true" aria-label="Deck preview">
+			<div class="fccar-preview-head">
+				<span class="fccar-preview-title">Previewing the current (unsaved) arrangement</span>
+				<span class="fccar-preview-variant">
+					<button type="button" class="button button-small is-active" data-variant="preservice">Preservice</button>
+					<button type="button" class="button button-small" data-variant="postservice">Postservice</button>
+				</span>
+				<span class="fccar-preview-spacer"></span>
+				<button type="button" class="button button-small" id="fccar-pv-prev" title="Previous">‹</button>
+				<button type="button" class="button button-small" id="fccar-pv-play" title="Play / pause">⏸</button>
+				<button type="button" class="button button-small" id="fccar-pv-next" title="Next">›</button>
+				<span class="fccar-preview-counter" id="fccar-pv-counter"></span>
+				<button type="button" class="fccar-preview-x" id="fccar-pv-close" aria-label="Close preview">✕</button>
+			</div>
+			<div class="fccar-preview-stagewrap">
+				<div class="fccar-preview-deck" id="fccar-preview-deck"></div>
+				<div class="fccar-preview-empty" id="fccar-preview-empty" hidden>No cards in this variant.</div>
+			</div>
+		</div>
 
 		<div class="fccar-cols">
 			<section class="fccar-col">

@@ -98,3 +98,30 @@
 .fccar-bg-clear { color: #b32d2e; }
 .fccar-presvc { display: flex !important; align-items: center; gap: 6px; font-size: 12px; margin: 4px 0 0; }
 .fccar-drawer-actions { display: flex; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0f0f1; }
+
+/* ---- inline deck preview (plays the current unsaved arrangement) ---- */
+.fccar-preview-modal {
+	position: fixed; inset: 0; z-index: 99990; background: rgba(15,15,18,.92);
+	display: flex; flex-direction: column;
+}
+.fccar-preview-head {
+	display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+	padding: 10px 16px; color: #e6e6e6; background: rgba(0,0,0,.4);
+}
+.fccar-preview-title { font-size: 13px; color: #c9c9c9; }
+.fccar-preview-variant { display: inline-flex; gap: 4px; margin-left: 8px; }
+.fccar-preview-variant .is-active { box-shadow: inset 0 0 0 2px #2271b1; font-weight: 600; }
+.fccar-preview-spacer { flex: 1 1 auto; }
+.fccar-preview-counter { font-size: 12px; color: #b9b9b9; min-width: 56px; text-align: center; }
+.fccar-preview-x { border: 0; background: none; color: #e6e6e6; font-size: 16px; cursor: pointer; padding: 4px 8px; }
+.fccar-preview-x:hover { color: #fff; }
+.fccar-preview-stagewrap { position: relative; flex: 1 1 auto; overflow: hidden; }
+.fccar-preview-deck { position: absolute; inset: 0; }
+.fccar-preview-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #cfcfcf; font-size: 16px; }
+.fccar-pv-stage {
+	position: absolute; top: 50%; left: 50%; right: auto; bottom: auto;
+	width: 1280px; height: 720px;
+	transform: translate(-50%, -50%) scale(var(--fccar-pv-scale, 1));
+	opacity: 0; transition: opacity .4s ease; pointer-events: none;
+}
+.fccar-pv-stage.is-active { opacity: 1; }
