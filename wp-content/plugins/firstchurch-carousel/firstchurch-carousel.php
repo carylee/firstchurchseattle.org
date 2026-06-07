@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Carousel
  * Description: Makes the website the source of truth for the pre-/post-worship announcement carousel. Registers the carousel_card CPT (evergreen cards), and exposes a resolved, ordered Announcement[] feed — assembled from evergreen cards + upcoming events + recent announcements — over REST and MCP for the slides pipeline (../hocuspocus/apps/slides). See ops/docs/carousel-source-of-truth.md.
- * Version:     0.1.0
+ * Version:     0.4.0
  * Author:      First Church Seattle
  *
  * Phase 2 (per the design doc): the CPT + the resolver/feed. The feed auto-
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const FCCAR_VERSION = '0.2.0';
+const FCCAR_VERSION = '0.4.0';
 
 // Card post type + its meta keys (featured image = background photo; the post
 // title = the card title; menu_order = sequence within the evergreen run).
@@ -42,6 +42,7 @@ require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/resolve.php';
 require_once __DIR__ . '/inc/deck.php';
 require_once __DIR__ . '/inc/rest.php';
+require_once __DIR__ . '/inc/rest-card.php';
 require_once __DIR__ . '/inc/mcp.php';
 // Live web carousel: the /carousel/ kiosk page (the website renders the deck,
 // not just the feed). See design doc Phase 5.

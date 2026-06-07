@@ -22,21 +22,21 @@ function fccar_register_cpt(): void {
 		FCCAR_CPT,
 		array(
 			'labels'          => array(
-				'name'          => 'Carousel Cards',
-				'singular_name' => 'Carousel Card',
-				'add_new_item'  => 'Add Carousel Card',
-				'edit_item'     => 'Edit Carousel Card',
-				'menu_name'     => 'Carousel',
-				'all_items'     => 'Carousel Cards',
+				'name'          => 'Standing Cards',
+				'singular_name' => 'Standing Card',
+				'add_new_item'  => 'Add Standing Card',
+				'edit_item'     => 'Edit Standing Card',
+				'menu_name'     => 'Standing Cards',
+				'all_items'     => 'Standing Cards',
 			),
 			// Curation-only content: no public single/archive pages, but a full
 			// admin UI. Our REST/MCP feed is the read surface, not wp/v2.
+			// show_in_menu => false: the library lives under the Carousel menu
+			// (Curate is the front door) — wired up in admin-curate.php.
 			'public'          => false,
 			'show_ui'         => true,
-			'show_in_menu'    => true,
+			'show_in_menu'    => false,
 			'show_in_rest'    => false,
-			'menu_icon'       => 'dashicons-images-alt2',
-			'menu_position'   => 26,
 			'capability_type' => 'post',
 			'supports'        => array( 'title', 'thumbnail', 'page-attributes' ),
 		)
@@ -65,7 +65,7 @@ function fccar_render_metabox( WP_Post $post ): void {
 	$color  = (string) get_post_meta( $post->ID, FCCAR_META_BGCOLOR, true );
 	$presvc = (bool) get_post_meta( $post->ID, FCCAR_META_PRESVC, true );
 	?>
-	<?php $curate_url = admin_url( 'edit.php?post_type=' . FCCAR_CPT . '&page=' . FCCAR_CURATE_SLUG ); ?>
+	<?php $curate_url = fccar_curate_url(); ?>
 	<div class="fccar-edit-preview">
 		<div class="fccar-edit-thumb" id="fccar-edit-thumb"></div>
 		<p class="fccar-edit-hint">Live preview. This is a <strong>standing card</strong> — <a href="<?php echo esc_url( $curate_url ); ?>">arrange the deck in Curate&nbsp;→</a></p>
@@ -113,6 +113,50 @@ function fccar_render_metabox( WP_Post $post ): void {
 	<?php
 }
 
+/**
+ * The single validation gate for a standing card's fields — shared by the
+ * classic metabox save and the Curate drawer's REST save, so both paths agree
+ * on what a valid card is. Pure: a raw assoc (form field names, no `fccar_`
+ * prefix) in, a clean assoc out. `image_id` is the featured-image attachment id
+ * the drawer's media picker supplies (0 = none); the metabox ignores it, since
+ * WordPress's own featured-image box owns that field there.
+ *
+ * @param array<string,mixed> $raw
+ * @return array{title:string,layout:string,body:string,prompt:string,details:string,qr_url:string,bg_color:string,preservice:bool,image_id:int}
+ */
+function fccar_sanitize_card_input( array $raw ): array {
+	$layout = isset( $raw['layout'] ) ? sanitize_key( (string) $raw['layout'] ) : 'info';
+	if ( ! in_array( $layout, FCCAR_LAYOUTS, true ) ) {
+		$layout = 'info';
+	}
+
+	$color = sanitize_text_field( (string) ( $raw['bg_color'] ?? '' ) );
+	$color = preg_match( '/^#[0-9a-fA-F]{3,8}$/', $color ) ? $color : '';
+
+	return array(
+		'title'      => sanitize_text_field( (string) ( $raw['title'] ?? '' ) ),
+		'layout'     => $layout,
+		'body'       => sanitize_textarea_field( (string) ( $raw['body'] ?? '' ) ),
+		'prompt'     => sanitize_textarea_field( (string) ( $raw['prompt'] ?? '' ) ),
+		'details'    => sanitize_textarea_field( (string) ( $raw['details'] ?? '' ) ),
+		'qr_url'     => esc_url_raw( (string) ( $raw['qr_url'] ?? '' ) ),
+		'bg_color'   => $color,
+		'preservice' => ! empty( $raw['preservice'] ) && '0' !== $raw['preservice'],
+		'image_id'   => absint( $raw['image_id'] ?? 0 ),
+	);
+}
+
+/** Write a sanitized card's meta onto a post (title/featured image handled by the caller). */
+function fccar_apply_card_meta( int $post_id, array $clean ): void {
+	update_post_meta( $post_id, FCCAR_META_LAYOUT, $clean['layout'] );
+	update_post_meta( $post_id, FCCAR_META_BODY, $clean['body'] );
+	update_post_meta( $post_id, FCCAR_META_PROMPT, $clean['prompt'] );
+	update_post_meta( $post_id, FCCAR_META_DETAILS, $clean['details'] );
+	update_post_meta( $post_id, FCCAR_META_QR, $clean['qr_url'] );
+	update_post_meta( $post_id, FCCAR_META_BGCOLOR, $clean['bg_color'] );
+	update_post_meta( $post_id, FCCAR_META_PRESVC, $clean['preservice'] ? '1' : '' );
+}
+
 add_action( 'save_post_' . FCCAR_CPT, 'fccar_save_metabox', 10, 2 );
 
 function fccar_save_metabox( int $post_id, WP_Post $post ): void {
@@ -126,22 +170,15 @@ function fccar_save_metabox( int $post_id, WP_Post $post ): void {
 		return;
 	}
 
-	$layout = isset( $_POST['fccar_layout'] ) ? sanitize_key( wp_unslash( $_POST['fccar_layout'] ) ) : 'info';
-	if ( ! in_array( $layout, FCCAR_LAYOUTS, true ) ) {
-		$layout = 'info';
-	}
-	update_post_meta( $post_id, FCCAR_META_LAYOUT, $layout );
-
-	update_post_meta( $post_id, FCCAR_META_BODY, sanitize_textarea_field( wp_unslash( $_POST['fccar_body'] ?? '' ) ) );
-	update_post_meta( $post_id, FCCAR_META_PROMPT, sanitize_textarea_field( wp_unslash( $_POST['fccar_prompt'] ?? '' ) ) );
-	update_post_meta( $post_id, FCCAR_META_DETAILS, sanitize_textarea_field( wp_unslash( $_POST['fccar_details'] ?? '' ) ) );
-	update_post_meta( $post_id, FCCAR_META_QR, esc_url_raw( wp_unslash( $_POST['fccar_qr_url'] ?? '' ) ) );
-
-	$color = sanitize_text_field( wp_unslash( $_POST['fccar_bg_color'] ?? '' ) );
-	$color = preg_match( '/^#[0-9a-fA-F]{3,8}$/', $color ) ? $color : '';
-	update_post_meta( $post_id, FCCAR_META_BGCOLOR, $color );
-
-	update_post_meta( $post_id, FCCAR_META_PRESVC, empty( $_POST['fccar_preservice'] ) ? '' : '1' );
+	fccar_apply_card_meta( $post_id, fccar_sanitize_card_input( array(
+		'layout'     => wp_unslash( $_POST['fccar_layout'] ?? '' ),
+		'body'       => wp_unslash( $_POST['fccar_body'] ?? '' ),
+		'prompt'     => wp_unslash( $_POST['fccar_prompt'] ?? '' ),
+		'details'    => wp_unslash( $_POST['fccar_details'] ?? '' ),
+		'qr_url'     => wp_unslash( $_POST['fccar_qr_url'] ?? '' ),
+		'bg_color'   => wp_unslash( $_POST['fccar_bg_color'] ?? '' ),
+		'preservice' => empty( $_POST['fccar_preservice'] ) ? '' : '1',
+	) ) );
 }
 
 /* ---- Admin list: surface layout + sequence so the deck reads at a glance ---- */
@@ -209,6 +246,6 @@ add_action( 'admin_notices', static function () {
 	if ( ! $screen || 'edit-' . FCCAR_CPT !== $screen->id ) {
 		return;
 	}
-	$curate = admin_url( 'edit.php?post_type=' . FCCAR_CPT . '&page=' . FCCAR_CURATE_SLUG );
+	$curate = fccar_curate_url();
 	echo '<div class="notice notice-info"><p>These are the <strong>standing (evergreen) cards</strong> — reusable announcements (intro, dividers, QR callouts, housekeeping) shown every week. Events and news come from their own posts. <a href="' . esc_url( $curate ) . '">Curate the deck →</a></p></div>';
 } );

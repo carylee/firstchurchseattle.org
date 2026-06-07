@@ -90,10 +90,28 @@ function fccar_resolve_from_deck( array $deck ): array {
  * (entry null → defaults from the source).
  */
 function fccar_deck_view_row( array $item, ?array $entry = null ): array {
+	// Standing cards are edited in place from the drawer, so the curation screen
+	// needs their featured-image attachment id (kept out of the public feed).
+	$image_id = 0;
+	if ( 'card' === $item['source'] && preg_match( '/^card-(\d+)$/', (string) $item['id'], $m ) ) {
+		$image_id = (int) get_post_thumbnail_id( (int) $m[1] );
+	}
+
+	// Event tiles carry a start date so the shelf reads at a glance and the
+	// readiness pass can flag events that have already happened.
+	$date_raw = '';
+	if ( 'event' === $item['source'] && preg_match( '/^event-(\d+)$/', (string) $item['id'], $m ) ) {
+		$date_raw = (string) get_post_meta( (int) $m[1], '_ctc_event_start_date', true );
+	}
+
 	return array(
 		'id'             => $item['id'],
 		'source'         => $item['source'],
 		'layout'         => $item['layout'],
+		'imageId'        => $image_id,
+		'srcDate'        => fccar_short_date( $date_raw ),
+		'srcDateRaw'     => $date_raw,
+		'isPast'         => fccar_is_past_date( $date_raw ),
 		'srcTitle'       => $item['title'] ?? '',
 		'srcWhen'        => $item['when'] ?? '',
 		'srcImage'       => $item['image'] ?? '',

@@ -26,7 +26,13 @@ rsync -av $DRY --delete -e "$RSH" wp-content/themes/maranatha-child/ \
   "$REMOTE/themes/maranatha-child/"
 rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-connection-card/ \
   "$REMOTE/plugins/firstchurch-connection-card/"
-rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-carousel/ \
+# carousel is fully ours, but (like breeze-forms below) its working tree carries
+# dev-only artifacts (Composer deps, PHPUnit cache/config, tests) that must NOT
+# ship to prod. Mirror with --delete but exclude those.
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-carousel/ \
   "$REMOTE/plugins/firstchurch-carousel/"
 rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-stock-photos/ \
   "$REMOTE/plugins/firstchurch-stock-photos/"

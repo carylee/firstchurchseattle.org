@@ -1,8 +1,8 @@
 # The website as the source of truth for the announcement carousel
 
 **Status:** Phases 1–4 built (CPT + resolver + feed + curation screen) + a live web
-renderer (the `/carousel/` kiosk page — see §12).
-**Date:** 2026-06-06
+renderer (the `/carousel/` kiosk page — see §12) + a Curate workbench UX pass (see §13).
+**Date:** 2026-06-06 (workbench pass 2026-06-07)
 **Scope:** WordPress (`firstchurchseattle.org`) — content model, curation UI, and a feed.
 **Consumer:** the slides app in `../hocuspocus/apps/slides` (render only; not changed by this).
 **Implementation:** `wp-content/plugins/firstchurch-carousel/` (the `carousel_card` CPT,
@@ -296,3 +296,45 @@ announcement slides remain embedded in the worship deck the AV operator runs. Th
 an additional surface, not yet a replacement. Wiring the slides bake to source from this feed
 (or retiring it in favor of the live page) is future work; offline/own-a-file fallback for the
 booth is an open question (the live page needs network at the projector).
+
+---
+
+## 13. The Curate workbench (UX pass, 2026-06-07)
+
+The pieces of §5 worked but felt disjoint: you could do *most* things from Curate but had to
+leave for the rest, and the menu didn't even land you there. This pass makes **Curate the
+complete front door**, on one principle: *every action a curator needs happens on this screen
+or in a panel that slides over it — never a full-page navigation that loses unsaved work.*
+
+- **Curate is the front door.** The top-level **Carousel** menu now opens Curate (the weekly
+  job); the standing-card library is demoted to a **Standing Cards** submenu beneath it (the
+  CPT registers `show_in_menu => false`, with `parent_file`/`submenu_file` filters keeping the
+  menu highlighted while editing a card).
+- **Edit in place via an adaptive drawer.** Clicking ✎ on a tile (or **＋ New standing card**)
+  opens a slide-over editor that adapts to the source: a **standing card** gets a full content
+  editor (layout/title/body/prompt/details/QR/background/preservice) that saves the card itself
+  over `POST /wp-json/firstchurch/v1/carousel/card` and folds the result back into the deck —
+  no navigation; an **event/announcement** gets the override editor (title/when/background/
+  preservice) plus a deep link to edit the original, making explicit that the public post is
+  never touched. Card validation runs through one `fccar_sanitize_card_input()` shared by the
+  REST endpoint and the classic metabox so the two authoring paths can't drift.
+- **Unsaved-work protection.** A dirty indicator, a `beforeunload` guard, and a debounced
+  `localStorage` draft that offers to restore an unsaved prior session. Deliberately **no
+  autosave to the feed** — "Save deck" stays the explicit *publish to the live carousel* so a
+  half-built deck never reaches the kiosk.
+- **Preview the show inline.** A **Preview deck** lightbox plays the *current, unsaved*
+  arrangement (the kiosk's fade-through-black loop, fed from the in-memory deck) with a
+  preservice/postservice toggle and play/pause + prev/next — judge flow and timing before
+  publishing.
+- **An organized shelf.** The Available pool gains a search box, **All/Cards/Events/News**
+  filter chips, a live count, an empty state, and a start-date label on event tiles.
+- **A readiness strip.** A summary (card count · preservice-only · play-postservice · warnings,
+  reading "✓ looks ready" when clean) plus per-tile ⚠ markers for cards with no title, a photo
+  layout with no background, or an event whose date has already passed.
+
+**Tests.** The plugin now carries a standalone PHPUnit suite (mirroring `firstchurch-breeze-
+forms`): a bootstrap shims the handful of WP primitives the pure logic touches, and the suite
+covers deck-entry + card-input sanitization, layout shape-detection, the recurrence → "when"
+formatter, and the date helpers (`fccar_short_date`/`fccar_is_past_date`). Wired into CI as a
+`carousel PHPUnit` job; `vendor/`, `tests/`, and the Composer/PHPUnit config are excluded from
+the prod deploy (`ops/deploy.sh`).
