@@ -43,6 +43,14 @@ jobs:
           fi
           exit $fail
 
+  deploy-coverage:
+    name: deploy coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every tracked plugin/theme is wired into ops/deploy.sh
+        run: ops/scripts/check-deploy-coverage.sh
+
   breeze-forms:
     name: breeze-forms PHPUnit
     runs-on: ubuntu-latest

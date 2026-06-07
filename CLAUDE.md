@@ -47,6 +47,20 @@ ops/deploy.sh              # deploy
 
 Both honor one ownership model so they can't conflict — see `ops/sync/ownership.md`.
 
+> **⚠️ A new plugin/theme is NOT deployed until you add it to `ops/deploy.sh`.**
+> The deploy is an **explicit allowlist of paths**, not a wildcard over `wp-content/` —
+> it rsyncs only the specific themes/plugins/files named in `ops/deploy.sh`. Adding a new
+> tracked plugin directory (e.g. `wp-content/plugins/firstchurch-foo/`) and merging it does
+> **nothing** on prod until you add a matching `rsync` line to `deploy.sh`. The CD pipeline
+> just runs `deploy.sh`, so it will go **green while silently skipping your new code** — a
+> passing deploy is *not* proof your plugin shipped.
+>
+> **Whenever you create a new custom plugin, add it to `ops/deploy.sh` in the same PR**
+> (mirror with `--delete` if fully ours; exclude dev-only artifacts like `vendor/`/`tests/`
+> as `firstchurch-breeze-forms` does). Then remember files alone aren't enough: a new plugin
+> also needs `ssh firstchurch 'wp plugin activate <slug>'` (and any one-time seed/migration)
+> on prod. Verify after deploy: `ssh firstchurch 'ls ~/public_html/wp-content/plugins/'`.
+
 ## How to work on the site
 
 | You want to… | Do this |
@@ -95,6 +109,7 @@ firstchurchseattle.org/                 ← git repo + DDEV project
 | Path | What |
 |---|---|
 | `ops/deploy.sh` | **Push** to prod |
+| `ops/scripts/check-deploy-coverage.sh` | CI guardrail: fails if a tracked plugin/theme isn't wired into `deploy.sh` |
 | `ops/sync/ownership.md` | The push/pull ownership model (start here) |
 | `ops/sync/pull-exclude.txt` | What the pull never overwrites |
 | `ops/scripts/setup-roles.sh` | Recreate the `mcp_editor` role + MCP users |
