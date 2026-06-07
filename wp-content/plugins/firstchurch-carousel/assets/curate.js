@@ -20,6 +20,41 @@
 	var $avail = $( '#fccar-available' );
 	var $status = $( '#fccar-status' );
 	var $count = $( '#fccar-deck-count' );
+	var $dirty = $( '#fccar-dirty' );
+
+	/* ---- unsaved-work protection: a dirty flag, a beforeunload guard, and a
+	 * localStorage draft so an accidental reload/navigation never costs an
+	 * afternoon of curation. We intentionally do NOT autosave to the live feed —
+	 * "Save deck" stays the explicit publish, so a half-built deck never reaches
+	 * the kiosk. The draft persists the in-progress arrangement locally only. */
+	var DRAFT_KEY = 'fccar_deck_draft';
+	var dirty = false;
+	var draftTimer = null;
+
+	function saveDraft() {
+		try { window.localStorage.setItem( DRAFT_KEY, JSON.stringify( { savedAt: Date.now(), deck: D.deck } ) ); } catch ( e ) {}
+	}
+	function clearDraft() {
+		try { window.localStorage.removeItem( DRAFT_KEY ); } catch ( e ) {}
+	}
+	function markDirty() {
+		dirty = true;
+		$dirty.prop( 'hidden', false );
+		clearTimeout( draftTimer );
+		draftTimer = setTimeout( saveDraft, 600 );
+	}
+	function markClean() {
+		dirty = false;
+		$dirty.prop( 'hidden', true );
+		clearTimeout( draftTimer );
+		clearDraft();
+	}
+
+	$( window ).on( 'beforeunload', function ( ev ) {
+		if ( ! dirty ) { return undefined; }
+		( ev || window.event ).returnValue = 'You have unsaved changes to the carousel deck.';
+		return 'You have unsaved changes to the carousel deck.';
+	} );
 
 	// Which card fields each layout actually uses (mirrors the metabox's data-layouts).
 	var FIELD_LAYOUTS = {
@@ -125,6 +160,7 @@
 		stop: function () {
 			var order = $deck.children( '.fccar-tile' ).map( function () { return String( $( this ).data( 'id' ) ); } ).get();
 			D.deck.sort( function ( a, b ) { return order.indexOf( a.id ) - order.indexOf( b.id ); } );
+			markDirty();
 		}
 	} );
 
@@ -137,6 +173,7 @@
 		D.deck.push( $.extend( {}, r, { title: '', when: '', image: '', preserviceOnly: !!r.preserviceOnly } ) );
 		renderDeck();
 		renderAvail();
+		markDirty();
 	} );
 
 	$deck.on( 'click', '.fccar-remove', function () {
@@ -147,6 +184,7 @@
 		D.available.unshift( $.extend( {}, e, { title: '', when: '', image: '' } ) );
 		renderDeck();
 		renderAvail();
+		markDirty();
 	} );
 
 	/* ================= the adaptive drawer ================= */
@@ -281,9 +319,12 @@
 	$( document ).on( 'keydown', function ( ev ) { if ( 27 === ev.keyCode && ! $drawer.prop( 'hidden' ) ) { closeDrawer(); } } );
 	$drawer.on( 'click', '.fccar-d-cancel', closeDrawer );
 
-	/* live field edits */
+	/* live field edits. Override-mode edits mutate the live deck entry, so they
+	 * mark the deck dirty; card-mode edits are transactional (committed on Save
+	 * card over REST) and don't. */
+	function touched() { if ( ! isCard ) { markDirty(); } }
 	function bindIn( sel, fn ) {
-		$drawer.on( 'input', sel, function () { fn( this.value, this ); repaintWorking(); } );
+		$drawer.on( 'input', sel, function () { fn( this.value, this ); repaintWorking(); touched(); } );
 	}
 	// Card-mode writers (edit the card's own fields, stored as source values).
 	bindIn( '.fccar-d-title', function ( v ) { if ( isCard ) { W.srcTitle = v; } else { W.title = v; } } );
@@ -294,7 +335,7 @@
 	bindIn( '.fccar-d-qr_url', function ( v ) { W.ctaUrl = v; } );
 	bindIn( '.fccar-d-bg_color', function ( v ) { W.backgroundColor = v; } );
 	$drawer.on( 'change', '.fccar-d-layout', function () { W.layout = this.value; applyCardFieldVisibility(); repaintWorking(); } );
-	$drawer.on( 'change', '.fccar-d-presvc', function () { W.preserviceOnly = this.checked; repaintWorking(); } );
+	$drawer.on( 'change', '.fccar-d-presvc', function () { W.preserviceOnly = this.checked; repaintWorking(); touched(); } );
 
 	$drawer.on( 'click', '.fccar-bg', function () {
 		if ( ! window.wp || ! window.wp.media ) { return; }
@@ -305,6 +346,7 @@
 			$drawer.find( '.fccar-bg' ).text( 'Replace…' );
 			$drawer.find( '.fccar-bg-clear' ).show();
 			repaintWorking();
+			touched();
 		} );
 		frame.open();
 	} );
@@ -313,6 +355,7 @@
 		$( this ).hide();
 		$drawer.find( '.fccar-bg' ).text( ( isCard ? W.srcImage : ( W.image || W.srcImage ) ) ? 'Replace…' : 'Choose…' );
 		repaintWorking();
+		touched();
 	} );
 
 	/* save a standing card over REST, then fold the result back into the deck */
@@ -347,7 +390,8 @@
 				}
 				closeDrawer();
 				renderDeck();
-				flash( 'is-ok', 'Card saved.' );
+				markDirty(); // the card persisted, but its deck membership/order hasn't
+				flash( 'is-ok', 'Card saved — Save deck to keep it in the lineup.' );
 			} )
 			.catch( function ( j ) {
 				$btn.prop( 'disabled', false ).text( isNew ? 'Add card' : 'Save card' );
@@ -374,15 +418,57 @@
 			return { id: e.id, title: e.title || '', when: e.when || '', image: e.image || '', preserviceOnly: !!e.preserviceOnly };
 		} );
 		post( { deck: deck }, function ( j ) {
-			flash( 'is-ok', 'Saved ' + ( j.count != null ? j.count : deck.length ) + ' cards.' );
+			markClean();
+			flash( 'is-ok', 'Published ' + ( j.count != null ? j.count : deck.length ) + ' cards to the live carousel.' );
 		} );
 	} );
 
 	$( '#fccar-reset' ).on( 'click', function () {
 		if ( ! window.confirm( 'Discard the curated deck and revert to the auto-assembled default?' ) ) { return; }
-		post( { reset: true }, function () { window.location.reload(); } );
+		post( { reset: true }, function () { markClean(); window.location.reload(); } );
 	} );
+
+	/* ---- draft restore: offer to bring back an unsaved prior session ---- */
+	var pool = {};
+	D.deck.concat( D.available ).forEach( function ( r ) { pool[ r.id ] = r; } );
+
+	function applyDraftDeck( draftDeck ) {
+		D.deck = draftDeck.slice();
+		var inDeck = {};
+		D.deck.forEach( function ( e ) { inDeck[ e.id ] = true; } );
+		D.available = Object.keys( pool ).filter( function ( id ) { return ! inDeck[ id ]; } )
+			.map( function ( id ) { return $.extend( {}, pool[ id ], { title: '', when: '', image: '' } ); } );
+		renderDeck();
+		renderAvail();
+	}
+
+	function maybeOfferDraft() {
+		var raw;
+		try { raw = window.localStorage.getItem( DRAFT_KEY ); } catch ( e ) { return; }
+		if ( ! raw ) { return; }
+		var draft;
+		try { draft = JSON.parse( raw ); } catch ( e ) { clearDraft(); return; }
+		if ( ! draft || ! Array.isArray( draft.deck ) ) { clearDraft(); return; }
+
+		var when = draft.savedAt ? new Date( draft.savedAt ).toLocaleString() : 'a previous session';
+		var $banner = $(
+			'<div class="notice notice-warning fccar-draft-banner"><p>' +
+				'You have <strong>unsaved deck changes</strong> from ' + esc( when ) + '. ' +
+				'<button type="button" class="button button-small" id="fccar-draft-restore">Restore them</button> ' +
+				'<button type="button" class="button-link" id="fccar-draft-discard">Discard</button>' +
+			'</p></div>'
+		);
+		$( '.fccar-curate > h1' ).after( $banner );
+		$banner.on( 'click', '#fccar-draft-restore', function () {
+			applyDraftDeck( draft.deck );
+			markDirty();
+			$banner.remove();
+			flash( 'is-ok', 'Restored your unsaved deck — Save to publish.' );
+		} );
+		$banner.on( 'click', '#fccar-draft-discard', function () { clearDraft(); $banner.remove(); } );
+	}
 
 	renderDeck();
 	renderAvail();
+	maybeOfferDraft();
 }( jQuery ) );

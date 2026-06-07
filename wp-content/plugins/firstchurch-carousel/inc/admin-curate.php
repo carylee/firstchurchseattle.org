@@ -131,6 +131,7 @@ function fccar_render_curate_page(): void {
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=preservice' ) ); ?>" target="_blank" rel="noopener">Play preservice ↗</a>
 			<a class="button" href="<?php echo esc_url( home_url( '/carousel/?variant=postservice' ) ); ?>" target="_blank" rel="noopener">Play postservice ↗</a>
 			<button type="button" class="button" id="fccar-new-card">＋ New standing card</button>
+			<span class="fccar-dirty" id="fccar-dirty" hidden>● Unsaved changes</span>
 			<span class="fccar-status" id="fccar-status" role="status"></span>
 		</div>
 
