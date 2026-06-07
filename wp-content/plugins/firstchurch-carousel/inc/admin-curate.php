@@ -16,15 +16,66 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 const FCCAR_CURATE_SLUG = 'fccar-curate';
 
+/** Canonical URL of the Curate workbench (now a top-level admin page). */
+function fccar_curate_url(): string {
+	return admin_url( 'admin.php?page=' . FCCAR_CURATE_SLUG );
+}
+
+/**
+ * Menu IA: Curate is the front door. The weekly job (build this Sunday's deck)
+ * is the top-level "Carousel" page; the rarely-touched standing-card library is
+ * a submenu beneath it. WordPress would otherwise land you on the CPT list —
+ * the least-used screen — so we register our own top-level page and attach the
+ * CPT screens under it.
+ */
 add_action( 'admin_menu', static function () {
+	add_menu_page(
+		'Curate Carousel',
+		'Carousel',
+		'edit_posts',
+		FCCAR_CURATE_SLUG,
+		'fccar_render_curate_page',
+		'dashicons-images-alt2',
+		26
+	);
+	// Rename the auto-duplicated first submenu ("Carousel") to "Curate".
 	add_submenu_page(
-		'edit.php?post_type=' . FCCAR_CPT,
+		FCCAR_CURATE_SLUG,
 		'Curate Carousel',
 		'Curate',
 		'edit_posts',
 		FCCAR_CURATE_SLUG,
 		'fccar_render_curate_page'
 	);
+	// The standing-card library + add-new, as CPT screens under our menu.
+	add_submenu_page(
+		FCCAR_CURATE_SLUG,
+		'Standing Cards',
+		'Standing Cards',
+		'edit_posts',
+		'edit.php?post_type=' . FCCAR_CPT
+	);
+	add_submenu_page(
+		FCCAR_CURATE_SLUG,
+		'Add Standing Card',
+		'Add Card',
+		'edit_posts',
+		'post-new.php?post_type=' . FCCAR_CPT
+	);
+} );
+
+/**
+ * Keep the Carousel menu open (and the right submenu highlighted) while on the
+ * standing-card CPT screens — without this they'd float menu-less, since the CPT
+ * registers with show_in_menu => false.
+ */
+add_filter( 'parent_file', static function ( $parent_file ) {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	return ( $screen && FCCAR_CPT === $screen->post_type ) ? FCCAR_CURATE_SLUG : $parent_file;
+} );
+add_filter( 'submenu_file', static function ( $submenu_file ) {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	return ( $screen && FCCAR_CPT === $screen->post_type ) ? 'edit.php?post_type=' . FCCAR_CPT : $submenu_file;
 } );
 
 add_action( 'admin_enqueue_scripts', static function ( $hook ) {

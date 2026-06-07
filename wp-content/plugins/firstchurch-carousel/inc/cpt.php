@@ -22,21 +22,21 @@ function fccar_register_cpt(): void {
 		FCCAR_CPT,
 		array(
 			'labels'          => array(
-				'name'          => 'Carousel Cards',
-				'singular_name' => 'Carousel Card',
-				'add_new_item'  => 'Add Carousel Card',
-				'edit_item'     => 'Edit Carousel Card',
-				'menu_name'     => 'Carousel',
-				'all_items'     => 'Carousel Cards',
+				'name'          => 'Standing Cards',
+				'singular_name' => 'Standing Card',
+				'add_new_item'  => 'Add Standing Card',
+				'edit_item'     => 'Edit Standing Card',
+				'menu_name'     => 'Standing Cards',
+				'all_items'     => 'Standing Cards',
 			),
 			// Curation-only content: no public single/archive pages, but a full
 			// admin UI. Our REST/MCP feed is the read surface, not wp/v2.
+			// show_in_menu => false: the library lives under the Carousel menu
+			// (Curate is the front door) — wired up in admin-curate.php.
 			'public'          => false,
 			'show_ui'         => true,
-			'show_in_menu'    => true,
+			'show_in_menu'    => false,
 			'show_in_rest'    => false,
-			'menu_icon'       => 'dashicons-images-alt2',
-			'menu_position'   => 26,
 			'capability_type' => 'post',
 			'supports'        => array( 'title', 'thumbnail', 'page-attributes' ),
 		)
@@ -65,7 +65,7 @@ function fccar_render_metabox( WP_Post $post ): void {
 	$color  = (string) get_post_meta( $post->ID, FCCAR_META_BGCOLOR, true );
 	$presvc = (bool) get_post_meta( $post->ID, FCCAR_META_PRESVC, true );
 	?>
-	<?php $curate_url = admin_url( 'edit.php?post_type=' . FCCAR_CPT . '&page=' . FCCAR_CURATE_SLUG ); ?>
+	<?php $curate_url = fccar_curate_url(); ?>
 	<div class="fccar-edit-preview">
 		<div class="fccar-edit-thumb" id="fccar-edit-thumb"></div>
 		<p class="fccar-edit-hint">Live preview. This is a <strong>standing card</strong> — <a href="<?php echo esc_url( $curate_url ); ?>">arrange the deck in Curate&nbsp;→</a></p>
@@ -209,6 +209,6 @@ add_action( 'admin_notices', static function () {
 	if ( ! $screen || 'edit-' . FCCAR_CPT !== $screen->id ) {
 		return;
 	}
-	$curate = admin_url( 'edit.php?post_type=' . FCCAR_CPT . '&page=' . FCCAR_CURATE_SLUG );
+	$curate = fccar_curate_url();
 	echo '<div class="notice notice-info"><p>These are the <strong>standing (evergreen) cards</strong> — reusable announcements (intro, dividers, QR callouts, housekeeping) shown every week. Events and news come from their own posts. <a href="' . esc_url( $curate ) . '">Curate the deck →</a></p></div>';
 } );
