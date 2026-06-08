@@ -29,6 +29,7 @@ define('FCSP_OPENVERSE_CLIENT_ID', 'test-id');
 define('FCSP_OPENVERSE_CLIENT_SECRET', 'test-secret');
 define('FCSP_PEXELS_API_KEY', 'test-pexels-key');
 define('FCSP_UNSPLASH_ACCESS_KEY', 'test-unsplash-key');
+define('FCSP_PIXABAY_API_KEY', 'test-pixabay-key');
 
 /* -------------------------------------------------------------------------
  * Test-controlled state + helpers

@@ -34,6 +34,7 @@ require_once __DIR__ . '/inc/providers.php';
 require_once __DIR__ . '/inc/provider-openverse.php';
 require_once __DIR__ . '/inc/provider-pexels.php';
 require_once __DIR__ . '/inc/provider-unsplash.php';
+require_once __DIR__ . '/inc/provider-pixabay.php';
 require_once __DIR__ . '/inc/import.php';
 require_once __DIR__ . '/inc/credits.php';
 require_once __DIR__ . '/inc/rest.php';
