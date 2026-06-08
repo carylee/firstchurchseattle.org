@@ -104,3 +104,16 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
       - name: PHPUnit
         run: vendor/bin/phpunit
+
+  asset-version:
+    name: asset version bump
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Assets changed must bump the plugin/theme version
+        run: ops/scripts/check-asset-version-bump.sh
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
