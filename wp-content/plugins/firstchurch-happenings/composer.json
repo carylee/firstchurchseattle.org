@@ -1,0 +1,25 @@
+{
+    "name": "firstchurch/happenings",
+    "description": "The Happenings spine: project events + announcements into one Happening[] feed (REST + MCP) that every surface consumes. See ops/docs/happenings.md.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    },
+    "autoload": {
+        "psr-4": {
+            "FirstChurch\\Happenings\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FirstChurch\\Happenings\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

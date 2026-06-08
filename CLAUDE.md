@@ -73,8 +73,14 @@ Both directions honor one ownership model so they can't conflict — see `ops/sy
 > **Whenever you create a new custom plugin, add it to `ops/deploy.sh` in the same PR**
 > (mirror with `--delete` if fully ours; exclude dev-only artifacts like `vendor/`/`tests/`
 > as `firstchurch-breeze-forms` does). Then remember files alone aren't enough: a new plugin
-> also needs `ssh firstchurch 'wp plugin activate <slug>'` (and any one-time seed/migration)
-> on prod. Verify after deploy: `ssh firstchurch 'ls ~/public_html/wp-content/plugins/'`.
+> also needs `ssh firstchurch 'cd ~/public_html && wp plugin activate <slug>'` (and any one-time
+> seed/migration) on prod. Verify after deploy: `ssh firstchurch 'ls ~/public_html/wp-content/plugins/'`.
+>
+> **⚠️ wp-cli on prod must run from `~/public_html`.** SSH lands you in `~` (the HostGator home
+> dir), which has **no WordPress install** — a bare `ssh firstchurch 'wp …'` fails with
+> "This does not seem to be a WordPress installation." Always `cd ~/public_html &&` first (or
+> pass `--path=~/public_html`). This applies to *every* remote `wp` invocation — plugin
+> activation, menu edits, migrations, option sets.
 
 ## How to work on the site
 

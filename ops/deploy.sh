@@ -48,6 +48,15 @@ rsync -av $DRY --delete \
   -e "$RSH" wp-content/plugins/firstchurch-breeze-forms/ \
   "$REMOTE/plugins/firstchurch-breeze-forms/"
 
+# happenings (the spine) is fully ours and TDD'd like breeze-forms — same dev-only
+# artifacts to exclude. NOTE: firstchurch-carousel depends on this; after the first
+# deploy run `ssh firstchurch 'wp plugin activate firstchurch-happenings'`.
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-happenings/ \
+  "$REMOTE/plugins/firstchurch-happenings/"
+
 # mu-plugins/ ALSO holds host must-use plugins (endurance-page-cache) we do NOT track,
 # so sync our files individually and NEVER --delete this directory.
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php "$REMOTE/mu-plugins/"

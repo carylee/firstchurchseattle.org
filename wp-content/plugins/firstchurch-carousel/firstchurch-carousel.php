@@ -9,6 +9,10 @@
  * assembles a sensible default deck from live content; the curation screen
  * (pick/order/decorate, stored as references+overrides) is a later phase. Until
  * then, evergreen ordering comes from each card's menu_order (Page Attributes).
+ *
+ * DEPENDS ON firstchurch-happenings: the events + announcements sources and the
+ * shared item/text/layout/when helpers live in that plugin (the spine). The
+ * carousel composes its evergreen cards on top of that feed. Keep it active.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -54,6 +58,15 @@ require_once __DIR__ . '/inc/admin-curate.php';
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once __DIR__ . '/inc/seed.php';
 }
+
+// Warn loudly in wp-admin if the spine dependency is missing — the feed will be
+// empty (fccar_resolve() degrades gracefully) until it is activated.
+add_action( 'admin_notices', static function () {
+	if ( fccar_spine_active() || ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+	echo '<div class="notice notice-error"><p><strong>First Church Carousel</strong> needs the <strong>First Church Happenings</strong> plugin active — the carousel feed is empty until it is.</p></div>';
+} );
 
 register_activation_hook( __FILE__, static function () {
 	fccar_register_cpt();
