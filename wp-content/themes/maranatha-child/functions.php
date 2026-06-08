@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version string for cache-busting child assets. Bump when the CSS/JS changes.
  */
 if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.6.7' );
+	define( 'FCS_CHILD_VERSION', '0.6.8' );
 }
 
 /**

@@ -41,7 +41,8 @@ function fcs_happenings_block_register() {
 				'count'   => array( 'type' => 'number', 'default' => 3 ),
 				'weeks'   => array( 'type' => 'number', 'default' => 8 ),
 				'days'    => array( 'type' => 'number', 'default' => 30 ),
-				'heading' => array( 'type' => 'string', 'default' => '' ),
+				'heading'         => array( 'type' => 'string', 'default' => '' ),
+				'excludeFeatured' => array( 'type' => 'boolean', 'default' => false ),
 			),
 			'render_callback' => 'fcs_happenings_block_render',
 		)
@@ -66,10 +67,10 @@ function fcs_happenings_block_render( $attrs ) {
 
 	switch ( $section ) {
 		case 'events':
-			$items = array_slice( happenings_event_items( $weeks ), 0, $count );
+			$items = happenings_event_items( $weeks );
 			break;
 		case 'announcements':
-			$items = array_slice( happenings_news_items( $days ), 0, $count );
+			$items = happenings_news_items( $days );
 			break;
 		case 'featured':
 		default:
@@ -77,9 +78,28 @@ function fcs_happenings_block_render( $attrs ) {
 			break;
 	}
 
+	// Drop items already promoted into a Featured block on the same page so they
+	// don't appear twice (a Happening's `weight` is non-empty only when > 0 —
+	// i.e. it's in the Featured set). Filter before the count slice so the list
+	// still fills to `count`. Featured itself is the source of truth, so the
+	// toggle is a no-op there.
+	if ( ! empty( $attrs['excludeFeatured'] ) && 'featured' !== $section ) {
+		$items = array_values( array_filter( $items, static function ( $it ) {
+			return empty( $it['weight'] );
+		} ) );
+	}
+
+	$items = array_slice( $items, 0, $count );
+
 	if ( empty( $items ) ) {
 		return '';
 	}
+
+	// Featured is a curated highlight row, not a chronological list, so its
+	// cards suppress the published-on date (it reads as the item's "when" and
+	// misleads for posts whose real date lives in the title/body — e.g. a dated
+	// announcement). Other sections keep the date/when line.
+	$show_meta = ( 'featured' !== $section );
 
 	$heading = isset( $attrs['heading'] ) ? trim( (string) $attrs['heading'] ) : '';
 
@@ -103,7 +123,7 @@ function fcs_happenings_block_render( $attrs ) {
 						<?php echo esc_html( $v['title'] ); ?>
 					<?php endif; ?>
 				</h3>
-				<?php if ( '' !== $v['meta'] ) : ?>
+				<?php if ( $show_meta && '' !== $v['meta'] ) : ?>
 					<p class="fcs-card__meta"><?php echo esc_html( $v['meta'] ); ?></p>
 				<?php endif; ?>
 				<?php if ( '' !== $v['blurb'] ) : ?>
