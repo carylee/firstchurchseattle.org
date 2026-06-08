@@ -29,6 +29,7 @@ define('FCSP_OPENVERSE_CLIENT_ID', 'test-id');
 define('FCSP_OPENVERSE_CLIENT_SECRET', 'test-secret');
 define('FCSP_PEXELS_API_KEY', 'test-pexels-key');
 define('FCSP_UNSPLASH_ACCESS_KEY', 'test-unsplash-key');
+define('FCSP_PIXABAY_API_KEY', 'test-pixabay-key');
 
 /* -------------------------------------------------------------------------
  * Test-controlled state + helpers
@@ -53,6 +54,7 @@ function fcsp_test_reset(): void
     $GLOBALS['fcsp_test_request_args'] = [];
     $GLOBALS['fcsp_test_token']        = null;
     $GLOBALS['fcsp_test_meta']         = [];
+    $GLOBALS['fcsp_test_featured']     = 0;
     $GLOBALS['fcsp_test_hooks']        = $GLOBALS['fcsp_test_hooks_baseline'] ?? [];
 }
 
@@ -292,6 +294,21 @@ if (!function_exists('set_transient')) {
     function set_transient(string $key, $value, int $expiration = 0): bool
     {
         return true;
+    }
+}
+
+if (!function_exists('get_post_thumbnail_id')) {
+    function get_post_thumbnail_id($post = null): int
+    {
+        return (int) ($GLOBALS['fcsp_test_featured'] ?? 0);
+    }
+}
+
+if (!function_exists('get_block_wrapper_attributes')) {
+    function get_block_wrapper_attributes($extra = []): string
+    {
+        $class = isset($extra['class']) ? (string) $extra['class'] : '';
+        return 'class="' . esc_attr($class) . '"';
     }
 }
 

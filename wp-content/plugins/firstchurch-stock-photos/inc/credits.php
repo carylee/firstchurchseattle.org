@@ -86,6 +86,59 @@ function fcsp_stock_credit_shortcode( $atts ): string {
 add_shortcode( 'stock_credit', 'fcsp_stock_credit_shortcode' );
 
 /**
+ * "Stock Photo Credit" block: a dynamic block that renders fcsp_attachment_credit_html
+ * for a chosen attachment (or the post's featured image when none is chosen).
+ */
+function fcsp_register_credit_block(): void {
+	if ( ! function_exists( 'register_block_type' ) ) {
+		return;
+	}
+	if ( is_admin() ) {
+		wp_register_script(
+			'firstchurch-stock-credit-block',
+			plugin_dir_url( dirname( __FILE__ ) ) . 'assets/block.js',
+			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n', 'wp-server-side-render' ),
+			FCSP_VERSION,
+			true
+		);
+	}
+	register_block_type(
+		'firstchurch/stock-credit',
+		array(
+			'api_version'     => 3,
+			'editor_script'   => 'firstchurch-stock-credit-block',
+			'render_callback' => 'fcsp_render_credit_block',
+			'attributes'      => array(
+				'id' => array( 'type' => 'number', 'default' => 0 ),
+			),
+		)
+	);
+}
+add_action( 'init', 'fcsp_register_credit_block' );
+
+/**
+ * Render callback for the stock-credit block. Falls back to the post's featured
+ * image when no id is set; renders nothing when there's no credit to show.
+ */
+function fcsp_render_credit_block( $attributes ): string {
+	$id = isset( $attributes['id'] ) ? (int) $attributes['id'] : 0;
+	if ( $id <= 0 ) {
+		$id = (int) get_post_thumbnail_id();
+	}
+	if ( $id <= 0 ) {
+		return '';
+	}
+	$html = fcsp_attachment_credit_html( $id );
+	if ( '' === $html ) {
+		return '';
+	}
+	$wrapper = function_exists( 'get_block_wrapper_attributes' )
+		? get_block_wrapper_attributes( array( 'class' => 'fcsp-credit' ) )
+		: 'class="fcsp-credit"';
+	return '<p ' . $wrapper . '>' . $html . '</p>';
+}
+
+/**
  * Opt-in: append the featured image's credit to singular content. Off unless
  * `fcsp_auto_credit` returns true; only fires on the main singular query and
  * only when the featured image actually carries provenance.

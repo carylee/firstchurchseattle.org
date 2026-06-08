@@ -49,6 +49,7 @@ to the first available provider if that one's key is missing. Add one by registe
 |---|---|---|
 | **Pexels** *(default)* | `FCSP_PEXELS_API_KEY` | Uniform [Pexels License](https://www.pexels.com/license/) (free commercial use; attribution appreciated). Recorded as a generated credit string. |
 | **Unsplash** | `FCSP_UNSPLASH_ACCESS_KEY` | Uniform [Unsplash License](https://unsplash.com/license) (free commercial use). ToS requires a download ping on use — fired automatically on import (see below). |
+| **Pixabay** | `FCSP_PIXABAY_API_KEY` | Uniform [Pixabay Content License](https://pixabay.com/service/license-summary/) (free commercial use; attribution not required). Photos only, safesearch on. |
 | **Openverse** | No | Per-item CC / public-domain; filtered to commercial-use + modification, mature excluded. Attribution-safe (used as the fallback default when Pexels isn't configured). |
 
 To enable a keyed provider, register a free app and add the key to `wp-config.php`:
@@ -56,6 +57,7 @@ To enable a keyed provider, register a free app and add the key to `wp-config.ph
 ```php
 define( 'FCSP_PEXELS_API_KEY', '…' );      // https://www.pexels.com/api/
 define( 'FCSP_UNSPLASH_ACCESS_KEY', '…' ); // https://unsplash.com/developers
+define( 'FCSP_PIXABAY_API_KEY', '…' );     // https://pixabay.com/api/docs/
 ```
 
 **Unsplash ToS:** the API guidelines require [triggering a download](https://help.unsplash.com/en/articles/2511258-guideline-triggering-a-download)
@@ -116,6 +118,8 @@ obligations (Openverse CC-BY, Pexels/Unsplash guidelines) are actually met:
 - `fcsp_attachment_credit_html( $id )` — a linked, escaped credit line (creator → source →
   license), or `''` if the attachment wasn't imported through this plugin.
 - `[stock_credit id="123"]` — shortcode; with no `id` it uses the post's featured image.
+- **Stock Photo Credit** block — pick an image (or leave empty for the featured image); a dynamic
+  block rendered by the same helper, with a live editor preview.
 - **Opt-in** auto-append under singular featured images. Off by default (a site-wide visual
   change), enable with:
 
