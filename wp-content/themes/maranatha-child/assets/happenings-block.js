@@ -27,12 +27,24 @@
 			count: { type: 'number', default: 3 },
 			weeks: { type: 'number', default: 8 },
 			days: { type: 'number', default: 30 },
-			heading: { type: 'string', default: '' }
+			heading: { type: 'string', default: '' },
+			excludeFeatured: { type: 'boolean', default: false }
 		},
 
 		edit: function ( props ) {
 			var a = props.attributes;
 			var set = props.setAttributes;
+
+			// Only meaningful for the recency list: drop items already promoted
+			// into a Featured block on the same page (weight > 0) so they don't
+			// show twice.
+			var excludeControl = a.section === 'featured'
+				? null
+				: el( c.ToggleControl, {
+						label: __( 'Hide items already featured', 'maranatha-child' ),
+						checked: !! a.excludeFeatured,
+						onChange: function ( v ) { set( { excludeFeatured: v } ); }
+				  } );
 
 			var windowControl = a.section === 'events'
 				? el( c.RangeControl, {
@@ -71,7 +83,8 @@
 						value: a.heading,
 						onChange: function ( v ) { set( { heading: v } ); }
 					} ),
-					windowControl
+					windowControl,
+					excludeControl
 				)
 			);
 
