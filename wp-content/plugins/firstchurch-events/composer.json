@@ -1,0 +1,13 @@
+{
+    "name": "firstchurch/events",
+    "description": "Lean, RRULE-backed events for First Church. rlanvin/php-rrule is vendored under lib/ (runtime); Composer is dev-only (PHPUnit).",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": { "phpunit/phpunit": "^11" },
+    "autoload": { "psr-4": { "FirstChurch\\Events\\": "src/" } },
+    "autoload-dev": { "psr-4": { "FirstChurch\\Events\\Tests\\": "tests/" } },
+    "config": { "optimize-autoloader": true }
+}

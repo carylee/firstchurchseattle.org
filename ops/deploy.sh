@@ -48,6 +48,16 @@ rsync -av $DRY --delete \
   -e "$RSH" wp-content/plugins/firstchurch-breeze-forms/ \
   "$REMOTE/plugins/firstchurch-breeze-forms/"
 
+# events is fully ours. Unlike the others, rlanvin/php-rrule is a RUNTIME dep
+# vendored under lib/, so lib/ SHIPS — only the dev artifacts (Composer/PHPUnit)
+# are excluded. NOTE: after first deploy, activate it:
+#   ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-events'
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-events/ \
+  "$REMOTE/plugins/firstchurch-events/"
+
 # happenings (the spine) is fully ours and TDD'd like breeze-forms — same dev-only
 # artifacts to exclude. NOTE: firstchurch-carousel depends on this; after the first
 # deploy run `ssh firstchurch 'wp plugin activate firstchurch-happenings'`.
