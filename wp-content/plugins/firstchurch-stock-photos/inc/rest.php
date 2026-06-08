@@ -66,6 +66,7 @@ add_action(
 					'attribution' => array( 'type' => 'string' ),
 					'source'      => array( 'type' => 'string' ),
 					'foreign_url' => array( 'type' => 'string' ),
+					'download_location' => array( 'type' => 'string' ),
 				),
 				'callback'            => static function ( WP_REST_Request $request ) {
 					$result = fcsp_import( $request->get_params() );

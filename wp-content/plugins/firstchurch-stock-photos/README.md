@@ -48,13 +48,21 @@ to the first available provider if that one's key is missing. Add one by registe
 | Provider | Key required | License model |
 |---|---|---|
 | **Pexels** *(default)* | `FCSP_PEXELS_API_KEY` | Uniform [Pexels License](https://www.pexels.com/license/) (free commercial use; attribution appreciated). Recorded as a generated credit string. |
+| **Unsplash** | `FCSP_UNSPLASH_ACCESS_KEY` | Uniform [Unsplash License](https://unsplash.com/license) (free commercial use). ToS requires a download ping on use — fired automatically on import (see below). |
 | **Openverse** | No | Per-item CC / public-domain; filtered to commercial-use + modification, mature excluded. Attribution-safe (used as the fallback default when Pexels isn't configured). |
 
-To enable Pexels, get a free key at <https://www.pexels.com/api/> and add to `wp-config.php`:
+To enable a keyed provider, register a free app and add the key to `wp-config.php`:
 
 ```php
-define( 'FCSP_PEXELS_API_KEY', '…' );
+define( 'FCSP_PEXELS_API_KEY', '…' );      // https://www.pexels.com/api/
+define( 'FCSP_UNSPLASH_ACCESS_KEY', '…' ); // https://unsplash.com/developers
 ```
+
+**Unsplash ToS:** the API guidelines require [triggering a download](https://help.unsplash.com/en/articles/2511258-guideline-triggering-a-download)
+when a photo is used. The provider carries each photo's `download_location` through search →
+import, and `fcsp_unsplash_after_import()` (the provider's `on_import` hook) pings it after a
+successful import — best-effort, so a tracking hiccup never fails the import. Note Unsplash's
+demo tier is rate-limited (50 req/hr) until you apply for production access.
 
 ## Configuration — Openverse authentication
 
