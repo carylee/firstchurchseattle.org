@@ -89,4 +89,29 @@ final class CreditsTest extends TestCase
     {
         self::assertSame('', \fcsp_stock_credit_shortcode(['id' => '999']));
     }
+
+    public function testBlockRenderWrapsCreditForGivenId(): void
+    {
+        \fcsp_store_provenance(7, ['provider' => 'pexels', 'source' => 'pexels', 'creator' => 'Sam Lee']);
+
+        $out = \fcsp_render_credit_block(['id' => 7]);
+
+        self::assertStringContainsString('class="fcsp-credit"', $out);
+        self::assertStringContainsString('Sam Lee', $out);
+    }
+
+    public function testBlockRenderFallsBackToFeaturedImage(): void
+    {
+        \fcsp_store_provenance(42, ['provider' => 'unsplash', 'source' => 'unsplash', 'creator' => 'Annie']);
+        $GLOBALS['fcsp_test_featured'] = 42;
+
+        $out = \fcsp_render_credit_block(['id' => 0]);
+
+        self::assertStringContainsString('Annie', $out);
+    }
+
+    public function testBlockRenderEmptyWithoutProvenance(): void
+    {
+        self::assertSame('', \fcsp_render_credit_block(['id' => 999]));
+    }
 }

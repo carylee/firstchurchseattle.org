@@ -118,6 +118,8 @@ obligations (Openverse CC-BY, Pexels/Unsplash guidelines) are actually met:
 - `fcsp_attachment_credit_html( $id )` — a linked, escaped credit line (creator → source →
   license), or `''` if the attachment wasn't imported through this plugin.
 - `[stock_credit id="123"]` — shortcode; with no `id` it uses the post's featured image.
+- **Stock Photo Credit** block — pick an image (or leave empty for the featured image); a dynamic
+  block rendered by the same helper, with a live editor preview.
 - **Opt-in** auto-append under singular featured images. Off by default (a site-wide visual
   change), enable with:
 
