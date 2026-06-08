@@ -48,6 +48,7 @@
 /wp-content/mu-plugins/*
 !/wp-content/mu-plugins/firstchurch-mcp-abilities.php
 !/wp-content/mu-plugins/sso.php
+!/wp-content/mu-plugins/firstchurch-google-register-policy.php
 # uploads/ is a prod mirror (gitignored), but we DO ship ONE file: an .htaccess
 # adding CORS headers to upload images so the slides editor can fetch them to bake
 # the announcement carousel GIF (Apache serves uploads statically — can't be a
