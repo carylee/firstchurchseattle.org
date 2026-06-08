@@ -108,6 +108,23 @@ Endpoints used: `POST /v1/auth_tokens/register/`, `POST /v1/auth_tokens/token/`
 3. Or feed that `attachment_id` into the existing event/sermon/announcement abilities'
    `image_id` parameter.
 
+## Front-end attribution
+
+Provenance is captured on import; `inc/credits.php` renders it publicly so credit
+obligations (Openverse CC-BY, Pexels/Unsplash guidelines) are actually met:
+
+- `fcsp_attachment_credit_html( $id )` — a linked, escaped credit line (creator → source →
+  license), or `''` if the attachment wasn't imported through this plugin.
+- `[stock_credit id="123"]` — shortcode; with no `id` it uses the post's featured image.
+- **Opt-in** auto-append under singular featured images. Off by default (a site-wide visual
+  change), enable with:
+
+  ```php
+  add_filter( 'fcsp_auto_credit', '__return_true' );
+  ```
+
+Markup carries an `.fcsp-credit` class for theming; no stylesheet is enqueued.
+
 ## Deploy / ops
 
 - Wired into `ops/deploy.sh` (fully ours → `--delete` mirror).

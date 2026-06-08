@@ -172,6 +172,51 @@ if (!function_exists('__return_true')) {
     }
 }
 
+if (!function_exists('esc_html')) {
+    function esc_html($text): string
+    {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_attr')) {
+    function esc_attr($text): string
+    {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_url')) {
+    function esc_url($url): string
+    {
+        $url = trim((string) $url);
+        if ($url === '' || !preg_match('#^https?://#i', $url)) {
+            return '';
+        }
+        $url = str_replace(['"', "'", ' '], ['%22', '%27', '%20'], $url);
+        return str_replace('&', '&#038;', $url);
+    }
+}
+
+if (!function_exists('shortcode_atts')) {
+    function shortcode_atts($pairs, $atts, $shortcode = ''): array
+    {
+        $atts = (array) $atts;
+        $out  = [];
+        foreach ($pairs as $name => $default) {
+            $out[$name] = array_key_exists($name, $atts) ? $atts[$name] : $default;
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('add_shortcode')) {
+    function add_shortcode(string $tag, $callback): void
+    {
+        $GLOBALS['fcsp_test_shortcodes'][$tag] = $callback;
+    }
+}
+
 if (!function_exists('esc_url_raw')) {
     function esc_url_raw($url): string
     {
