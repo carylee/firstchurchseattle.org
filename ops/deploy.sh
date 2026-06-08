@@ -59,8 +59,9 @@ rsync -av $DRY --delete \
 
 # mu-plugins/ ALSO holds host must-use plugins (endurance-page-cache) we do NOT track,
 # so sync our files individually and NEVER --delete this directory.
-rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php "$REMOTE/mu-plugins/"
-rsync -av $DRY -e "$RSH" wp-content/mu-plugins/sso.php                       "$REMOTE/mu-plugins/"
+rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php          "$REMOTE/mu-plugins/"
+rsync -av $DRY -e "$RSH" wp-content/mu-plugins/sso.php                                "$REMOTE/mu-plugins/"
+rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-google-register-policy.php "$REMOTE/mu-plugins/"
 
 # Uploads CORS: one .htaccess that lets the slides editor fetch upload images
 # cross-origin to bake the announcement carousel GIF (Apache serves uploads
