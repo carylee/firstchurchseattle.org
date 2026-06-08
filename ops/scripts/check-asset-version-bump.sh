@@ -59,11 +59,15 @@ for base in wp-content/plugins wp-content/themes; do
     done
     [ "$assets_changed" -eq 0 ] && continue
 
-    # Require an added version line in the same dir: either the plugin/theme
-    # header "Version:" or a *_VERSION constant assignment. (grep without -q so
-    # it consumes all input — under `set -o pipefail`, an early-exiting `grep -q`
-    # would SIGPIPE `git diff` and make a real match look like a failure.)
-    version_bumped="$(git diff "$MB" HEAD -- "$dir" | grep -E '^\+.*([Vv]ersion:[[:space:]]|_VERSION[[:space:]]*=)' || true)"
+    # Require an added version line in the same dir: the plugin/theme header
+    # "Version:", a *_VERSION constant assignment (FOO_VERSION = '1.0'), or a
+    # define() of one (define( 'FCS_CHILD_VERSION', '0.6.8' ) — how the child
+    # theme declares its enqueue cache-buster). The class after _VERSION matches
+    # the `=` of an assignment or the `',` that follows the constant name in a
+    # define(). (grep without -q so it consumes all input — under `set -o
+    # pipefail`, an early-exiting `grep -q` would SIGPIPE `git diff` and make a
+    # real match look like a failure.)
+    version_bumped="$(git diff "$MB" HEAD -- "$dir" | grep -E '^\+.*([Vv]ersion:[[:space:]]|_VERSION[[:space:]'\''"]*[=,])' || true)"
     if [ -n "$version_bumped" ]; then
       continue
     fi
