@@ -316,13 +316,17 @@ function fcs_announcements_shortcode( $atts ) {
 				<p class="fcs-card__date"><?php echo esc_html( get_the_date() ); ?></p>
 				<p class="fcs-card__excerpt"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 28 ) ); ?></p>
 			</div>
-			<?php if ( $cta_url ) : ?>
-				<div class="fcs-card__cta">
+			<div class="fcs-card__cta">
+				<?php if ( $cta_url ) : ?>
 					<a href="<?php echo esc_url( $cta_url ); ?>" class="fcs-cta-button">
 						<?php echo esc_html( $cta_text ? $cta_text : __( 'Learn more', 'maranatha-child' ) ); ?>
 					</a>
-				</div>
-			<?php endif; ?>
+				<?php else : // No explicit CTA — fall back to a quiet "Read more" so every card has an action. ?>
+					<a href="<?php the_permalink(); ?>" class="fcs-cta-button is-fallback">
+						<?php esc_html_e( 'Read more', 'maranatha-child' ); ?>
+					</a>
+				<?php endif; ?>
+			</div>
 		</article>
 		<?php
 	}
