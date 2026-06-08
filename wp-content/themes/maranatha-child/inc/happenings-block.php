@@ -131,8 +131,9 @@ function fcs_happenings_block_render( $attrs ) {
 				<?php endif; ?>
 			</div>
 			<?php if ( '' !== $v['ctaUrl'] ) : ?>
+				<?php // Fallback CTAs (Read more / Event details) render quieter than a real sign-up link. ?>
 				<div class="fcs-card__cta">
-					<a href="<?php echo esc_url( $v['ctaUrl'] ); ?>" class="fcs-cta-button"><?php echo esc_html( $v['ctaLabel'] ); ?></a>
+					<a href="<?php echo esc_url( $v['ctaUrl'] ); ?>" class="fcs-cta-button<?php echo empty( $v['ctaPrimary'] ) ? ' is-fallback' : ''; ?>"><?php echo esc_html( $v['ctaLabel'] ); ?></a>
 				</div>
 			<?php endif; ?>
 		</article>
