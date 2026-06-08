@@ -200,7 +200,12 @@
 .fcs-card__title a:hover,
 .fcs-card__title a:focus {
 	color: var(--fcs-maroon);
-	text-decoration: underline;
+}
+
+.fcs-card__title a:focus-visible {
+	outline: 2px solid var(--fcs-maroon);
+	outline-offset: 2px;
+	border-radius: 2px;
 }
 
 .fcs-card__date,
@@ -224,21 +229,22 @@
 	color: #4a414c;
 }
 
+/* The action lives in a full-bleed footer strip: a hairline divider, then a
+   tap target that spans the whole bottom of the card (out to the edges and down
+   to the bottom corner — `overflow:hidden` on .fcs-card rounds it). */
 .fcs-card__cta {
-	margin-top: auto;
-	padding-top: 10px;
+	margin: 4px -20px -20px;
 	border-top: 1px solid #f0e8ec;
 }
 
-/* Quiet, link-style CTA: lets the card's title + blurb lead instead of a wall
-   of filled buttons. The trailing arrow signals "go" and nudges on hover.
-   Self-contained so it never depends on the Tailwind build. */
+/* Quiet, link-style CTA — no filled button. The whole strip is clickable; on
+   hover it tints (no underline) and the arrow nudges "go". Self-contained so it
+   never depends on the Tailwind build. */
 .fcs-cta-button {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
-	gap: 0.4em;
-	min-height: 36px;
-	padding: 6px 2px;
+	gap: 0.45em;
+	padding: 14px 20px;
 	color: var(--fcs-maroon) !important;
 	font-weight: 600;
 	font-size: 0.9rem;
@@ -246,22 +252,34 @@
 	background: none;
 	border: 0;
 	text-decoration: none !important;
+	transition: background-color 0.14s ease-out, color 0.14s ease-out;
 }
 
 .fcs-cta-button::after {
 	content: "\2192"; /* → */
-	transition: transform 0.12s ease-out;
+	transition: transform 0.14s ease-out;
 }
 
 .fcs-cta-button:hover,
-.fcs-cta-button:focus {
+.fcs-cta-button:focus-visible {
+	background-color: rgba(112, 51, 78, 0.06);
 	color: var(--fcs-maroon-dark) !important;
-	text-decoration: underline !important;
+	text-decoration: none !important;
 }
 
 .fcs-cta-button:hover::after,
-.fcs-cta-button:focus::after {
-	transform: translateX(3px);
+.fcs-cta-button:focus-visible::after {
+	transform: translateX(4px);
+}
+
+/* Pressed feedback + a clear keyboard focus ring on the strip. */
+.fcs-cta-button:active {
+	background-color: rgba(112, 51, 78, 0.11);
+}
+
+.fcs-cta-button:focus-visible {
+	outline: 2px solid var(--fcs-maroon);
+	outline-offset: -2px;
 }
 
 /* Fallback actions ("Read more", "Event details") are secondary — lighter
@@ -272,7 +290,7 @@
 }
 
 .fcs-cta-button.is-fallback:hover,
-.fcs-cta-button.is-fallback:focus {
+.fcs-cta-button.is-fallback:focus-visible {
 	color: var(--fcs-maroon) !important;
 }
 
