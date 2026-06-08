@@ -33,8 +33,15 @@ function happenings_unexpired_clause(): array
     ];
 }
 
-/* ---- Source 1: upcoming events (ctc_event) ---- */
+/* ---- Source 1: upcoming events ---- */
 
+/**
+ * Upcoming events, merged from Church Theme Content (ctc_event) and the lean
+ * firstchurch-events backend (fce_event), date-sorted. This is the read-both
+ * transition: until events are migrated off CTC, both surface. fce_event_items()
+ * is guarded — when that plugin is inactive the spine reads CTC only. No dedup
+ * needed: migration unpublishes the CTC original when it moves an event.
+ */
 function happenings_event_items(int $weeks): array
 {
     $from = current_time('Y-m-d');
@@ -53,7 +60,14 @@ function happenings_event_items(int $weeks): array
         'orderby'        => ['start' => 'ASC'],
     ]);
 
-    return array_map('happenings_event_to_item', $q->posts);
+    $items = array_map('happenings_event_to_item', $q->posts);
+
+    if (function_exists('fce_event_items')) {
+        $items = array_merge($items, fce_event_items($weeks));
+        usort($items, static fn ($a, $b) => strcmp($a['date'] ?? '', $b['date'] ?? ''));
+    }
+
+    return $items;
 }
 
 function happenings_event_to_item(WP_Post $post): array
@@ -65,6 +79,7 @@ function happenings_event_to_item(WP_Post $post): array
         'source' => 'event',
         'layout' => 'event',
         'title'  => happenings_text(get_the_title($post)),
+        'date'   => (string) get_post_meta($post->ID, '_ctc_event_start_date', true),
         'when'   => happenings_event_when($post->ID),
         'ctaUrl' => $reg ?: (string) get_permalink($post),
         'image'  => (string) get_the_post_thumbnail_url($post, 'full'),
