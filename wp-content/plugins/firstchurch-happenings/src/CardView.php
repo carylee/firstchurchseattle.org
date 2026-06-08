@@ -23,35 +23,47 @@ final class CardView
         $url    = (string) ($item['url'] ?? '');
 
         $view = [
-            'title'    => (string) ($item['title'] ?? ''),
-            'url'      => $url,
-            'meta'     => '',
-            'blurb'    => '',
-            'image'    => (string) ($item['image'] ?? ''),
-            'ctaUrl'   => '',
-            'ctaLabel' => '',
+            'title'      => (string) ($item['title'] ?? ''),
+            'url'        => $url,
+            'meta'       => '',
+            'blurb'      => '',
+            'image'      => (string) ($item['image'] ?? ''),
+            'ctaUrl'     => '',
+            'ctaLabel'   => '',
+            // Whether the CTA is the item's own action (Register / explicit CTA)
+            // vs. a fallback to the permalink (Event details / Read more). The
+            // theme renders fallbacks in a quieter style so a real sign-up link
+            // stands out.
+            'ctaPrimary' => false,
         ];
 
         if ($source === 'event') {
             $cta = (string) ($item['ctaUrl'] ?? '');
-            $view['meta']     = (string) ($item['when'] ?? '');
-            $view['ctaUrl']   = $cta !== '' ? $cta : $url;
             // The spine sets ctaUrl = registration||permalink; a ctaUrl that
             // differs from the permalink is a real registration link.
-            $view['ctaLabel'] = ($cta !== '' && $cta !== $url) ? 'Register' : 'Event details';
+            $hasRegistration    = ($cta !== '' && $cta !== $url);
+            $view['meta']       = (string) ($item['when'] ?? '');
+            $view['ctaUrl']     = $cta !== '' ? $cta : $url;
+            $view['ctaLabel']   = $hasRegistration ? 'Register' : 'Event details';
+            $view['ctaPrimary'] = $hasRegistration;
 
             return $view;
         }
 
-        // Announcements (and any other source) read as dated news with an
-        // optional call-to-action button.
+        // Announcements (and any other source) read as dated news. Every card
+        // carries an action: an explicit CTA when set, otherwise a "Read more"
+        // fallback to the permalink so no card ends in dead space.
         $view['meta']  = self::humanDate((string) ($item['date'] ?? ''));
         $view['blurb'] = (string) ($item['body'] ?? '');
         $cta           = (string) ($item['ctaUrl'] ?? '');
         if ($cta !== '') {
-            $text             = (string) ($item['ctaText'] ?? '');
-            $view['ctaUrl']   = $cta;
-            $view['ctaLabel'] = $text !== '' ? $text : 'Learn more';
+            $text               = (string) ($item['ctaText'] ?? '');
+            $view['ctaUrl']     = $cta;
+            $view['ctaLabel']   = $text !== '' ? $text : 'Learn more';
+            $view['ctaPrimary'] = true;
+        } elseif ($url !== '') {
+            $view['ctaUrl']   = $url;
+            $view['ctaLabel'] = 'Read more';
         }
 
         return $view;
