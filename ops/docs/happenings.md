@@ -119,13 +119,15 @@ Two fields make content **self-maintaining** — the fix for the rot the audit f
 
 Events already self-expire (they have dates). Evergreen cards are, by definition, evergreen.
 
-**Known limitation — Featured is `post`-only.** `happenings_featured_news()` promotes weighted
-*posts*, not events. So a dated happening authored as an announcement (e.g. "All Church Conference
-June 17th") carries only its **publish date**, not the event's date — the `/engage` Featured card
-suppresses that date to avoid reading it as the event's "when" (see `fcs_happenings_block_render`).
-The durable fix is to let **Featured span real `ctc_event`s** (Phase 4 below): a dated happening
-then flows through the event source with a structured when-line ("June 17 at 7:00 pm") and a
-registration CTA, and the date suppression hack can be retired.
+**Featured spans events (2026-06-09, Phase 4a).** `happenings_featured()` promotes weighted
+*posts AND upcoming events* — either source can be set to Featured/Pinned (`fcs_weight`), and
+the pure `Featured::rank()` orders the merged pool by weight then date. A dated happening is now
+authored as a real **event**, so it flows through the event source with a structured when-line
+("June 17 at 7:00 pm") and a registration CTA. The `/engage` Featured date-suppression is
+accordingly **scoped to announcements only**: a featured event shows its genuine when-line, while
+a weighted announcement's misleading publish date stays hidden (see `fcs_happenings_block_render`).
+Staff set event prominence in the **Promotion** box on the event editor (event types carry
+`fcs_weight`; expiry stays posts-only since events self-expire by date).
 
 **Boundary — expiry/weight vs. curation:** lifecycle applies to the **auto-assembled** sources
 (`fccar_news_items()`, and the Phase-3 `/engage` query). An **explicit deck pin** — a reference
@@ -142,7 +144,7 @@ Each surface is a **filter + curation lens** over the one feed — never its own
 | Surface | Filter | Curation | Status |
 |---|---|---|---|
 | **/carousel** (screen) | pre/post-service | `fccar_deck` (ref+override) | ✅ live |
-| **/live** ("here now") | the worship-now set | shared w/ carousel | ❌ hardcoded today (Phase 4) |
+| **/live** ("here now") | the worship-now set | shared w/ carousel | ❌ hardcoded today (Phase 4b) |
 | **/engage** ("what's happening") | upcoming + active announcements | weight-sorted Featured, then chrono | ◧ half-built (Phase 3) |
 | **/events — list** (`/upcoming-events/`) | upcoming, look-ahead window | none (`happenings_event_items`) | ✅ spine-backed (child template) |
 | **/events — calendar** (`/events-calendar/`) | month grid | none (`happenings_event_occurrences`) | ✅ spine-backed (child template) |
@@ -201,6 +203,7 @@ extensions now that the spine is its own home.
 | 1 | Announcement `weight` + `expires` (meta, staff UI, MCP, resolver) | self-maintaining feed |
 | 2 | ✅ Extract `firstchurch-happenings`; carousel consumes it | the spine |
 | 3 | `/engage` becomes spine-driven (block); nav link; retire `featured` category | **v1 public hub** |
-| 4 | `/live` + carousel share a worship-now set; **Featured spans events** (dated happenings get a real when-line + CTA, retiring the /engage date-suppression) | unify the two renderings |
+| 4a | ✅ **Featured spans events** — weighted events join the Featured row with a real when-line + CTA; date-suppression scoped to announcements; staff Prominence control on event editors | dated happenings render true |
+| 4b | `/live` + carousel share a worship-now set (the `/live` renderer is the slides app, a separate repo — deferred) | unify the two renderings |
 | 5 | Taxonomy collapse; finish native connection-card; purge review queue | structural cleanup |
 | 6 | e-news digest + bulletin announcement block from the spine ([`enews-spine.md`](./enews-spine.md)) | new surfaces |

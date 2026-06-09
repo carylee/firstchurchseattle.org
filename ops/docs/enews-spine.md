@@ -135,12 +135,12 @@ curated WordPress issue"; the email is a *render* of it.
 
 These are the real blockers, and two are already named on the roadmap:
 
-- **Featured spans posts, not events (roadmap Phase 4).** A dated happening authored as an
-  *announcement* carries only its **publish date**, not the event's date — which is why
-  `/engage`'s Featured block *suppresses* the date line (`fcs_happenings_block_render`, the
-  `$show_meta` hack, documented in `happenings.md` §4). For an email where **"June 17 at 7pm" is
-  the entire point**, this hack fights us. **Do Phase 4 first** so dated happenings flow through
-  the event source with a real when-line + registration CTA.
+- **Featured spans events — done (Phase 4a, 2026-06-09).** A dated happening authored as a real
+  *event* now joins the Featured row carrying its true when-line ("June 17 at 7:00 pm") + Register
+  CTA; the `/engage` date-suppression is scoped to announcements only (`happenings.md` §4). The
+  email's whole premise — **"June 17 at 7pm" is the point** — is therefore satisfiable: feature the
+  event, not a date-suppressed announcement. The remaining Phase 4 half (`/live` ↔ carousel
+  worship-now set) is the slides app and unrelated to the e-news.
 - **Ordering is richer than `weight`.** An edited digest needs explicit section order and a
   designated lead, not just `weight`'s coarse float-up. The issue object owns this; the block's
   per-section composition + `excludeFeatured` de-duping is the seed.
@@ -158,7 +158,7 @@ Incremental, each step shippable and useful on its own:
 | Step | What | Unlocks |
 |---|---|---|
 | 6.0 | **This doc** — lock the model (Issue = thin layer; Mailchimp = rail) | shared target |
-| 6.1 | Land roadmap **Phase 4** (Featured spans events; retire date-suppression) | dated happenings render a real when-line in email |
+| 6.1 | ✅ Roadmap **Phase 4a** (Featured spans events; date-suppression scoped to announcements) | dated happenings render a real when-line in email |
 | 6.2 | `surface=enews` projection on `/v1/happenings` (week-window default, e-news lens) | a feed the email can read |
 | 6.3 | `enews_issue` CPT (Bucket C fields) + an issue template composing happenings blocks + evergreen + footer | author on the website |
 | 6.4 | Email-safe render template (inlined CSS) + preview | a sendable artifact |
