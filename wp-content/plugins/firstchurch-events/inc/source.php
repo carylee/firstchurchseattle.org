@@ -21,8 +21,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array<string,mixed>
  */
 function fce_event_to_item( WP_Post $p, string $id, string $date ): array {
-	$reg = (string) get_post_meta( $p->ID, FCE_REGURL, true );
-	return array(
+	$reg    = (string) get_post_meta( $p->ID, FCE_REGURL, true );
+	$weight = (int) get_post_meta( $p->ID, 'fcs_weight', true );
+	$item   = array(
 		'id'       => $id,
 		'source'   => 'event',
 		'layout'   => 'event',
@@ -38,6 +39,13 @@ function fce_event_to_item( WP_Post $p, string $id, string $date ): array {
 		'image'    => (string) get_the_post_thumbnail_url( $p, 'full' ),
 		'url'      => (string) get_permalink( $p ),
 	);
+	// Prominence, so a weighted event can join the Featured row (Phase 4). Mirror
+	// the spine's "present only when > 0" convention (the carousel preserves key
+	// order; weight rides at the end, like the announcement source).
+	if ( $weight > 0 ) {
+		$item['weight'] = $weight;
+	}
+	return $item;
 }
 
 /**

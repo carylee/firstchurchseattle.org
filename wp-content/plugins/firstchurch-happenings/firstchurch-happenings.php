@@ -23,6 +23,7 @@ require_once __DIR__ . '/src/Layout.php';
 require_once __DIR__ . '/src/Text.php';
 require_once __DIR__ . '/src/EventWhen.php';
 require_once __DIR__ . '/src/CardView.php';
+require_once __DIR__ . '/src/Featured.php';
 
 const HAPPENINGS_VERSION = '0.1.0';
 
