@@ -121,5 +121,17 @@ function fce_event_item( int $post_id ): ?array {
 		$from->modify( '+1 year' ),
 		fce_skip_dates( $p->ID )
 	);
-	return fce_event_to_item( $p, 'event-' . $p->ID, $next ? $next->format( 'Y-m-d' ) : '' );
+	$item = fce_event_to_item( $p, 'event-' . $p->ID, $next ? $next->format( 'Y-m-d' ) : '' );
+
+	// The by-id (detail) projection additionally carries the event's full raw body
+	// (`content`), which the single page renders. Feed builders (fce_event_to_item)
+	// deliberately omit it so /engage, the calendar, and the carousel stay lean and
+	// don't carry/serialize full content per item. Surfaces render `content` (it's
+	// raw post body, like get_the_content()); the lean `blurb` summary is separate.
+	$content = trim( (string) $p->post_content );
+	if ( '' !== $content ) {
+		$item['content'] = $content;
+	}
+
+	return $item;
 }

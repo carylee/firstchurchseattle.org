@@ -49,7 +49,10 @@ Happening {
   source    string   // "event" | "announcement" | "card"
   kind      string   // semantic type; today mirrors `layout` (event/info/qr_callout/…)
   title     string
-  blurb     string   // short body / excerpt (the resolver's `body`)
+  blurb     string   // short body / excerpt (the resolver's `body`) — feed/card surfaces
+  content   string?  // full raw body, rendered by the surface. Carried ONLY by the
+                     //   by-id detail projection (happenings_item_by_id), e.g. the event
+                     //   single page — feed items stay lean. Don't populate in feed readers.
   image     string   // full-size URL, optional
   url       string   // canonical permalink (the title links here)
   when      string?  // human date/time, events only ("Sundays at 10:30 am · Sanctuary")

@@ -9,10 +9,9 @@
  * the .ics drink from. This page is just another surface over that feed, not a
  * second place that re-derives event logic from post meta.
  *
- * The only thing read straight from the post is the freeform body (the_content) —
- * that's this post's prose, not feed/curation logic, and the Happening contract
- * is intentionally a lean summary (a blurb, not the full body). If events ever
- * need richer projected detail, grow the contract rather than reading meta here.
+ * Even the freeform body comes through the projection: the by-id (detail) item
+ * carries the event's full `content`, which this surface renders. Feed items stay
+ * lean (a `blurb` summary, no body), so only the detail page pays for full content.
  *
  * Falls back to native title/content if the spine plugin is inactive.
  *
@@ -41,6 +40,10 @@ while ( have_posts() ) :
 
 	// Only a REAL registration CTA (ctaPrimary) — never the permalink-to-self fallback.
 	$show_cta = $view && ! empty( $view['ctaPrimary'] ) && ! empty( $view['ctaUrl'] );
+
+	// Body: the projection's full `content` (raw post body), or native content if
+	// the spine is inactive. Rendered with the_content filters at the surface.
+	$body = $item ? (string) ( $item['content'] ?? '' ) : (string) get_the_content();
 	?>
 	<main id="maranatha-content" tabindex="-1" class="bg-white">
 		<article class="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
@@ -75,8 +78,10 @@ while ( have_posts() ) :
 				</p>
 			<?php endif; ?>
 
-			<?php if ( '' !== trim( (string) get_the_content() ) ) : ?>
-				<div class="entry-content mt-6 leading-relaxed text-gray-800"><?php the_content(); ?></div>
+			<?php if ( '' !== trim( $body ) ) : ?>
+				<div class="entry-content mt-6 leading-relaxed text-gray-800">
+					<?php echo apply_filters( 'the_content', $body ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the_content renders/sanitizes post HTML. ?>
+				</div>
 			<?php endif; ?>
 
 		</article>
