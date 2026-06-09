@@ -27,7 +27,7 @@ jobs:
       matrix:
         php: ['8.2', '8.3'] # prod runs 8.2 (web) / 8.3 (cli)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
@@ -47,7 +47,7 @@ jobs:
     name: deploy coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Every tracked plugin/theme is wired into ops/deploy.sh
         run: ops/scripts/check-deploy-coverage.sh
 
@@ -58,7 +58,7 @@ jobs:
       run:
         working-directory: wp-content/plugins/firstchurch-breeze-forms
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -76,7 +76,7 @@ jobs:
       run:
         working-directory: wp-content/plugins/firstchurch-carousel
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -94,7 +94,7 @@ jobs:
       run:
         working-directory: wp-content/plugins/firstchurch-stock-photos
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -111,7 +111,7 @@ jobs:
       run:
         working-directory: wp-content/plugins/firstchurch-happenings
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -138,7 +138,7 @@ jobs:
       run:
         working-directory: wp-content/plugins/${{ matrix.plugin }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Assets changed must bump the plugin/theme version
