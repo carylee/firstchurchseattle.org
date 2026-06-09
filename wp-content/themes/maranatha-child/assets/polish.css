@@ -1,0 +1,46 @@
+/**
+ * Parent-theme polish — child theme overrides.
+ *
+ * Loaded LAST (it depends on the mobile.css + tailwind.css handles in
+ * functions.php) so these win the cascade without !important.
+ *
+ * Scope: things we can ONLY reach by overriding the Maranatha *parent* theme's
+ * own selectors. Polish for our own Tailwind-driven markup lives at the source
+ * instead — button shape in assets/src/input.css, heading weight/spacing in the
+ * child templates (header-banner.php, single-fce_event.php, page-worship-live.php).
+ *
+ * @package Maranatha_Child
+ */
+
+/* Parent headings render in Raleway weight 300 (thin/faint) via the parent's
+   own CSS — bump them. (Our Tailwind templates set their own font-medium.) */
+h1, h2, h3,
+.maranatha-entry-title,
+.fcs-events-calendar__title {
+  font-weight: 500;
+}
+
+/* Parent buttons ship full-pill, ALL-CAPS. Soften to a rounded rectangle in
+   sentence case, matching our Tailwind .btn-primary. This selector group is the
+   parent's button styles only and deliberately excludes the nav menu (.sf-menu). */
+.maranatha-button,
+.maranatha-buttons-list a,
+input[type="submit"],
+.wp-block-file .wp-block-file__button {
+  border-radius: .5rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Parent calendar grid — keep event titles and weekday headers from clipping
+   mid-word (they were hard-cut, e.g. "Men's Br" and "WEDNESDA"). */
+.maranatha-calendar-table-day-events a {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.maranatha-calendar-table-header-full {
+  letter-spacing: 0;
+  font-size: 0.72em;
+}
