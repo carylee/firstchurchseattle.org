@@ -111,6 +111,26 @@ function fcen_settings_meta_box_render( $post ): void {
 		<?php esc_html_e( 'The subject + preview become the email envelope; the body below is the issue. The timely sections fill themselves from the Happenings spine.', 'firstchurch-enews' ); ?>
 	</p>
 	<?php
+	// The in-editor "Preview email" affordance lives here (this meta box is
+	// rendered by Gutenberg in the sidebar) rather than on the classic-only
+	// post_submitbox_misc_actions hook. A brand-new auto-draft has no body yet,
+	// so we wait until there's a saved draft to preview.
+	if ( function_exists( 'fcen_email_preview_url' ) && 'auto-draft' !== get_post_status( $post ) ) :
+		?>
+		<p style="margin:10px 0 0;">
+			<a href="<?php echo esc_url( fcen_email_preview_url( $post->ID ) ); ?>" target="_blank" rel="noopener" class="button">
+				<span class="dashicons dashicons-email-alt" style="vertical-align:text-bottom;"></span>
+				<?php esc_html_e( 'Preview email', 'firstchurch-enews' ); ?>
+			</a>
+		</p>
+		<?php
+	else :
+		?>
+		<p style="color:#666;font-size:12px;margin:10px 0 0;">
+			<?php esc_html_e( 'Save a draft to preview the email.', 'firstchurch-enews' ); ?>
+		</p>
+		<?php
+	endif;
 }
 
 add_action( 'save_post_' . FCEN_CPT, 'fcen_settings_save' );

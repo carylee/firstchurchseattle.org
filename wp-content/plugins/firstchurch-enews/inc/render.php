@@ -117,19 +117,23 @@ function fcen_email_preview_url( int $post_id ): string {
 	);
 }
 
-/** Surface the preview link in the editor's Publish box. */
-add_action( 'post_submitbox_misc_actions', 'fcen_submitbox_preview_link' );
+/**
+ * Surface the preview link on the issues list table — a Gutenberg-safe path
+ * (unlike post_submitbox_misc_actions, which only fires in the classic editor).
+ * The in-editor affordance lives in the E-News Settings meta box (inc/meta.php),
+ * which Gutenberg renders in the sidebar.
+ *
+ * @param array<string,string> $actions Row actions.
+ * @param WP_Post              $post    The row's post.
+ * @return array<string,string>
+ */
+add_filter( 'post_row_actions', 'fcen_row_action_preview', 10, 2 );
 
-function fcen_submitbox_preview_link( $post ): void {
-	if ( ! $post instanceof WP_Post || FCEN_CPT !== $post->post_type ) {
-		return;
+function fcen_row_action_preview( $actions, $post ) {
+	if ( $post instanceof WP_Post && FCEN_CPT === $post->post_type && current_user_can( 'edit_post', $post->ID ) ) {
+		$actions['fcen_preview'] = '<a href="' . esc_url( fcen_email_preview_url( $post->ID ) ) . '" target="_blank" rel="noopener">'
+			. esc_html__( 'Preview email', 'firstchurch-enews' ) . '</a>';
 	}
-	?>
-	<div class="misc-pub-section" style="border-top:1px solid #dcdcde;">
-		<span class="dashicons dashicons-email-alt" style="color:#787c82;"></span>
-		<a href="<?php echo esc_url( fcen_email_preview_url( $post->ID ) ); ?>" target="_blank" rel="noopener">
-			<?php esc_html_e( 'Preview email', 'firstchurch-enews' ); ?>
-		</a>
-	</div>
-	<?php
+	return $actions;
 }
+
