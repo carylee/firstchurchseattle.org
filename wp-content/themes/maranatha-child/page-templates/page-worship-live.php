@@ -97,7 +97,7 @@ $past_services    = 'https://youtube.com/playlist?list=PLeNlEFIwMCurkDsg-R2rQoAJ
 		<!-- ===== Watch Live ===== -->
 		<section aria-labelledby="live-heading" class="mt-10">
 			<div class="flex items-baseline justify-between mb-3">
-				<h2 id="live-heading" class="m-0 text-2xl sm:text-3xl font-display font-light text-brand-ink">
+				<h2 id="live-heading" class="m-0 text-2xl sm:text-3xl font-display font-medium text-brand-ink">
 					<?php esc_html_e( 'Watch Live', 'maranatha-child' ); ?>
 				</h2>
 				<span class="text-sm font-medium text-brand uppercase tracking-wider">
@@ -128,7 +128,7 @@ $past_services    = 'https://youtube.com/playlist?list=PLeNlEFIwMCurkDsg-R2rQoAJ
 
 		<!-- ===== Secondary CTA grid ===== -->
 		<section aria-labelledby="connect-heading" class="mt-12">
-			<h2 id="connect-heading" class="m-0 mb-5 text-2xl sm:text-3xl font-display font-light text-brand-ink">
+			<h2 id="connect-heading" class="m-0 mb-5 text-2xl sm:text-3xl font-display font-medium text-brand-ink">
 				<?php esc_html_e( 'Connect &amp; respond', 'maranatha-child' ); ?>
 			</h2>
 

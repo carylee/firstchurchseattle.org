@@ -61,7 +61,7 @@ while ( have_posts() ) :
 				</div>
 			<?php endif; ?>
 
-			<h1 class="m-0 text-3xl sm:text-4xl font-display font-light text-brand-ink"><?php echo esc_html( $title ); ?></h1>
+			<h1 class="m-0 text-3xl sm:text-4xl font-display font-medium text-brand-ink"><?php echo esc_html( $title ); ?></h1>
 
 			<?php if ( '' !== $when ) : ?>
 				<p class="mt-3 text-lg text-brand font-medium"><?php echo esc_html( $when ); ?></p>

@@ -31,8 +31,8 @@ if ( is_page_template( CTFW_THEME_PAGE_TPL_DIR . '/homepage.php' ) ) {
 		`pt-32` (8rem ≈ 128px) clears the header on desktop; `pt-24` (6rem ≈ 96px)
 		is enough on mobile where the header collapses.
 	-->
-	<div class="max-w-5xl mx-auto px-6 pt-24 sm:pt-32 pb-8 sm:pb-10 flex items-center justify-center">
-		<h1 class="m-0 text-white font-display font-light text-3xl sm:text-4xl tracking-wide text-center">
+	<div class="max-w-5xl mx-auto px-6 pt-24 sm:pt-32 pb-6 sm:pb-8 flex items-center justify-center">
+		<h1 class="m-0 text-white font-display font-medium text-3xl sm:text-4xl tracking-wide text-center">
 			<?php maranatha_title_paged(); /* echoes the page title */ ?>
 		</h1>
 	</div>

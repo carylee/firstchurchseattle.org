@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version string for cache-busting child assets. Bump when the CSS/JS changes.
  */
 if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.12.0' );
+	define( 'FCS_CHILD_VERSION', '0.13.0' );
 }
 
 /**
@@ -77,6 +77,20 @@ add_action( 'wp_enqueue_scripts', function () {
 			FCS_CHILD_VERSION
 		);
 	}
+
+	// Visual-polish overrides. Enqueued LAST (depends on whichever of mobile /
+	// tailwind is present) so its site-wide refinements win the cascade without
+	// !important — see assets/polish.css.
+	$polish_deps = array( 'maranatha-child-mobile' );
+	if ( file_exists( get_stylesheet_directory() . '/assets/tailwind.css' ) ) {
+		$polish_deps[] = 'maranatha-child-tailwind';
+	}
+	wp_enqueue_style(
+		'maranatha-child-polish',
+		get_stylesheet_directory_uri() . '/assets/polish.css',
+		$polish_deps,
+		FCS_CHILD_VERSION
+	);
 }, 20 );
 
 /**
