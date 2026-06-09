@@ -138,6 +138,7 @@ Each surface is a **filter + curation lens** over the one feed — never its own
 | **/engage** ("what's happening") | upcoming + active announcements | weight-sorted Featured, then chrono | ◧ half-built (Phase 3) |
 | **/events — list** (`/upcoming-events/`) | upcoming, look-ahead window | none (`happenings_event_items`) | ✅ spine-backed (child template) |
 | **/events — calendar** (`/events-calendar/`) | month grid | none (`happenings_event_occurrences`) | ✅ spine-backed (child template) |
+| **/event/&lt;slug&gt;** (single) | one event | none (`happenings_item_by_id`) | ✅ spine-backed (child template) |
 | **/news** | chronological | none (pure query) | ✅ live (core) |
 
 > **/events is spine-backed (2026-06-08).** Both pages were parent-theme templates
@@ -149,6 +150,12 @@ Each surface is a **filter + curation lens** over the one feed — never its own
 > counterpart to `happenings_event_items()` (which collapses each event to its
 > next date). fce events are fully RRULE-expanded; CTC events sit on their start
 > date only (legacy, being decommissioned).
+>
+> Event links resolve to a real **single page** at `/event/<slug>/` — itself a spine
+> surface: `single-fce_event.php` renders the projected Happening from
+> `happenings_item_by_id('event-<id>')` (now dispatched to both `ctc_event` and
+> `fce_event`), reading only the freeform body straight from the post (the contract
+> is a lean summary). So the destination a projection points at is also a projection.
 | **e-news** | weekly window | auto-digest + light edit | ⏳ Phase 6 |
 | **bulletin** | this Sunday | curated block | ⏳ Phase 6 |
 
