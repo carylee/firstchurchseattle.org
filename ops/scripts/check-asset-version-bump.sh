@@ -36,7 +36,11 @@ if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then
 fi
 
 MB="$(git merge-base "$BASE" HEAD 2>/dev/null || echo "$BASE")"
-mapfile -t changed < <(git diff --name-only "$MB" HEAD)
+# --diff-filter=d EXCLUDES deletions: a removed asset can't be served stale, so
+# untracking/deleting a *.js/*.css file (e.g. tailwind.css, now built on deploy
+# rather than committed) shouldn't demand a cache-buster bump. Only added/modified
+# assets do.
+mapfile -t changed < <(git diff --name-only --diff-filter=d "$MB" HEAD)
 if [ "${#changed[@]}" -eq 0 ]; then
   echo "asset-version-bump: no changed files."
   exit 0
