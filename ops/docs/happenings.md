@@ -136,7 +136,19 @@ Each surface is a **filter + curation lens** over the one feed — never its own
 | **/carousel** (screen) | pre/post-service | `fccar_deck` (ref+override) | ✅ live |
 | **/live** ("here now") | the worship-now set | shared w/ carousel | ❌ hardcoded today (Phase 4) |
 | **/engage** ("what's happening") | upcoming + active announcements | weight-sorted Featured, then chrono | ◧ half-built (Phase 3) |
-| **/events**, **/news** | chronological | none (pure query) | ✅ live (CTC/core) |
+| **/events — list** (`/upcoming-events/`) | upcoming, look-ahead window | none (`happenings_event_items`) | ✅ spine-backed (child template) |
+| **/events — calendar** (`/events-calendar/`) | month grid | none (`happenings_event_occurrences`) | ✅ spine-backed (child template) |
+| **/news** | chronological | none (pure query) | ✅ live (core) |
+
+> **/events is spine-backed (2026-06-08).** Both pages were parent-theme templates
+> querying `ctc_event` directly; they went empty when the live set migrated to
+> `fce_event`. They now project the spine via `maranatha-child` page templates
+> (`page-templates/page-events-{upcoming,calendar}.php`) reusing the `/engage`
+> `.fcs-card` language. The calendar needs concrete per-day dates, so the spine
+> grew `happenings_event_occurrences($from,$to)` — the occurrence-expanded
+> counterpart to `happenings_event_items()` (which collapses each event to its
+> next date). fce events are fully RRULE-expanded; CTC events sit on their start
+> date only (legacy, being decommissioned).
 | **e-news** | weekly window | auto-digest + light edit | ⏳ Phase 6 |
 | **bulletin** | this Sunday | curated block | ⏳ Phase 6 |
 
