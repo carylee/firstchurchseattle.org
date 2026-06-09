@@ -19,7 +19,7 @@ maranatha-child/
 │   └── page-worship-live.php       # Template Name: Worship Live (Custom)
 ├── assets/
 │   ├── mobile.css                  # hand-written CSS (drawer, tap targets, polish)
-│   ├── tailwind.css                # COMPILED Tailwind v4 output (committed; CI-verified)
+│   ├── tailwind.css                # BUILT Tailwind v4 output (gitignored; built on deploy / pulled)
 │   ├── src/input.css               # Tailwind v4 source (the source of truth)
 │   ├── happenings-block.js         # classic block-editor script (global wp.*)
 │   └── js/                         # first-party ES modules (buildless — see below)
@@ -35,9 +35,10 @@ maranatha-child/
 ```
 
 > Everything from `package.json` down (the JS toolchain, `tests/`, `e2e/`,
-> config) is **dev-only** and excluded from deploy in `ops/deploy.sh` — like the
-> Tailwind binary, production runs no build step. Only the committed runtime
-> assets (`assets/js/**`, `assets/*.css`) ship.
+> config) is **dev-only** and excluded from deploy in `ops/deploy.sh` —
+> production runs no build step. The runtime assets that ship are `assets/js/**`,
+> `assets/mobile.css`, and `assets/tailwind.css` (that last one is built on
+> deploy, not committed — see below).
 
 ## Quickstart (development)
 
@@ -52,10 +53,19 @@ binary). You need Node; `build-css.sh` installs deps on first run.
 ./build-css.sh --watch
 ```
 
-`assets/tailwind.css` is the **committed compiled artifact** — its source of
-truth is `assets/src/input.css`. CI rebuilds it and fails if the two drift
-(`ops/scripts/check-tailwind-build.sh`), so always commit a fresh `./build-css.sh`
-output alongside any `input.css` change. (`node_modules/` is gitignored.)
+`assets/tailwind.css` is **built, not committed** (it's gitignored). Its source of
+truth is `assets/src/input.css`. How each environment gets the compiled file:
+
+- **Production:** the CD workflow (`.github/workflows/deploy.yml`) runs
+  `build-css.sh` on the runner and rsyncs the result up — HostGator has no Node.
+- **Local dev:** `ddev pull-prod` rsyncs prod's built `tailwind.css` down, so the
+  mirror shows the same CSS with no Node. When you're **editing styles**, run
+  `./build-css.sh --watch` locally instead (it overwrites that file; the next pull
+  would replace it with prod's).
+
+CI's `tailwind builds` job just verifies `input.css` still compiles —
+there's no committed artifact to diff against. (`node_modules/` and `tailwind.css`
+are both gitignored.)
 
 ## First-party JavaScript (buildless ES modules)
 
@@ -106,19 +116,23 @@ admin auth, so it isn't part of automated CI).
 
 ## Deploying to production
 
-Production does NOT run any build step. Workflow:
+Production runs no build step of its own. The normal path is **CI/CD — merge to
+`main` and the deploy workflow ships this directory**, compiling
+`assets/tailwind.css` on the runner first (see the Tailwind section above). You
+don't scp it or commit the compiled CSS.
 
-1. Build locally: `./build-css.sh`
-2. Verify `assets/tailwind.css` updated and looks right
-3. Commit the change (the compiled CSS is intentionally tracked)
-4. Copy this whole `maranatha-child/` directory to production at
-   `wp-content/themes/maranatha-child/` (scp / cPanel File Manager / rsync)
-5. In wp-admin → Appearance → Themes → activate "Maranatha Child" (first time)
-6. For `/worship/live/`: in wp-admin → Pages → Worship Live → Page Attributes
-   → Template → select "Worship Live (Custom)"
+Manual fallback (`ops/deploy.sh`, e.g. a hotfix when CI is down): build
+`./build-css.sh` first — `tailwind.css` is gitignored, and the script refuses to
+mirror a missing one (so its `--delete` can't wipe prod's copy).
 
-Hard-refresh once in a browser to bust any CDN/page-cache. Subsequent edits
-just need a version bump in `functions.php` (`FCS_CHILD_VERSION`).
+First-time-only wp-admin steps:
+
+- Appearance → Themes → activate "Maranatha Child".
+- For `/worship/live/`: Pages → Worship Live → Page Attributes → Template →
+  "Worship Live (Custom)".
+
+Subsequent edits just need a version bump in `functions.php` (`FCS_CHILD_VERSION`);
+hard-refresh once to bust any CDN/page-cache.
 
 ## Important non-obvious things
 
@@ -146,5 +160,8 @@ just need a version bump in `functions.php` (`FCS_CHILD_VERSION`).
 ## Versioning
 
 `FCS_CHILD_VERSION` in `functions.php` is the asset cache-bust string.
-Bump it whenever you change `mobile.css`, `tailwind.css`, or any enqueued
-asset, so visitors don't see stale CSS.
+Bump it whenever you change `mobile.css`, `assets/src/input.css` (which rebuilds
+`tailwind.css`), or any enqueued asset, so visitors don't see stale CSS. Because
+`tailwind.css` is no longer tracked, the CI `asset version bump` guard can't see a
+markup-only change that adds a new utility class — bump the version yourself when
+that happens.

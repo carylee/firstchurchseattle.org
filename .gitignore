@@ -37,9 +37,12 @@
 # directly. All theme changes go in maranatha-child. See CLAUDE.md.
 !/wp-content/themes/maranatha/
 !/wp-content/themes/maranatha-child/
-# ...but never its Tailwind build deps. The compiled assets/tailwind.css is
-# committed (CI verifies it matches assets/src/input.css); node_modules is not.
+# ...but never its Tailwind build artifacts. assets/tailwind.css is a BUILT file
+# (source of truth: assets/src/input.css) — NOT committed. CD compiles it on the
+# runner and ships it; locally, `ddev pull-prod` rsyncs prod's copy down (or run
+# ./build-css.sh when editing styles). node_modules is likewise generated.
 /wp-content/themes/maranatha-child/node_modules/
+/wp-content/themes/maranatha-child/assets/tailwind.css
 !/wp-content/plugins/
 /wp-content/plugins/*
 !/wp-content/plugins/firstchurch-connection-card/
