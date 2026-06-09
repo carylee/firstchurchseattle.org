@@ -116,11 +116,13 @@ The website owns **content**; Mailchimp keeps what it is genuinely good at — d
 subscriber list, the 50-language translate widget, unsubscribe handling, and the public archive
 (which already backs `/enews/latest`; see below). Two rails, recommendation first:
 
-- **(Recommended) Render an email-safe HTML version on the site, hand it to Mailchimp.** An
-  "email" render template (table-based layout, inlined CSS — a sibling to the existing print
-  templates) turns an issue into a campaign body, pushed via the Mailchimp campaign API or
-  "import content from URL." Staff stop block-editing in Mailchimp entirely; they hit **Send** on
-  a campaign whose body *is* the spine-rendered issue.
+- **(Recommended — built, step 6.5) Render an email-safe HTML version on the site, hand it to
+  Mailchimp.** `Email::document()` turns an issue into a table-based, inline-styled campaign body;
+  a **Push to Mailchimp** button on the issue editor creates/updates a **draft** campaign via the
+  Marketing API v3 (`firstchurch-enews/inc/mailchimp.php`) and links to it. Staff stop
+  block-editing in Mailchimp; they review the draft and hit **Send** there — the irreversible step
+  stays a human action in Mailchimp's own UI. Credentials live in wp-config constants
+  (`FCEN_MAILCHIMP_API_KEY` + `FCEN_MAILCHIMP_AUDIENCE_ID`).
 - **(Lighter, RSS-native) Drive a templated Mailchimp RSS campaign from a per-surface feed.**
   `GET /wp-json/firstchurch/v1/happenings?surface=enews&weeks=1` already has the `surface`
   param **reserved for exactly this** (`firstchurch-happenings/inc/rest.php`). We already run
@@ -162,7 +164,7 @@ Incremental, each step shippable and useful on its own:
 | 6.2 | `surface=enews` projection on `/v1/happenings` (week-window default, e-news lens) — *now only needed for the RSS-to-Mailchimp rail; 6.3 composes the spine directly via blocks* | a feed the email can read |
 | 6.3 | ✅ `enews_issue` CPT (Bucket C fields) + a pre-fill block template composing the happenings blocks + evergreen + footer (`firstchurch-enews`) | author on the website |
 | 6.4 | ✅ Email-safe render of an issue (table-based, inline-styled) + staff "Preview email" (`firstchurch-enews` `src/Email.php` + `inc/render.php`) | a sendable artifact |
-| 6.5 | Push-to-Mailchimp (campaign API or import-from-URL) | retire the duplicate-and-edit ritual |
+| 6.5 | ✅ Push-to-Mailchimp: a draft campaign via the Marketing API v3, never auto-sent (`firstchurch-enews/inc/mailchimp.php` + `src/Mailchimp.php`) | retire the duplicate-and-edit ritual |
 
 > **Deploy reminder (CLAUDE.md):** an `enews_issue` CPT ships in the child theme or a new plugin;
 > if it's a **new plugin**, it does nothing on prod until it's added to `ops/deploy.sh` *and*
