@@ -1,0 +1,26 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"files": {
+		"ignore": [
+			"node_modules",
+			"playwright-report",
+			"test-results",
+			"coverage",
+			"**/*.css",
+			"assets/happenings-block.js"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 100
+	},
+	"linter": {
+		"enabled": true,
+		"rules": { "recommended": true }
+	},
+	"javascript": {
+		"formatter": { "quoteStyle": "single", "semicolons": "always" },
+		"globals": ["wp", "jQuery", "wpApiSettings"]
+	}
+}

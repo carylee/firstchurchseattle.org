@@ -32,8 +32,17 @@ trap 'ssh $MUX -O exit firstchurch 2>/dev/null || true' EXIT
 
 REMOTE="firstchurch:public_html/wp-content"
 
-# Theme + plugin are fully ours -> mirror with --delete.
-rsync -av $DRY --delete -e "$RSH" wp-content/themes/maranatha-child/ \
+# Theme + plugin are fully ours -> mirror with --delete. The child theme now
+# carries a dev-only JS toolchain (Node modules, Vitest/Playwright tests, config)
+# that must NOT ship to prod — prod runs no build step. Exclude those, the same
+# way the TDD'd plugins exclude their Composer/PHPUnit artifacts. The committed
+# runtime assets (assets/js/, assets/*.css) DO ship.
+rsync -av $DRY --delete \
+  --exclude='node_modules/' --exclude='tests/' --exclude='e2e/' \
+  --exclude='playwright-report/' --exclude='test-results/' --exclude='coverage/' \
+  --exclude='package.json' --exclude='package-lock.json' \
+  --exclude='biome.json' --exclude='vitest.config.js' --exclude='playwright.config.js' \
+  -e "$RSH" wp-content/themes/maranatha-child/ \
   "$REMOTE/themes/maranatha-child/"
 rsync -av $DRY --delete -e "$RSH" wp-content/plugins/firstchurch-connection-card/ \
   "$REMOTE/plugins/firstchurch-connection-card/"
