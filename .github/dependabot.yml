@@ -1,0 +1,25 @@
+# Keep our toolchain current: the GitHub Actions we pin in .github/workflows and
+# the (dev-only) Composer dependencies in each custom plugin. Grouped + monthly
+# to keep the PR volume low for a small site.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: composer
+    directories:
+      - /wp-content/plugins/firstchurch-breeze-forms
+      - /wp-content/plugins/firstchurch-carousel
+      - /wp-content/plugins/firstchurch-stock-photos
+      - /wp-content/plugins/firstchurch-happenings
+      - /wp-content/plugins/firstchurch-events
+    schedule:
+      interval: monthly
+    groups:
+      php-dev:
+        patterns: ['*']
