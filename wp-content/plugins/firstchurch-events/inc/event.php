@@ -8,6 +8,7 @@
  */
 
 use FirstChurch\Events\Recurrence;
+use FirstChurch\Events\Occurrences;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -60,30 +61,24 @@ function fce_skip_dates( int $post_id ): array {
 /**
  * First occurrence in [from, to] (inclusive) that isn't cancelled, or null.
  * One-offs (no rrule) use DTSTART. Cancellations filtered in PHP (robust).
+ * Thin WP wrapper over the pure, unit-tested Occurrences::next().
  *
  * @param array<int,string> $skip Y-m-d dates to exclude.
  */
 function fce_next_occurrence( string $dtstart, string $rrule, DateTimeInterface $from, DateTimeInterface $to, array $skip = array() ): ?DateTimeImmutable {
-	if ( '' === $dtstart ) {
-		return null;
-	}
-	if ( '' === $rrule ) {
-		$d = new DateTimeImmutable( $dtstart );
-		return ( $d >= $from && $d <= $to && ! in_array( $d->format( 'Y-m-d' ), $skip, true ) ) ? $d : null;
-	}
-	foreach ( new \FirstChurch\Events\Vendor\RRule\RRule( $rrule, new DateTime( $dtstart ) ) as $occ ) {
-		$o = DateTimeImmutable::createFromInterface( $occ );
-		if ( $o < $from ) {
-			continue;
-		}
-		if ( $o > $to ) {
-			return null;
-		}
-		if ( ! in_array( $o->format( 'Y-m-d' ), $skip, true ) ) {
-			return $o;
-		}
-	}
-	return null;
+	return Occurrences::next( $dtstart, $rrule, $from, $to, $skip );
+}
+
+/**
+ * Every occurrence in [from, to] (inclusive) that isn't cancelled — the calendar
+ * grid's per-day source (a recurring event lands on each of its dates). Thin WP
+ * wrapper over the pure, unit-tested Occurrences::between().
+ *
+ * @param array<int,string> $skip Y-m-d dates to exclude.
+ * @return array<int,DateTimeImmutable>
+ */
+function fce_occurrences_between( string $dtstart, string $rrule, DateTimeInterface $from, DateTimeInterface $to, array $skip = array() ): array {
+	return Occurrences::between( $dtstart, $rrule, $from, $to, $skip );
 }
 
 /**

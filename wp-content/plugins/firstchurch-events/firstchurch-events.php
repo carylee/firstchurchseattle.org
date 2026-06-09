@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Events
  * Description: Lean, RRULE-backed events (no recurrence cron). Stores CTC-shaped recurrence meta so RRULE + the human "when" reuse the Happenings spine's tested code, exposes events to the spine (happenings_event_items) and a /events.ics subscription feed, and supports MCP + a light editor for authoring. Transitional: the spine reads this alongside Church Theme Content until events are migrated.
- * Version:     0.1.0
+ * Version:     0.2.0
  * Author:      First Church Seattle
  *
  * @package FirstChurch\Events
@@ -29,6 +29,7 @@ require_once __DIR__ . '/lib/rrule/RfcParser.php';
 require_once __DIR__ . '/lib/rrule/RRule.php';
 require_once __DIR__ . '/lib/rrule/RSet.php';
 require_once __DIR__ . '/src/Recurrence.php';
+require_once __DIR__ . '/src/Occurrences.php';
 require_once __DIR__ . '/src/Ics.php';
 
 const FCE_CPT = 'fce_event';
