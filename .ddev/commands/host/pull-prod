@@ -55,6 +55,17 @@ if [ "$DO_FILES" = 1 ]; then
   done < "$EXCLUDE"
   rsync -rlptz $DRY --delete -e "$RSH" "${exargs[@]}" \
     "${SSH_HOST}:${REMOTE_WP}/" "${REPO}/"
+
+  # The child theme is Class-A tracked code, protected from the pull above — with
+  # ONE exception: assets/tailwind.css is a BUILT artifact (gitignored, not
+  # committed). CD compiles it on the runner and ships it, so prod always serves a
+  # fresh copy. Pull just that one file so local dev shows the same CSS as prod
+  # without needing Node. (When you're actively editing styles, run ./build-css.sh
+  # locally instead — the next pull would overwrite it.) Single file, no --delete.
+  TW="wp-content/themes/maranatha-child/assets/tailwind.css"
+  echo "==> Tailwind: pull prod's built tailwind.css ${DRY:+(dry run)}"
+  rsync -ptz $DRY -e "$RSH" "${SSH_HOST}:${REMOTE_WP}/${TW}" "${REPO}/${TW}" \
+    || echo "    (skipped: prod has no tailwind.css yet — run ./build-css.sh locally)"
 fi
 
 # --- Database --------------------------------------------------------------
