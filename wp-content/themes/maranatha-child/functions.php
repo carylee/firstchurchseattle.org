@@ -29,6 +29,7 @@ require_once get_stylesheet_directory() . '/inc/happenings-block.php';
 require_once get_stylesheet_directory() . '/inc/footer-map.php';
 require_once get_stylesheet_directory() . '/inc/font-optimization.php';
 require_once get_stylesheet_directory() . '/inc/sermon-structured-data.php';
+require_once get_stylesheet_directory() . '/inc/event-structured-data.php';
 
 /**
  * Enqueue parent + child stylesheets.

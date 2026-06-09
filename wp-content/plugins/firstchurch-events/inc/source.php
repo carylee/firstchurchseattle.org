@@ -23,16 +23,43 @@ if ( ! defined( 'ABSPATH' ) ) {
 function fce_event_to_item( WP_Post $p, string $id, string $date ): array {
 	$reg = (string) get_post_meta( $p->ID, FCE_REGURL, true );
 	return array(
-		'id'     => $id,
-		'source' => 'event',
-		'layout' => 'event',
-		'title'  => html_entity_decode( get_the_title( $p ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
-		'date'   => $date,
-		'when'   => fce_when( $p->ID ),
-		'ctaUrl' => $reg ?: (string) get_permalink( $p ),
-		'image'  => (string) get_the_post_thumbnail_url( $p, 'full' ),
-		'url'    => (string) get_permalink( $p ),
+		'id'       => $id,
+		'source'   => 'event',
+		'layout'   => 'event',
+		'title'    => html_entity_decode( get_the_title( $p ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+		'date'     => $date,
+		'when'     => fce_when( $p->ID ),
+		// Machine-readable counterparts to the human `when`, for structured-data
+		// surfaces (schema.org Event startDate/location). `when` stays the display
+		// string; these are the parseable values behind it.
+		'start'    => fce_start_iso( $p->ID, $date ),
+		'location' => (string) get_post_meta( $p->ID, FCE_VENUE, true ),
+		'ctaUrl'   => $reg ?: (string) get_permalink( $p ),
+		'image'    => (string) get_the_post_thumbnail_url( $p, 'full' ),
+		'url'      => (string) get_permalink( $p ),
 	);
+}
+
+/**
+ * Combine an occurrence date (Y-m-d) with the event's stored start time into an
+ * ISO 8601 datetime in the site timezone — the machine `start` behind the human
+ * `when`. Date-only (still valid ISO 8601 / schema startDate) when no clock-like
+ * time is set; the clock guard mirrors EventWhen so free-text time_text values
+ * ("After the service") never produce a bogus datetime.
+ */
+function fce_start_iso( int $post_id, string $date ): string {
+	if ( '' === $date ) {
+		return '';
+	}
+	$time = trim( (string) get_post_meta( $post_id, FCE_TIME, true ) );
+	if ( ! preg_match( '/^\d{1,2}:\d{2}/', $time ) ) {
+		return $date; // date-only
+	}
+	try {
+		return ( new DateTimeImmutable( $date . ' ' . $time, wp_timezone() ) )->format( DateTimeInterface::ATOM );
+	} catch ( \Exception $e ) {
+		return $date;
+	}
 }
 
 /**
