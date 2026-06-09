@@ -165,3 +165,28 @@ The `ddev pull-prod` command itself lives at `.ddev/commands/host/pull-prod`.
 - DDEV manages `wp-config.php`; the `wpqg_` table prefix comes from `web_environment:
   DB_PREFIX=wpqg_`; URLs rewrite to `*.ddev.site` at runtime (no DB search-replace).
 - For trusted local HTTPS: `mkcert -install` once.
+- Local ports are non-standard (caddy owns 80/443 on this box): DDEV router is
+  **http :8800 / https :8843**, so the site is `https://firstchurchseattle.ddev.site:8843`.
+
+### Serving the local site over Tailscale (already set up — don't reinvent)
+
+The **`ddev-tailscale-router`** add-on is installed (`.ddev/commands/host/tailscale`,
+`.ddev/*tailscale*`). It runs `tailscaled` **inside the web container** as its own tailnet
+node `firstchurchseattle` (distinct from this host's `nuc` node) and fronts the container's
+port 80 via `tailscale serve`. It's authenticated and the serve config persists, so the
+local DDEV site is **normally already reachable** tailnet-only at:
+
+> **`https://firstchurchseattle.weasel-barley.ts.net`** (valid Tailscale TLS; DDEV rewrites
+> URLs to this host so assets/links resolve).
+
+Manage it with the add-on's host command — **not** raw `tailscale serve` on the host:
+- `ddev tailscale url` — print the URL · `ddev tailscale proxystat` — show the serve mapping
+- `ddev tailscale launch` — open in browser · `ddev tailscale stop` — tear down the share
+- `--public` (on `share`/`launch`) switches to a public Funnel (exposes to the internet —
+  don't, unless intended).
+
+> **Gotcha — after `ddev stop`/`start`, re-share with `ddev tailscale share --port=80`.**
+> `ddev stop` logs the container's tailnet node out, so the share drops. The `--port=80` is
+> **required**: the add-on defaults to `$DDEV_ROUTER_HTTP_PORT` (8800 here, the remapped
+> router port), but inside the web container nothing listens on 8800 — apache is on **80**.
+> `TS_AUTHKEY` (for re-auth) lives in `~/.zshrc`, not committed.
