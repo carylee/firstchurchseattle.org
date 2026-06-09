@@ -71,7 +71,7 @@ function fce_next_occurrence( string $dtstart, string $rrule, DateTimeInterface 
 		$d = new DateTimeImmutable( $dtstart );
 		return ( $d >= $from && $d <= $to && ! in_array( $d->format( 'Y-m-d' ), $skip, true ) ) ? $d : null;
 	}
-	foreach ( new RRule\RRule( $rrule, new DateTime( $dtstart ) ) as $occ ) {
+	foreach ( new \FirstChurch\Events\Vendor\RRule\RRule( $rrule, new DateTime( $dtstart ) ) as $occ ) {
 		$o = DateTimeImmutable::createFromInterface( $occ );
 		if ( $o < $from ) {
 			continue;

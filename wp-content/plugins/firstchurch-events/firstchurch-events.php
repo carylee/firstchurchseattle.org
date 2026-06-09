@@ -15,6 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 // rlanvin/php-rrule (v2.6.0, MIT) is a RUNTIME dependency and prod runs no
 // Composer, so it's vendored under lib/ and required directly (the repo's
 // no-composer-on-prod pattern). Composer stays dev-only, for PHPUnit.
+//
+// Our copy is re-namespaced to FirstChurch\Events\Vendor\RRule (not the
+// upstream global RRule\) so it can't collide with the SECOND copy that
+// Church Theme Content vendors at includes/libraries/ct-recurrence/php-rrule/.
+// Both ship the same classes in the RRule\ namespace and both require_once
+// unguarded, so the second loader fatals ("Cannot declare class RRule\RfcParser,
+// already in use"). Isolating our prefix keeps the two decoupled for the
+// read-both CTC→events transition; revisit when CTC is removed.
 require_once __DIR__ . '/lib/rrule/RRuleInterface.php';
 require_once __DIR__ . '/lib/rrule/RRuleTrait.php';
 require_once __DIR__ . '/lib/rrule/RfcParser.php';
