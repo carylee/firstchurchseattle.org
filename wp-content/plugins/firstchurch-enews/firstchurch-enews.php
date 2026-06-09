@@ -28,6 +28,7 @@ const FCEN_DATE_KEY     = '_enews_date';        // YYYY-MM-DD send date / window
 // Production loads the pure render core via explicit require (no Composer on
 // prod); the test suite loads it through Composer's PSR-4 autoloader.
 require_once __DIR__ . '/src/Email.php';
+require_once __DIR__ . '/src/Mailchimp.php';
 
 require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/meta.php';
