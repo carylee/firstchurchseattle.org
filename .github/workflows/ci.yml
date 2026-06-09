@@ -122,6 +122,28 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+  child-theme-js:
+    name: child theme JS (lint + unit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wp-content/themes/maranatha-child
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
+      - name: Install dev toolchain
+        run: npm ci --no-audit --no-fund
+      - name: Biome lint + format check
+        run: npm run lint
+      # Unit tests only (happy-dom). Playwright e2e is local-only — it needs a
+      # running WordPress, which this CI deliberately does not provision.
+      - name: Vitest
+        run: npm test
+
   composer-audit:
     name: composer audit (${{ matrix.plugin }})
     runs-on: ubuntu-latest
