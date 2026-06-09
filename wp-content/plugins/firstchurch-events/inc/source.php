@@ -1,14 +1,38 @@
 <?php
 /**
- * The spine-shaped source reader: same Happening contract the carousel /
- * happenings plugin expect, so the spine merges this alongside CTC events
- * (see happenings_event_items). Recurrence/when derivation lives in inc/event.php.
+ * The spine-shaped source readers: same Happening contract the carousel /
+ * happenings plugin expect, so the spine merges these alongside CTC events
+ * (see happenings_event_items / _occurrences). Recurrence/when derivation lives
+ * in inc/event.php.
  *
  * @package FirstChurch\Events
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
+}
+
+/**
+ * Project one fce_event post into the Happening shape. The single source of the
+ * event→Happening mapping, shared by the list, occurrence, and by-id readers so
+ * every surface (incl. the single page via happenings_item_by_id) sees the same
+ * fields. `$id` and `$date` vary by caller (per-event vs per-occurrence).
+ *
+ * @return array<string,mixed>
+ */
+function fce_event_to_item( WP_Post $p, string $id, string $date ): array {
+	$reg = (string) get_post_meta( $p->ID, FCE_REGURL, true );
+	return array(
+		'id'     => $id,
+		'source' => 'event',
+		'layout' => 'event',
+		'title'  => html_entity_decode( get_the_title( $p ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+		'date'   => $date,
+		'when'   => fce_when( $p->ID ),
+		'ctaUrl' => $reg ?: (string) get_permalink( $p ),
+		'image'  => (string) get_the_post_thumbnail_url( $p, 'full' ),
+		'url'    => (string) get_permalink( $p ),
+	);
 }
 
 /**
@@ -36,18 +60,7 @@ function fce_event_items( int $weeks ): array {
 		if ( null === $next ) {
 			continue;
 		}
-		$reg     = (string) get_post_meta( $p->ID, FCE_REGURL, true );
-		$items[] = array(
-			'id'     => 'event-' . $p->ID,
-			'source' => 'event',
-			'layout' => 'event',
-			'title'  => html_entity_decode( get_the_title( $p ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
-			'date'   => $next->format( 'Y-m-d' ),
-			'when'   => fce_when( $p->ID ),
-			'ctaUrl' => $reg ?: (string) get_permalink( $p ),
-			'image'  => (string) get_the_post_thumbnail_url( $p, 'full' ),
-			'url'    => (string) get_permalink( $p ),
-		);
+		$items[] = fce_event_to_item( $p, 'event-' . $p->ID, $next->format( 'Y-m-d' ) );
 	}
 
 	usort( $items, static fn ( $a, $b ) => strcmp( $a['date'], $b['date'] ) );
@@ -75,31 +88,38 @@ function fce_event_occurrences( DateTimeInterface $from, DateTimeInterface $to )
 	foreach ( $q->posts as $p ) {
 		$dtstart = (string) get_post_meta( $p->ID, FCE_DTSTART, true );
 		$dates   = fce_occurrences_between( $dtstart, fce_rrule( $p->ID ), $from, $to, fce_skip_dates( $p->ID ) );
-		if ( empty( $dates ) ) {
-			continue;
-		}
-		$reg   = (string) get_post_meta( $p->ID, FCE_REGURL, true );
-		$title = html_entity_decode( get_the_title( $p ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-		$when  = fce_when( $p->ID );
-		$url   = (string) get_permalink( $p );
-		$image = (string) get_the_post_thumbnail_url( $p, 'full' );
 		foreach ( $dates as $d ) {
-			$items[] = array(
-				// Per-occurrence id so the same event on two dates stays distinct.
-				'id'     => 'event-' . $p->ID . '-' . $d->format( 'Ymd' ),
-				'source' => 'event',
-				'layout' => 'event',
-				'title'  => $title,
-				'date'   => $d->format( 'Y-m-d' ),
-				'when'   => $when,
-				'ctaUrl' => $reg ?: $url,
-				'image'  => $image,
-				'url'    => $url,
-			);
+			// Per-occurrence id so the same event on two dates stays distinct.
+			$items[] = fce_event_to_item( $p, 'event-' . $p->ID . '-' . $d->format( 'Ymd' ), $d->format( 'Y-m-d' ) );
 		}
 	}
 
 	usort( $items, static fn ( $a, $b ) => strcmp( $a['date'], $b['date'] ) );
 
 	return $items;
+}
+
+/**
+ * Project a SINGLE fce_event by post id into the Happening shape — the by-id
+ * reader the spine's happenings_item_by_id() dispatches to (so the event single
+ * page and carousel deck pins resolve fce events the same way every feed does).
+ * `date` is the next non-cancelled occurrence within a year, or '' for an event
+ * with none left (a past one-off still resolves so its page renders).
+ *
+ * @return array<string,mixed>|null Null if the post is missing/not a published fce_event.
+ */
+function fce_event_item( int $post_id ): ?array {
+	$p = get_post( $post_id );
+	if ( ! $p || FCE_CPT !== $p->post_type || 'publish' !== $p->post_status ) {
+		return null;
+	}
+	$from = new DateTimeImmutable( current_time( 'Y-m-d' ) );
+	$next = fce_next_occurrence(
+		(string) get_post_meta( $p->ID, FCE_DTSTART, true ),
+		fce_rrule( $p->ID ),
+		$from,
+		$from->modify( '+1 year' ),
+		fce_skip_dates( $p->ID )
+	);
+	return fce_event_to_item( $p, 'event-' . $p->ID, $next ? $next->format( 'Y-m-d' ) : '' );
 }

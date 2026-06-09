@@ -2,14 +2,19 @@
 /**
  * Single event page for the lean events backend (fce_event).
  *
- * fce_event is publicly_queryable (firstchurch-events.php) so each event's
- * permalink resolves — the spine projects that permalink onto /engage,
- * /upcoming-events/, and the calendar, and this is where those links land.
+ * In the spirit of the Happenings spine ("author once, project everywhere"), the
+ * event's structured identity — title, "when", next occurrence, image, and the
+ * registration CTA — is read from the SPINE projection (happenings_item_by_id →
+ * happenings_card_view), the same Happening contract /engage, the carousel, and
+ * the .ics drink from. This page is just another surface over that feed, not a
+ * second place that re-derives event logic from post meta.
  *
- * Shows the church-phrased "when" (fce_when → EventWhen), the next occurrence,
- * a Register button when there's a registration URL, the featured image, and any
- * description (the CPT supports 'editor'). Reuses the compiled Tailwind utilities
- * + .btn-primary already used by page-worship-live.php, so no new CSS.
+ * The only thing read straight from the post is the freeform body (the_content) —
+ * that's this post's prose, not feed/curation logic, and the Happening contract
+ * is intentionally a lean summary (a blurb, not the full body). If events ever
+ * need richer projected detail, grow the contract rather than reading meta here.
+ *
+ * Falls back to native title/content if the spine plugin is inactive.
  *
  * @package Maranatha_Child
  */
@@ -24,23 +29,18 @@ while ( have_posts() ) :
 	the_post();
 
 	$id   = get_the_ID();
-	$reg  = (string) get_post_meta( $id, '_fce_registration_url', true ); // FCE_REGURL
-	$when = function_exists( 'fce_when' ) ? fce_when( $id ) : '';
+	$item = function_exists( 'happenings_item_by_id' ) ? happenings_item_by_id( 'event-' . $id ) : null;
+	$view = ( $item && function_exists( 'happenings_card_view' ) ) ? happenings_card_view( $item ) : null;
 
-	// Next non-cancelled occurrence within a year — concrete date for recurring events.
-	$next = '';
-	if ( function_exists( 'fce_next_occurrence' ) && function_exists( 'fce_rrule' ) ) {
-		$occ = fce_next_occurrence(
-			(string) get_post_meta( $id, '_fce_dtstart', true ), // FCE_DTSTART
-			fce_rrule( $id ),
-			new DateTimeImmutable( current_time( 'Y-m-d' ) ),
-			new DateTimeImmutable( current_time( 'Y-m-d' ) . ' +1 year' ),
-			function_exists( 'fce_skip_dates' ) ? fce_skip_dates( $id ) : array()
-		);
-		if ( $occ ) {
-			$next = $occ->format( 'l, F j, Y' ); // ->format, not wp_date: no tz drift on a date-only value.
-		}
-	}
+	$title = $view['title'] ?? get_the_title();
+	$when  = $view['meta'] ?? '';
+	$image = $item['image'] ?? ( has_post_thumbnail() ? (string) get_the_post_thumbnail_url( $id, 'large' ) : '' );
+
+	// Next occurrence (the projection's `date`); ->format avoids tz drift on a date-only value.
+	$next = ( ! empty( $item['date'] ) ) ? ( new DateTimeImmutable( $item['date'] ) )->format( 'l, F j, Y' ) : '';
+
+	// Only a REAL registration CTA (ctaPrimary) — never the permalink-to-self fallback.
+	$show_cta = $view && ! empty( $view['ctaPrimary'] ) && ! empty( $view['ctaUrl'] );
 	?>
 	<main id="maranatha-content" tabindex="-1" class="bg-white">
 		<article class="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
@@ -51,13 +51,13 @@ while ( have_posts() ) :
 				</a>
 			</p>
 
-			<?php if ( has_post_thumbnail() ) : ?>
+			<?php if ( '' !== $image ) : ?>
 				<div class="rounded-xl overflow-hidden mb-6 ring-1 ring-brand-line">
-					<?php the_post_thumbnail( 'large', array( 'class' => 'w-full h-auto block' ) ); ?>
+					<img src="<?php echo esc_url( $image ); ?>" alt="" class="w-full h-auto block" loading="lazy">
 				</div>
 			<?php endif; ?>
 
-			<h1 class="m-0 text-3xl sm:text-4xl font-display font-light text-brand-ink"><?php the_title(); ?></h1>
+			<h1 class="m-0 text-3xl sm:text-4xl font-display font-light text-brand-ink"><?php echo esc_html( $title ); ?></h1>
 
 			<?php if ( '' !== $when ) : ?>
 				<p class="mt-3 text-lg text-brand font-medium"><?php echo esc_html( $when ); ?></p>
@@ -69,9 +69,9 @@ while ( have_posts() ) :
 				</p>
 			<?php endif; ?>
 
-			<?php if ( '' !== $reg ) : ?>
+			<?php if ( $show_cta ) : ?>
 				<p class="mt-5">
-					<a href="<?php echo esc_url( $reg ); ?>" class="btn-primary"><?php esc_html_e( 'Register', 'maranatha-child' ); ?></a>
+					<a href="<?php echo esc_url( $view['ctaUrl'] ); ?>" class="btn-primary"><?php echo esc_html( $view['ctaLabel'] ?: __( 'Register', 'maranatha-child' ) ); ?></a>
 				</p>
 			<?php endif; ?>
 
