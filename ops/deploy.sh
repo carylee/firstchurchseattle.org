@@ -83,6 +83,7 @@ rsync -av $DRY --delete \
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php          "$REMOTE/mu-plugins/"
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/sso.php                                "$REMOTE/mu-plugins/"
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-google-register-policy.php "$REMOTE/mu-plugins/"
+rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-security-headers.php       "$REMOTE/mu-plugins/"
 
 # Uploads CORS: one .htaccess that lets the slides editor fetch upload images
 # cross-origin to bake the announcement carousel GIF (Apache serves uploads

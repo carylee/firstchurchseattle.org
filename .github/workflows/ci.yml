@@ -122,6 +122,35 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+  composer-audit:
+    name: composer audit (${{ matrix.plugin }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin:
+          - firstchurch-breeze-forms
+          - firstchurch-carousel
+          - firstchurch-stock-photos
+          - firstchurch-happenings
+          - firstchurch-events
+    defaults:
+      run:
+        working-directory: wp-content/plugins/${{ matrix.plugin }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+          coverage: none
+      # Audit the locked dependency tree for known CVEs. Composer deps are
+      # dev-only here (PHPUnit etc.; the one runtime dep, php-rrule, is vendored
+      # under events/lib/ and excluded from deploy), so this guards the toolchain
+      # rather than shipped code — still worth catching before it lands.
+      - name: composer audit
+        run: composer audit --no-interaction --locked
+
   asset-version:
     name: asset version bump
     runs-on: ubuntu-latest
