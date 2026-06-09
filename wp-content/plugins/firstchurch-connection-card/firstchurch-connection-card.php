@@ -15,29 +15,8 @@ const FCC_FORM_ID     = '320238';
 const FCC_FORM_SLUG   = '603d6c';
 const FCC_USER_AGENT  = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36';
 
-const FCC_F_ATTENDED    = '2147340711';
-const FCC_F_NAME        = '2147340458';
-const FCC_F_EMAIL       = '2147340459';
-const FCC_F_NEWSLETTER  = '2147340460';
-const FCC_F_PHONE       = '2147340461';
-const FCC_F_ADDRESS     = '2147340462';
-const FCC_F_CHANGE_INFO = '2147340463';
-const FCC_F_I_AM_A      = '2147340464';
-const FCC_F_HEARD_FROM  = '2147340465';
-const FCC_F_LEARN_MORE  = '2147340466';
-const FCC_F_PASTOR      = '2147340467';
-const FCC_F_COMMENTS    = '2147340468';
-
-function fcc_options(): array {
-    return [
-        'attended'    => ['online' => '316', 'in-person' => '317'],
-        'i_am_a'      => ['first-time' => '241', 'second-time' => '242', 'regular' => '243', 'member' => '244'],
-        'newsletter'  => '239',
-        'change_info' => '240',
-        'learn_more'  => ['245','246','247','248','249','250','251','252','253','863'],
-        'pastor'      => ['254','255'],
-    ];
-}
+// Pure form contract + mapping/validation (unit-tested outside WordPress).
+require_once __DIR__ . '/inc/form.php';
 
 add_action('rest_api_init', function () {
     register_rest_route('firstchurch/v1', '/connection-card', [
@@ -184,21 +163,6 @@ function fcc_render_shortcode($atts = []): string {
     return (string) ob_get_clean();
 }
 
-function fcc_learn_more_choices(): array {
-    return [
-        '245' => "First Church's mission and values",
-        '246' => 'Becoming a church member',
-        '247' => 'Children & Youth programming',
-        '248' => 'Adult spiritual enrichment classes',
-        '249' => "Vintners gatherings (20's & 30's fellowship)",
-        '250' => 'Pride + Faith gatherings',
-        '251' => 'Sanctuary Choir + Bell Choir',
-        '252' => 'Pub Theology',
-        '253' => 'Volunteering for Shared Breakfast',
-        '863' => 'Church & Society / Social Justice Committee',
-    ];
-}
-
 function fcc_enqueue_assets(): void {
     $base = plugin_dir_url(__FILE__);
     wp_enqueue_style(
@@ -219,8 +183,8 @@ function fcc_enqueue_assets(): void {
 function fcc_submit(WP_REST_Request $request) {
     $params = $request->get_json_params() ?: $request->get_body_params();
 
-    // Honeypot — bots fill in hidden fields; humans don't.
-    if (!empty($params['website']) || !empty($params['url'])) {
+    // Honeypot — bots fill in hidden fields; humans don't. Pretend success.
+    if (fcc_is_honeypot($params)) {
         return new WP_REST_Response(['ok' => true], 200);
     }
 
@@ -232,21 +196,17 @@ function fcc_submit(WP_REST_Request $request) {
     }
     set_transient($key, $hits + 1, 10 * MINUTE_IN_SECONDS);
 
+    $opts   = fcc_options();
+    $errors = fcc_validate($params, $opts);
+    if ($errors) {
+        return new WP_Error('validation', implode(' ', $errors), ['status' => 400]);
+    }
+
     $first    = trim((string) ($params['first_name'] ?? ''));
     $last     = trim((string) ($params['last_name']  ?? ''));
     $email    = sanitize_email((string) ($params['email'] ?? ''));
     $attended = (string) ($params['attended'] ?? '');
     $i_am_a   = (string) ($params['i_am_a']   ?? '');
-    $opts     = fcc_options();
-
-    $errors = [];
-    if ($first === '' || $last === '')                              $errors[] = 'Please provide your first and last name.';
-    if ($email === '' || !is_email($email))                         $errors[] = 'Please provide a valid email address.';
-    if (!isset($opts['attended'][$attended]))                       $errors[] = 'Please choose Online or In-person.';
-    if (!isset($opts['i_am_a'][$i_am_a]))                           $errors[] = 'Please choose how you relate to First Church.';
-    if ($errors) {
-        return new WP_Error('validation', implode(' ', $errors), ['status' => 400]);
-    }
 
     $session_cookies = fcc_seed_session();
     if (is_wp_error($session_cookies)) {
@@ -343,90 +303,6 @@ function fcc_save_section(array $cookies, string $csrf, string $entry_id, array 
         return new WP_Error('breeze_step2_bad', 'Breeze returned ' . wp_remote_retrieve_response_code($resp), ['status' => 502]);
     }
     return true;
-}
-
-function fcc_build_inputs(array $params, string $first, string $last, string $email, string $attended, string $i_am_a, array $opts): array {
-    $inputs = [];
-
-    $inputs[] = [
-        'field_id'   => FCC_F_ATTENDED,
-        'response'   => $opts['attended'][$attended],
-        'field_type' => 'radio',
-    ];
-
-    // The save_person_meta() switch falls through, so value/part reflect the
-    // last name input the browser iterates -- mirror that here.
-    $inputs[] = [
-        'field_id'   => FCC_F_NAME,
-        'response'   => 'undefined',
-        'field_type' => 'name',
-        'details'    => [
-            'first_name' => $first,
-            'last_name'  => $last,
-            'value'      => $last,
-            'part'       => 'last_name',
-            'person_id'  => 0,
-        ],
-    ];
-
-    $inputs[] = ['field_id' => FCC_F_EMAIL, 'response' => $email, 'field_type' => 'text'];
-
-    if (!empty($params['newsletter'])) {
-        $inputs[] = ['field_id' => FCC_F_NEWSLETTER, 'response' => $opts['newsletter'], 'field_type' => 'checkbox'];
-    }
-
-    $phone = trim((string) ($params['phone'] ?? ''));
-    if ($phone !== '') {
-        $inputs[] = ['field_id' => FCC_F_PHONE, 'response' => sanitize_text_field($phone), 'field_type' => 'text'];
-    }
-
-    $address = $params['address'] ?? null;
-    if (is_array($address)) {
-        $details = array_filter([
-            'street_address' => sanitize_text_field((string) ($address['street'] ?? '')),
-            'city'           => sanitize_text_field((string) ($address['city']   ?? '')),
-            'state'          => sanitize_text_field((string) ($address['state']  ?? '')),
-            'zip'            => sanitize_text_field((string) ($address['zip']    ?? '')),
-        ], 'strlen');
-        if ($details) {
-            $inputs[] = [
-                'field_id'   => FCC_F_ADDRESS,
-                'response'   => 'undefined',
-                'field_type' => 'address',
-                'details'    => $details,
-            ];
-        }
-    }
-
-    if (!empty($params['change_of_info'])) {
-        $inputs[] = ['field_id' => FCC_F_CHANGE_INFO, 'response' => $opts['change_info'], 'field_type' => 'checkbox'];
-    }
-
-    $inputs[] = ['field_id' => FCC_F_I_AM_A, 'response' => $opts['i_am_a'][$i_am_a], 'field_type' => 'checkbox'];
-
-    $heard_from = trim((string) ($params['heard_from'] ?? ''));
-    if ($heard_from !== '') {
-        $inputs[] = ['field_id' => FCC_F_HEARD_FROM, 'response' => sanitize_textarea_field($heard_from), 'field_type' => 'textarea'];
-    }
-
-    foreach ((array) ($params['learn_more'] ?? []) as $opt) {
-        if (in_array($opt, $opts['learn_more'], true)) {
-            $inputs[] = ['field_id' => FCC_F_LEARN_MORE, 'response' => $opt, 'field_type' => 'checkbox'];
-        }
-    }
-
-    foreach ((array) ($params['pastor_contact'] ?? []) as $opt) {
-        if (in_array($opt, $opts['pastor'], true)) {
-            $inputs[] = ['field_id' => FCC_F_PASTOR, 'response' => $opt, 'field_type' => 'checkbox'];
-        }
-    }
-
-    $comments = trim((string) ($params['comments'] ?? ''));
-    if ($comments !== '') {
-        $inputs[] = ['field_id' => FCC_F_COMMENTS, 'response' => sanitize_textarea_field($comments), 'field_type' => 'textarea'];
-    }
-
-    return $inputs;
 }
 
 function fcc_random_string(int $length): string {
