@@ -159,8 +159,8 @@ Incremental, each step shippable and useful on its own:
 |---|---|---|
 | 6.0 | **This doc** — lock the model (Issue = thin layer; Mailchimp = rail) | shared target |
 | 6.1 | ✅ Roadmap **Phase 4a** (Featured spans events; date-suppression scoped to announcements) | dated happenings render a real when-line in email |
-| 6.2 | `surface=enews` projection on `/v1/happenings` (week-window default, e-news lens) | a feed the email can read |
-| 6.3 | `enews_issue` CPT (Bucket C fields) + an issue template composing happenings blocks + evergreen + footer | author on the website |
+| 6.2 | `surface=enews` projection on `/v1/happenings` (week-window default, e-news lens) — *now only needed for the RSS-to-Mailchimp rail; 6.3 composes the spine directly via blocks* | a feed the email can read |
+| 6.3 | ✅ `enews_issue` CPT (Bucket C fields) + a pre-fill block template composing the happenings blocks + evergreen + footer (`firstchurch-enews`) | author on the website |
 | 6.4 | Email-safe render template (inlined CSS) + preview | a sendable artifact |
 | 6.5 | Push-to-Mailchimp (campaign API or import-from-URL) | retire the duplicate-and-edit ritual |
 
