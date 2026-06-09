@@ -25,8 +25,13 @@ const FCEN_SUBJECT_KEY = '_enews_subject';      // Mailchimp subject line
 const FCEN_PREVIEW_KEY  = '_enews_preview';     // preview / tagline text
 const FCEN_DATE_KEY     = '_enews_date';        // YYYY-MM-DD send date / window anchor
 
+// Production loads the pure render core via explicit require (no Composer on
+// prod); the test suite loads it through Composer's PSR-4 autoloader.
+require_once __DIR__ . '/src/Email.php';
+
 require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/meta.php';
+require_once __DIR__ . '/inc/render.php';
 
 // The CPT carries a custom rewrite slug (/enews/<slug>/ for preview + a web
 // archive), so flush rewrites on activation. On deploy, also run once:
