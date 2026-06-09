@@ -87,6 +87,16 @@ rsync -av $DRY --delete \
   -e "$RSH" wp-content/plugins/firstchurch-happenings/ \
   "$REMOTE/plugins/firstchurch-happenings/"
 
+# e-news (the weekly newsletter as a spine surface — enews_issue CPT + email
+# render). TDD'd like happenings, so the same dev-only artifacts are excluded.
+# NOTE: after the first deploy, activate it and flush rewrites for the /enews/ slug:
+#   ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-enews && wp rewrite flush'
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-enews/ \
+  "$REMOTE/plugins/firstchurch-enews/"
+
 # mu-plugins/ ALSO holds host must-use plugins (endurance-page-cache) we do NOT track,
 # so sync our files individually and NEVER --delete this directory.
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php          "$REMOTE/mu-plugins/"

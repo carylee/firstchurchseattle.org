@@ -56,7 +56,7 @@ function fcs_happenings_block_register() {
  * @return string HTML.
  */
 function fcs_happenings_block_render( $attrs ) {
-	if ( ! function_exists( 'happenings_card_view' ) ) {
+	if ( ! function_exists( 'happenings_section_items' ) ) {
 		return ''; // firstchurch-happenings inactive — fail soft.
 	}
 
@@ -65,31 +65,9 @@ function fcs_happenings_block_render( $attrs ) {
 	$weeks   = max( 1, (int) ( $attrs['weeks'] ?? 8 ) );
 	$days    = max( 1, (int) ( $attrs['days'] ?? 30 ) );
 
-	switch ( $section ) {
-		case 'events':
-			$items = happenings_event_items( $weeks );
-			break;
-		case 'announcements':
-			$items = happenings_news_items( $days );
-			break;
-		case 'featured':
-		default:
-			$items = happenings_featured( $count, $weeks );
-			break;
-	}
-
-	// Drop items already promoted into a Featured block on the same page so they
-	// don't appear twice (a Happening's `weight` is non-empty only when > 0 —
-	// i.e. it's in the Featured set). Filter before the count slice so the list
-	// still fills to `count`. Featured itself is the source of truth, so the
-	// toggle is a no-op there.
-	if ( ! empty( $attrs['excludeFeatured'] ) && 'featured' !== $section ) {
-		$items = array_values( array_filter( $items, static function ( $it ) {
-			return empty( $it['weight'] );
-		} ) );
-	}
-
-	$items = array_slice( $items, 0, $count );
+	// One shared lens for every surface (web block + e-news): resolve, de-dup the
+	// Featured set, cap. Rendering below is web-specific (.fcs-card markup).
+	$items = happenings_section_items( $section, $count, $weeks, $days, ! empty( $attrs['excludeFeatured'] ) );
 
 	if ( empty( $items ) ) {
 		return '';

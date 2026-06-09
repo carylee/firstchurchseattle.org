@@ -1,0 +1,25 @@
+{
+    "name": "firstchurch/enews",
+    "description": "First Church E-News: the enews_issue CPT + the email-safe render of an issue. The pure render core (src/) is unit-tested; see ops/docs/enews-spine.md.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    },
+    "autoload": {
+        "psr-4": {
+            "FirstChurch\\ENews\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FirstChurch\\ENews\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
