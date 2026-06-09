@@ -30,6 +30,57 @@ function happenings_resolve(array $args = []): array
 }
 
 /**
+ * Resolve ONE named section of the feed for a surface — the shared curation lens
+ * behind both the /engage `firstchurch/happenings` block and the e-news. Every
+ * surface that shows a "Featured / Upcoming / Recent" section calls this, so they
+ * all show the same slice: no surface re-implements the switch, the
+ * exclude-featured de-dup, or the count cap. Rendering (web card vs. email card)
+ * stays per-surface; this returns the ordered, capped Happening[] only.
+ *
+ * @param string $section          'featured' | 'events' | 'announcements'
+ * @param int    $count            Max items to return.
+ * @param int    $weeks            Event look-ahead (featured/events).
+ * @param int    $days             Announcement look-back.
+ * @param bool   $exclude_featured Drop items already promoted into Featured (so a
+ *                                 Featured block + an Events block don't double).
+ * @return array<int,array<string,mixed>>
+ */
+function happenings_section_items(
+    string $section,
+    int $count = 3,
+    int $weeks = HAPPENINGS_DEFAULT_WEEKS,
+    int $days = HAPPENINGS_DEFAULT_DAYS,
+    bool $exclude_featured = false
+): array {
+    $count = max(1, $count);
+    $weeks = max(1, $weeks);
+    $days  = max(1, $days);
+
+    switch ($section) {
+        case 'events':
+            $items = happenings_event_items($weeks);
+            break;
+        case 'announcements':
+            $items = happenings_news_items($days);
+            break;
+        case 'featured':
+        default:
+            $section = 'featured';
+            $items   = happenings_featured($count, $weeks);
+            break;
+    }
+
+    // A Happening's `weight` is non-empty only when > 0 — i.e. it's in the
+    // Featured set. Filter before the slice so the list still fills to `count`.
+    // Featured is the source of that set, so the toggle is a no-op there.
+    if ($exclude_featured && 'featured' !== $section) {
+        $items = array_values(array_filter($items, static fn ($it) => empty($it['weight'])));
+    }
+
+    return array_slice($items, 0, $count);
+}
+
+/**
  * Project a single candidate by feed id ("event-7" / "announcement-9"), loading
  * that specific post directly so deck references resolve regardless of any
  * look-ahead window. Returns null if the post is missing, the wrong type,
