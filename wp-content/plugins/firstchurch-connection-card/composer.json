@@ -1,0 +1,20 @@
+{
+    "name": "firstchurch/connection-card",
+    "description": "Server-side bridge that posts the Check-in & Connection Card to Breeze (form 320238). The pure form contract (inc/form.php) is unit-tested outside WordPress.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FirstChurch\\ConnectionCard\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
