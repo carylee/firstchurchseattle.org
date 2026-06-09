@@ -22,6 +22,12 @@ require_once __DIR__ . '/src/Shortcode.php';
 require_once __DIR__ . '/src/Sync.php';
 require_once __DIR__ . '/src/Store.php';
 require_once __DIR__ . '/src/Block.php';
+require_once __DIR__ . '/src/Entries.php';
+
+// Intake queue: capture Breeze form submissions on-site (CPT + reader + MCP).
+require_once __DIR__ . '/inc/intake-cpt.php';
+require_once __DIR__ . '/inc/intake-reader.php';
+require_once __DIR__ . '/inc/intake-mcp.php';
 
 use FirstChurch\BreezeForms\Shortcode;
 use FirstChurch\BreezeForms\Store;
@@ -318,10 +324,14 @@ function fcbf_ensure_scheduled(): void
     if (!wp_next_scheduled(FCBF_DESCRIPTIONS_HOOK)) {
         wp_schedule_event(time() + 120, 'daily', FCBF_DESCRIPTIONS_HOOK);
     }
+    if (!wp_next_scheduled(FCBF_INTAKE_HOOK)) {
+        wp_schedule_event(time() + 180, 'hourly', FCBF_INTAKE_HOOK);
+    }
 }
 add_action('init', 'fcbf_ensure_scheduled');
 register_activation_hook(__FILE__, 'fcbf_ensure_scheduled');
 register_deactivation_hook(__FILE__, function (): void {
     wp_clear_scheduled_hook(FCBF_SYNC_HOOK);
     wp_clear_scheduled_hook(FCBF_DESCRIPTIONS_HOOK);
+    wp_clear_scheduled_hook(FCBF_INTAKE_HOOK);
 });
