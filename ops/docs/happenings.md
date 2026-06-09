@@ -56,6 +56,11 @@ Happening {
   image     string   // full-size URL, optional
   url       string   // canonical permalink (the title links here)
   when      string?  // human date/time, events only ("Sundays at 10:30 am · Sanctuary")
+  start     string?  // ISO 8601 start datetime, events only — the machine value
+                     //   behind `when` (date-only if no clock time is set). For
+                     //   schema.org Event startDate.
+  location  string?  // venue, events only — the machine value behind `when`'s
+                     //   trailing "· Sanctuary". For schema.org Event location.
   date      string?  // YYYY-MM-DD publish date, news only
   cta       { url, text }?   // optional call-to-action
   tags      string[]         // future: topic/audience facets (see §6)
@@ -75,7 +80,7 @@ Lifted from the resolver's `fccar_*_to_item()` functions — the source of truth
 
 | Source | Post type | Contributes |
 |---|---|---|
-| **Event** | `ctc_event` | `title`, `when` (from `_ctc_event_*` date/recurrence/venue), `cta` = registration URL or permalink, `image` |
+| **Event** | `ctc_event` / `fce_event` | `title`, `when` (from date/recurrence/venue meta), `start`+`location` (machine values behind `when`; `fce_event` via `fce_event_to_item`), `cta` = registration URL or permalink, `image` |
 | **Announcement** | `post` in `announcements` category | `title`, `blurb` (excerpt/trim), `cta` (`fcs_cta_*`), `image`, **`weight`**, **`expires`** |
 | **Evergreen** | `carousel_card` CPT | `title`, `blurb`/`prompt`, `cta` (`_fccar_qr_url`), `image`, screen fields (`_fccar_*`) |
 
@@ -198,4 +203,4 @@ extensions now that the spine is its own home.
 | 3 | `/engage` becomes spine-driven (block); nav link; retire `featured` category | **v1 public hub** |
 | 4 | `/live` + carousel share a worship-now set; **Featured spans events** (dated happenings get a real when-line + CTA, retiring the /engage date-suppression) | unify the two renderings |
 | 5 | Taxonomy collapse; finish native connection-card; purge review queue | structural cleanup |
-| 6 | e-news digest + bulletin announcement block from the spine | new surfaces |
+| 6 | e-news digest + bulletin announcement block from the spine ([`enews-spine.md`](./enews-spine.md)) | new surfaces |

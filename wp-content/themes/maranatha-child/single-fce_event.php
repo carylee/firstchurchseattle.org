@@ -56,7 +56,8 @@ while ( have_posts() ) :
 
 			<?php if ( '' !== $image ) : ?>
 				<div class="rounded-xl overflow-hidden mb-6 ring-1 ring-brand-line">
-					<img src="<?php echo esc_url( $image ); ?>" alt="" class="w-full h-auto block" loading="lazy">
+					<?php // Above-the-fold hero is the LCP: load it eagerly + high priority, not lazily. ?>
+						<img src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="w-full h-auto block" loading="eager" fetchpriority="high">
 				</div>
 			<?php endif; ?>
 
