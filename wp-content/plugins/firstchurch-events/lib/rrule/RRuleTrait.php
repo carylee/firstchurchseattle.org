@@ -9,7 +9,7 @@
  * @link https://github.com/rlanvin/php-rrule
  */
 
-namespace RRule;
+namespace FirstChurch\Events\Vendor\RRule;
 
 /**
  * Implement the common methods of the RRuleInterface used by RRule and RSet

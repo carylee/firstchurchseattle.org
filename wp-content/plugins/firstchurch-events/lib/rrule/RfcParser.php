@@ -9,7 +9,7 @@
  * @link https://github.com/rlanvin/php-rrule
  */
 
-namespace RRule;
+namespace FirstChurch\Events\Vendor\RRule;
 
 /**
  * Collection of static methods to parse RFC strings.
