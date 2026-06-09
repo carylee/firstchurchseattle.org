@@ -70,6 +70,45 @@ function happenings_event_items(int $weeks): array
     return $items;
 }
 
+/**
+ * Every event OCCURRENCE in [$from, $to] (Y-m-d, inclusive) — the calendar grid's
+ * source, where a weekly event must land on each of its dates. This is the
+ * occurrence-expanded counterpart to happenings_event_items() (which collapses
+ * each event to its next date for a list).
+ *
+ * fce_event occurrences are fully recurrence-expanded (firstchurch-events owns the
+ * RRULE). CTC events are placed on their single start_date only — CTC recurrence
+ * is NOT expanded here: the live recurring set was migrated to fce_event and CTC
+ * is being decommissioned (ops/docs/events-migration.md). When that plugin is
+ * inactive the spine returns the CTC-on-start-date set alone.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function happenings_event_occurrences(string $from, string $to): array
+{
+    $q = new WP_Query([
+        'post_type'      => 'ctc_event',
+        'post_status'    => 'publish',
+        'posts_per_page' => 100,
+        'no_found_rows'  => true,
+        'meta_query'     => [
+            'start' => ['key' => '_ctc_event_start_date'],
+            ['key' => '_ctc_event_start_date', 'value' => $from, 'compare' => '>=', 'type' => 'DATE'],
+            ['key' => '_ctc_event_start_date', 'value' => $to, 'compare' => '<=', 'type' => 'DATE'],
+        ],
+        'orderby'        => ['start' => 'ASC'],
+    ]);
+
+    $items = array_map('happenings_event_to_item', $q->posts);
+
+    if (function_exists('fce_event_occurrences')) {
+        $items = array_merge($items, fce_event_occurrences(new DateTimeImmutable($from), new DateTimeImmutable($to)));
+        usort($items, static fn ($a, $b) => strcmp($a['date'] ?? '', $b['date'] ?? ''));
+    }
+
+    return $items;
+}
+
 function happenings_event_to_item(WP_Post $post): array
 {
     $reg = (string) get_post_meta($post->ID, '_ctc_event_registration_url', true);

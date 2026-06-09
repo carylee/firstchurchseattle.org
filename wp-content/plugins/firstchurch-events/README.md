@@ -24,8 +24,15 @@ as `EXDATE` in the `.ics`.
 
 ## Surfaces
 
-- **Spine:** `fce_event_items()` returns the Happening shape; the spine merges it with CTC,
-  date-sorted, so fce events appear on `/engage` and the carousel.
+- **Spine:** `fce_event_items()` / `fce_event_occurrences()` / `fce_event_item()` return the
+  Happening shape (one builder, `fce_event_to_item()`); the spine merges them with CTC, date-sorted,
+  so fce events appear on `/engage`, `/upcoming-events/`, the calendar, and the carousel.
+- **Event single page:** `fce_event` is publicly viewable at `/event/<slug>/` (theme template
+  `maranatha-child/single-fce_event.php`) — the canonical destination the spine's projected links
+  point to (card titles + "Event details"). It too drinks from the spine: it renders the projected
+  Happening via `happenings_item_by_id('event-<id>')` (which now resolves fce events) + the post's
+  freeform body, so no surface re-derives event logic from meta. Lean: no `/event/` archive, out of
+  site search + nav menus.
 - **`/events.ics`:** a public subscription feed (VEVENT + RRULE + EXDATE) — calendar subscription,
   which CTC doesn't give us well.
 - **Authoring:** MCP `firstchurch/create-event-lean` / `update-event-lean` (friendly recurrence

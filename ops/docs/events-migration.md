@@ -1,8 +1,16 @@
 # Events migration: Church Theme Content → firstchurch-events
 
-**Status:** runbook (not yet executed). The code is in place — the spine reads CTC **and**
-`fce_event` (a read-both transition), `firstchurch-events` is deployable, and authoring works via
-the editor metabox and MCP. This doc is the deliberate cut-over.
+**Status (updated 2026-06-08):** steps 1–4 **executed**. `firstchurch-events` is active; the live
+set was imported into `fce_event` (every imported post carries `_fce_ctc_origin`) and the CTC
+originals were unpublished (cut-over). The spine reads CTC **and** `fce_event` (read-both), and the
+standalone `/upcoming-events/` + `/events-calendar/` pages — formerly CTC-only parent-theme
+templates that went empty post-cut-over — are now **spine-backed** child templates (see
+`happenings.md` §5). To give the projected event links a real destination, `fce_event` was also
+made publicly viewable: a lean single page at `/event/<slug>/` that itself projects the spine
+(`happenings_item_by_id`). This added a surface beyond the original projection-only plan — a
+deliberate evolution, kept in spirit by reading the same Happening contract, not post meta.
+**Remaining:** step 5 (decommission CTC), which is now unblocked re: those pages since they no
+longer query `ctc_event` for the live set.
 
 **Why:** CTC carries a tiny live load (~10 upcoming events, 8 recurrence rules; sermons dead) for a
 heavy, paid (`church-content-pro`) dependency — see the `ctc-barely-used` finding. We keep CTC's

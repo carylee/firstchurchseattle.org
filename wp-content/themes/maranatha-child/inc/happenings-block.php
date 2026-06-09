@@ -112,35 +112,50 @@ function fcs_happenings_block_render( $attrs ) {
 	echo '<div class="fcs-card-grid">';
 
 	foreach ( $items as $item ) {
-		$v = happenings_card_view( $item );
-		?>
-		<article class="fcs-card">
-			<div class="fcs-card__body">
-				<h3 class="fcs-card__title">
-					<?php if ( '' !== $v['url'] ) : ?>
-						<a href="<?php echo esc_url( $v['url'] ); ?>"><?php echo esc_html( $v['title'] ); ?></a>
-					<?php else : ?>
-						<?php echo esc_html( $v['title'] ); ?>
-					<?php endif; ?>
-				</h3>
-				<?php if ( $show_meta && '' !== $v['meta'] ) : ?>
-					<p class="fcs-card__meta"><?php echo esc_html( $v['meta'] ); ?></p>
-				<?php endif; ?>
-				<?php if ( '' !== $v['blurb'] ) : ?>
-					<p class="fcs-card__excerpt"><?php echo esc_html( wp_trim_words( $v['blurb'], 28 ) ); ?></p>
-				<?php endif; ?>
-			</div>
-			<?php if ( '' !== $v['ctaUrl'] ) : ?>
-				<?php // Fallback CTAs (Read more / Event details) render quieter than a real sign-up link. ?>
-				<div class="fcs-card__cta">
-					<a href="<?php echo esc_url( $v['ctaUrl'] ); ?>" class="fcs-cta-button<?php echo empty( $v['ctaPrimary'] ) ? ' is-fallback' : ''; ?>"><?php echo esc_html( $v['ctaLabel'] ); ?></a>
-				</div>
-			<?php endif; ?>
-		</article>
-		<?php
+		echo fcs_render_happening_card( happenings_card_view( $item ), $show_meta ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes internally.
 	}
 
 	echo '</div>';
 
+	return (string) ob_get_clean();
+}
+
+/**
+ * Render one Happening as a `.fcs-card` article — the shared card markup used by
+ * the /engage block and the spine-backed events templates
+ * (page-templates/page-events-*.php), so the card visual language lives in one
+ * place. Escapes all output; returns HTML.
+ *
+ * @param array  $v         View-model from happenings_card_view().
+ * @param bool   $show_meta Show the date/when line (Featured suppresses it).
+ * @return string
+ */
+function fcs_render_happening_card( array $v, bool $show_meta = true ): string {
+	ob_start();
+	?>
+	<article class="fcs-card">
+		<div class="fcs-card__body">
+			<h3 class="fcs-card__title">
+				<?php if ( '' !== $v['url'] ) : ?>
+					<a href="<?php echo esc_url( $v['url'] ); ?>"><?php echo esc_html( $v['title'] ); ?></a>
+				<?php else : ?>
+					<?php echo esc_html( $v['title'] ); ?>
+				<?php endif; ?>
+			</h3>
+			<?php if ( $show_meta && '' !== $v['meta'] ) : ?>
+				<p class="fcs-card__meta"><?php echo esc_html( $v['meta'] ); ?></p>
+			<?php endif; ?>
+			<?php if ( '' !== $v['blurb'] ) : ?>
+				<p class="fcs-card__excerpt"><?php echo esc_html( wp_trim_words( $v['blurb'], 28 ) ); ?></p>
+			<?php endif; ?>
+		</div>
+		<?php if ( '' !== $v['ctaUrl'] ) : ?>
+			<?php // Fallback CTAs (Read more / Event details) render quieter than a real sign-up link. ?>
+			<div class="fcs-card__cta">
+				<a href="<?php echo esc_url( $v['ctaUrl'] ); ?>" class="fcs-cta-button<?php echo empty( $v['ctaPrimary'] ) ? ' is-fallback' : ''; ?>"><?php echo esc_html( $v['ctaLabel'] ); ?></a>
+			</div>
+		<?php endif; ?>
+	</article>
+	<?php
 	return (string) ob_get_clean();
 }

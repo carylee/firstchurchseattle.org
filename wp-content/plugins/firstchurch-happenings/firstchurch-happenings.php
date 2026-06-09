@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Happenings
  * Description: The Happenings spine — projects upcoming events + recent announcements into one ordered Happening[] feed, exposed over REST (GET /wp-json/firstchurch/v1/happenings) and MCP (firstchurch/get-happenings) for every surface to consume. Lifted out of firstchurch-carousel, which now consumes this. See ops/docs/happenings.md.
- * Version:     0.1.0
+ * Version:     0.3.0
  * Author:      First Church Seattle
  *
  * NOTE: firstchurch-carousel DEPENDS on this plugin — it composes its lobby-screen

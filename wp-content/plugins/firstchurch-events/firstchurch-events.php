@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Events
  * Description: Lean, RRULE-backed events (no recurrence cron). Stores CTC-shaped recurrence meta so RRULE + the human "when" reuse the Happenings spine's tested code, exposes events to the spine (happenings_event_items) and a /events.ics subscription feed, and supports MCP + a light editor for authoring. Transitional: the spine reads this alongside Church Theme Content until events are migrated.
- * Version:     0.1.0
+ * Version:     0.5.0
  * Author:      First Church Seattle
  *
  * @package FirstChurch\Events
@@ -29,6 +29,7 @@ require_once __DIR__ . '/lib/rrule/RfcParser.php';
 require_once __DIR__ . '/lib/rrule/RRule.php';
 require_once __DIR__ . '/lib/rrule/RSet.php';
 require_once __DIR__ . '/src/Recurrence.php';
+require_once __DIR__ . '/src/Occurrences.php';
 require_once __DIR__ . '/src/Ics.php';
 
 const FCE_CPT = 'fce_event';
@@ -51,12 +52,23 @@ const FCE_END     = '_fce_end_date';        // YYYY-MM-DD
 
 add_action( 'init', static function () {
 	register_post_type( FCE_CPT, array(
-		'label'        => 'Events',
-		'public'       => false,
-		'show_ui'      => true,
-		'show_in_menu' => true,
-		'menu_icon'    => 'dashicons-calendar-alt',
-		'supports'     => array( 'title', 'thumbnail' ),
+		'label'              => 'Events',
+		// Singles ARE publicly viewable (single-fce_event.php in the child theme):
+		// the spine projects each event's permalink onto /engage, /upcoming-events/
+		// and the calendar, so it must resolve. Kept lean otherwise — no /event/
+		// archive (the two pages are the surfaces), out of site search + nav menus.
+		'public'             => false,
+		'publicly_queryable' => true,
+		'exclude_from_search' => true,
+		'has_archive'        => false,
+		'show_in_nav_menus'  => false,
+		'show_ui'            => true,
+		'show_in_menu'       => true,
+		'menu_icon'          => 'dashicons-calendar-alt',
+		'supports'           => array( 'title', 'thumbnail', 'editor' ),
+		// Clean single URL /event/<slug>/ (not /fce_event/...). Slug change needs a
+		// rewrite flush — the activation hook does it; on deploy run `wp rewrite flush`.
+		'rewrite'            => array( 'slug' => 'event', 'with_front' => false ),
 	) );
 } );
 

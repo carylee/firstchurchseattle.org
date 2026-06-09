@@ -49,7 +49,10 @@ Happening {
   source    string   // "event" | "announcement" | "card"
   kind      string   // semantic type; today mirrors `layout` (event/info/qr_callout/…)
   title     string
-  blurb     string   // short body / excerpt (the resolver's `body`)
+  blurb     string   // short body / excerpt (the resolver's `body`) — feed/card surfaces
+  content   string?  // full raw body, rendered by the surface. Carried ONLY by the
+                     //   by-id detail projection (happenings_item_by_id), e.g. the event
+                     //   single page — feed items stay lean. Don't populate in feed readers.
   image     string   // full-size URL, optional
   url       string   // canonical permalink (the title links here)
   when      string?  // human date/time, events only ("Sundays at 10:30 am · Sanctuary")
@@ -136,7 +139,26 @@ Each surface is a **filter + curation lens** over the one feed — never its own
 | **/carousel** (screen) | pre/post-service | `fccar_deck` (ref+override) | ✅ live |
 | **/live** ("here now") | the worship-now set | shared w/ carousel | ❌ hardcoded today (Phase 4) |
 | **/engage** ("what's happening") | upcoming + active announcements | weight-sorted Featured, then chrono | ◧ half-built (Phase 3) |
-| **/events**, **/news** | chronological | none (pure query) | ✅ live (CTC/core) |
+| **/events — list** (`/upcoming-events/`) | upcoming, look-ahead window | none (`happenings_event_items`) | ✅ spine-backed (child template) |
+| **/events — calendar** (`/events-calendar/`) | month grid | none (`happenings_event_occurrences`) | ✅ spine-backed (child template) |
+| **/event/&lt;slug&gt;** (single) | one event | none (`happenings_item_by_id`) | ✅ spine-backed (child template) |
+| **/news** | chronological | none (pure query) | ✅ live (core) |
+
+> **/events is spine-backed (2026-06-08).** Both pages were parent-theme templates
+> querying `ctc_event` directly; they went empty when the live set migrated to
+> `fce_event`. They now project the spine via `maranatha-child` page templates
+> (`page-templates/page-events-{upcoming,calendar}.php`) reusing the `/engage`
+> `.fcs-card` language. The calendar needs concrete per-day dates, so the spine
+> grew `happenings_event_occurrences($from,$to)` — the occurrence-expanded
+> counterpart to `happenings_event_items()` (which collapses each event to its
+> next date). fce events are fully RRULE-expanded; CTC events sit on their start
+> date only (legacy, being decommissioned).
+>
+> Event links resolve to a real **single page** at `/event/<slug>/` — itself a spine
+> surface: `single-fce_event.php` renders the projected Happening from
+> `happenings_item_by_id('event-<id>')` (now dispatched to both `ctc_event` and
+> `fce_event`), reading only the freeform body straight from the post (the contract
+> is a lean summary). So the destination a projection points at is also a projection.
 | **e-news** | weekly window | auto-digest + light edit | ⏳ Phase 6 |
 | **bulletin** | this Sunday | curated block | ⏳ Phase 6 |
 
