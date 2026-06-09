@@ -154,12 +154,17 @@ function fcbf_intake_exists(string $entry_id, string $form_id): bool
  */
 function fcbf_intake_insert(array $record, string $form_id, string $form_name)
 {
-    $post_id = wp_insert_post([
+    // wp_insert_post() and update_post_meta() expect *slashed* input and run
+    // wp_unslash() internally — so any backslash in the data (a literal '\' in
+    // free text, or the '’' that wp_json_encode emits for a curly quote)
+    // is stripped unless we wp_slash() first. Slash everything that can carry
+    // arbitrary submission text so it round-trips intact.
+    $post_id = wp_insert_post(wp_slash([
         'post_type'    => FCBF_INTAKE_CPT,
         'post_status'  => 'publish', // CPT is private; status just means "exists in the queue".
         'post_title'   => (string) ($record['title'] ?? 'Intake item'),
         'post_content' => fcbf_intake_render_qa($record),
-    ], true);
+    ]), true);
 
     if (is_wp_error($post_id)) {
         return $post_id;
@@ -170,8 +175,8 @@ function fcbf_intake_insert(array $record, string $form_id, string $form_name)
     update_post_meta($post_id, FCBF_INTAKE_FORM_NAME, $form_name);
     update_post_meta($post_id, FCBF_INTAKE_ENTRY_ID, (string) ($record['entry_id'] ?? ''));
     update_post_meta($post_id, FCBF_INTAKE_CREATED_ON, (string) ($record['created_on'] ?? ''));
-    update_post_meta($post_id, FCBF_INTAKE_CONTACT, (string) wp_json_encode($record['contact'] ?? []));
-    update_post_meta($post_id, FCBF_INTAKE_RESPONSES, (string) wp_json_encode($record['responses'] ?? []));
+    update_post_meta($post_id, FCBF_INTAKE_CONTACT, wp_slash((string) wp_json_encode($record['contact'] ?? [])));
+    update_post_meta($post_id, FCBF_INTAKE_RESPONSES, wp_slash((string) wp_json_encode($record['responses'] ?? [])));
     update_post_meta($post_id, FCBF_INTAKE_STATUS, 'new');
 
     return (int) $post_id;
