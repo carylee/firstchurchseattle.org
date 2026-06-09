@@ -31,9 +31,9 @@ helpers it touches).
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v6
-        - uses: actions/setup-node@v4
+        - uses: actions/setup-node@v6
           with:
-            node-version: '22'
+            node-version: '24'
             cache: npm
             cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
         - name: tailwind.css matches its source
@@ -73,9 +73,9 @@ Add these two steps to the `deploy` job in `deploy.yml`, **before** the
 *Configure SSH* / *Deploy* steps:
 
 ```yaml
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
           cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
       - name: Compile Tailwind from source (prod serves this build)
