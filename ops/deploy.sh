@@ -17,7 +17,18 @@ cd "$REPO"
 
 # Pin the church.pem key explicitly (robust regardless of ~/.ssh/config / agent state).
 KEY="${FIRSTCHURCH_KEY:-$(dirname "$REPO")/church.pem}"
-RSH="ssh"; [ -f "$KEY" ] && RSH="ssh -o IdentitiesOnly=yes -i $KEY"
+
+# Multiplex every rsync over ONE SSH connection. This script opens ~11 separate
+# connections (one rsync per path); HostGator rate-limits SSH and refuses the later
+# ones, so the trailing rsyncs (the ~/bin cron script, bulletin/index.php) failed in
+# CI with "connect ... Connection refused". It worked from a dev box only because our
+# ~/.ssh/config already multiplexes — the CI runner's ssh does not. ControlMaster=auto
+# opens the master on the first rsync; the rest reuse it (no new handshakes → no rate
+# limit). ControlPersist keeps it briefly so every rsync in this run shares it.
+MUX="-o ControlMaster=auto -o ControlPath=${TMPDIR:-/tmp}/fc-deploy-%r@%h:%p -o ControlPersist=120s"
+RSH="ssh $MUX"; [ -f "$KEY" ] && RSH="ssh -o IdentitiesOnly=yes -i $KEY $MUX"
+# Tear the shared master down on exit (ControlPersist would expire it anyway; tidy on CI).
+trap 'ssh $MUX -O exit firstchurch 2>/dev/null || true' EXIT
 
 REMOTE="firstchurch:public_html/wp-content"
 
