@@ -18,8 +18,27 @@ helpers it touches).
 
 - **lint** — `php -l` on every tracked `*.php`, on PHP 8.2 and 8.3 (prod runs
   8.2 web / 8.3 CLI).
-- **breeze-forms** — `composer install` + `vendor/bin/phpunit` in
-  `wp-content/plugins/firstchurch-breeze-forms`.
+- **breeze-forms** (and the other custom plugins) — `composer install` +
+  `vendor/bin/phpunit`.
+- **tailwind-build** — rebuilds `wp-content/themes/maranatha-child/assets/tailwind.css`
+  from `assets/src/input.css` and fails if it differs from the committed file, so the
+  compiled artifact can't drift from its source (`ops/scripts/check-tailwind-build.sh`).
+  Add the job with:
+
+  ```yaml
+    tailwind-build:
+      name: tailwind in sync
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v6
+        - uses: actions/setup-node@v4
+          with:
+            node-version: '22'
+            cache: npm
+            cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
+        - name: tailwind.css matches its source
+          run: ops/scripts/check-tailwind-build.sh
+  ```
 
 `firstchurch-connection-card` has no test suite yet, so it's lint-only. Add a
 `tests/` dir + `composer.json` there and it picks up the same pattern.
@@ -35,6 +54,37 @@ Runs `ops/deploy.sh` from a runner. Triggered by:
 
 Deploys are serialized (`concurrency: deploy-production`) and run in the
 `production` environment so you can require manual approval (see below).
+
+### Tailwind is rebuilt on deploy
+
+The child theme's `assets/tailwind.css` is a compiled artifact (source:
+`assets/src/input.css`, pinned toolchain in `package.json`). **Production never
+builds** — `ops/deploy.sh` is a pure rsync, so a manual/dev deploy ships the
+committed, CI-verified artifact unchanged (no Node needed locally).
+
+The **CD workflow**, however, recompiles it from source on the runner right
+before the rsync, so what lands on prod is always freshly built by the pinned
+toolchain rather than trusted from the commit. (CI's `tailwind-build` job already
+guarantees the committed file matches source, so this produces identical bytes —
+it's defense-in-depth, and it's the seam to lean on if we ever stop committing
+the artifact.) `deploy.sh` stays Node-free; the build is a workflow step.
+
+Add these two steps to the `deploy` job in `deploy.yml`, **before** the
+*Configure SSH* / *Deploy* steps:
+
+```yaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
+      - name: Compile Tailwind from source (prod serves this build)
+        run: wp-content/themes/maranatha-child/build-css.sh
+```
+
+`build-css.sh` runs `npm ci` (when `node_modules` is absent, as on a fresh
+runner) then `npx tailwindcss … --minify`, writing `assets/tailwind.css` in the
+checked-out tree that `deploy.sh` then rsyncs.
 
 ### One-time setup
 
