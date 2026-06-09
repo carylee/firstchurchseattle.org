@@ -1029,3 +1029,81 @@ main#maranatha-content {
 		display: none;
 	}
 }
+
+/* -------------------------------------------------------------------------
+ * Homepage polish (cross-viewport)
+ *
+ * The homepage is built from the parent's CT "home section" widgets. Two parent
+ * defaults work against it, on every screen size:
+ *
+ *   1. Each section carries `.maranatha-viewport-height` (height: 100vh), so the
+ *      four bands — hero, Worship, News+Events, Gatherings — each fill a whole
+ *      screen even though most hold only a heading, a sentence and a few links.
+ *      The page becomes four screens of mostly empty space.
+ *   2. The section CTAs render as `.maranatha-circle-buttons-list`: fixed
+ *      7.25rem circles that cram multi-word labels ("Support Shared Breakfast")
+ *      into a tiny disc, hurting both scannability and tap-target size.
+ *
+ * These rules are deliberately cross-viewport (not inside the mobile query):
+ * size the bands to their content, keep the hero a comfortable landing height,
+ * and turn the circle CTAs into legible pill buttons. The map section's own
+ * icon marker (`.maranatha-circle-button-small`) is a different class and is
+ * left untouched.
+ * --------------------------------------------------------------------- */
+
+/* Bands size to their content instead of a full screen each. */
+#maranatha-home-main .maranatha-home-section.maranatha-viewport-height {
+	height: auto;
+	min-height: 0;
+	padding-top: 5rem;
+	padding-bottom: 5rem;
+}
+
+/* Keep the first band (hero) feeling like a landing banner. */
+#maranatha-home-main > .maranatha-home-section:first-of-type {
+	min-height: 60vh;
+}
+
+/* CTA lists: cramped circles -> legible pill buttons. The border, uppercase
+   and brand colour are inherited from the parent rule; only the shape, size
+   and spacing change here. */
+.maranatha-circle-buttons-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	justify-content: center;
+	max-width: 50rem;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.maranatha-circle-buttons-list li,
+.maranatha-circle-buttons-list a {
+	width: auto;
+	height: auto;
+	border-radius: 2em;
+}
+
+.maranatha-circle-buttons-list li {
+	display: inline-flex;
+	margin: 0;
+}
+
+.maranatha-circle-buttons-list a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.85em 1.5em;
+	font-size: 0.82em;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+/* Home-section headings: lift the ultra-thin (200) parent weight a notch so the
+   white-on-maroon / white-on-charcoal titles read cleanly. */
+.maranatha-home-section-content h1,
+.maranatha-home-section-content h2,
+.maranatha-home-section-content .maranatha-h1,
+.maranatha-home-section-content .maranatha-h2 {
+	font-weight: 300;
+}
