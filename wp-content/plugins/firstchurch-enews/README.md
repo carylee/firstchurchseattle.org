@@ -25,14 +25,31 @@ block editor. The issue is a *thin curation layer*, not a content store:
 ```
 firstchurch-enews/
 ├── firstchurch-enews.php   # bootstrap: CPT slug + meta keys, requires, rewrite flush
-└── inc/
-    ├── cpt.php             # register enews_issue + its pre-fill block template
-    └── meta.php            # subject / preview / send-date meta + the settings meta box
+├── src/
+│   └── Email.php           # pure, unit-tested email render (card + document scaffold)
+├── inc/
+│   ├── cpt.php             # register enews_issue + its pre-fill block template
+│   ├── meta.php            # subject / preview / send-date meta + the settings meta box
+│   └── render.php          # walk an issue's blocks → email HTML; staff "Preview email"
+└── tests/                  # PHPUnit for src/ (dev-only, not deployed)
 ```
 
-No `src/`/tests: the plugin is WordPress registration glue (CPT + meta + a block template
-array). The composing logic it leans on — the spine projection and the `firstchurch/happenings`
-block — is tested in `firstchurch-happenings` and the theme.
+## Email render & preview
+
+`fcen_render_email( $issue_id )` walks the issue's blocks: each `firstchurch/happenings` block
+becomes a stack of email cards drawn from the **same spine lens** (`happenings_section_items`)
+the `/engage` web block uses — so the email and the website agree on every section — and every
+other block renders through WordPress. The result is wrapped in an inline-styled, table-based,
+600px email scaffold (`src/Email.php`, the pure tested core). Staff preview a draft via the
+**Preview email** link in the editor's Publish box (a nonced, edit-gated `admin-post` endpoint,
+so it works for unpublished issues and is never public).
+
+```bash
+ddev exec 'cd wp-content/plugins/firstchurch-enews && composer install && vendor/bin/phpunit --testdox'
+```
+
+`vendor/`, `tests/`, `composer.*`, `phpunit.xml.dist` are dev-only — gitignored where applicable
+and excluded from the deploy. Production loads `src/` via explicit `require_once` (no Composer).
 
 ## Depends on
 
@@ -49,7 +66,8 @@ ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-enews && wp 
 
 ## Not yet (follow-ups, see enews-spine.md §7)
 
-- **6.4** an email-safe (table/inlined-CSS) render of an issue + preview.
-- **6.5** push that render to Mailchimp (campaign API / import-from-URL) for sending.
+- **6.5** push the rendered issue to Mailchimp (campaign API / import-from-URL) for sending.
 - Projecting the evergreen "Recurring at First Church" list from a real source rather than
   seeding it as editable furniture.
+- Inline-styling the editorial blocks (headings/paragraphs render as semantic HTML today; the
+  scaffold sets a base font, which most clients honor — revisit if a client needs more).
