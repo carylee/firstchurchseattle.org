@@ -87,6 +87,29 @@ if [ "$DO_DB" = 1 ] && [ "$DO_SANITIZE" = 1 ] && [ -z "$DRY" ]; then
   ddev sanitize-db
 fi
 
+# --- Localize absolute prod URLs (local mirror only) -----------------------
+# Prod content/widgets hardcode absolute https://firstchurchseattle.org/... links
+# (WordPress stores in-content URLs absolute by design). Those don't adapt to the
+# local host — only WordPress-GENERATED links (home_url/permalinks) get rewritten
+# to the host you browse from; literal in-content URLs are emitted verbatim. So on
+# the local / Tailscale mirror they'd jump to the live site. Strip the scheme+host
+# to make them ROOT-RELATIVE (/about/), which resolves against whatever host you
+# browse from — ddev.site OR the Tailscale name (the one static form that works for
+# both). Safe here because it's a disposable mirror; the feeds/email/SEO reasons
+# prod keeps them absolute don't apply locally. home/siteurl are the DDEV host (not
+# prod), so the strip never touches them; WP_HOME comes from DDEV_PRIMARY_URL in
+# wp-config-ddev.php regardless. Independent of --no-sanitize (not PII). Prod + git
+# untouched — the export above is read-only.
+if [ "$DO_DB" = 1 ] && [ -z "$DRY" ]; then
+  echo "==> Localizing absolute prod URLs (-> root-relative)"
+  for scheme in https http; do
+    # --skip-columns=guid: GUIDs are identifiers, not links — leave them be.
+    ddev wp search-replace "${scheme}://firstchurchseattle.org" "" \
+      --all-tables --skip-columns=guid --report-changed-only || true
+  done
+  ddev wp cache flush >/dev/null 2>&1 || true
+fi
+
 # --- Stamp -----------------------------------------------------------------
 if [ -z "$DRY" ]; then
   stamp="$REPO/.ddev/.last-pull"
