@@ -203,4 +203,4 @@ extensions now that the spine is its own home.
 | 3 | `/engage` becomes spine-driven (block); nav link; retire `featured` category | **v1 public hub** |
 | 4 | `/live` + carousel share a worship-now set; **Featured spans events** (dated happenings get a real when-line + CTA, retiring the /engage date-suppression) | unify the two renderings |
 | 5 | Taxonomy collapse; finish native connection-card; purge review queue | structural cleanup |
-| 6 | e-news digest + bulletin announcement block from the spine | new surfaces |
+| 6 | e-news digest + bulletin announcement block from the spine ([`enews-spine.md`](./enews-spine.md)) | new surfaces |
