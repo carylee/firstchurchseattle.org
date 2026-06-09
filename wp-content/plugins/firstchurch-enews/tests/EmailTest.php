@@ -108,4 +108,27 @@ final class EmailTest extends TestCase
         $this->assertStringContainsString('<!DOCTYPE', $html);
         $this->assertStringContainsString('<p>x</p>', $html);
     }
+
+    public function test_document_appends_an_optional_footer_after_the_body(): void
+    {
+        // The footer (built by the WP glue) carries the social links, past-issues
+        // link, copyright, and the Mailchimp unsubscribe/address merge tags so the
+        // pushed draft is send-ready. It's trusted HTML, embedded verbatim and
+        // positioned after the body.
+        $footer = '<a href="https://x/archive">Past issues</a> *|UNSUB|*';
+        $html   = Email::document('<p>body</p>', ['footer' => $footer]);
+
+        $this->assertStringContainsString($footer, $html);
+        $this->assertGreaterThan(
+            strpos($html, '<p>body</p>'),
+            strpos($html, 'Past issues'),
+            'the footer renders after the body'
+        );
+    }
+
+    public function test_document_without_footer_emits_no_merge_tags(): void
+    {
+        $html = Email::document('<p>x</p>', []);
+        $this->assertStringNotContainsString('*|UNSUB|*', $html);
+    }
 }

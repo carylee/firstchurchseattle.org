@@ -54,9 +54,43 @@ function fcen_render_email( int $post_id ): string {
 		'subject' => '' !== $subject ? $subject : get_the_title( $post ),
 		'preview' => (string) get_post_meta( $post_id, FCEN_PREVIEW_KEY, true ),
 		'date'    => (string) get_post_meta( $post_id, FCEN_DATE_KEY, true ),
+		'footer'  => fcen_email_footer(),
 	);
 
 	return Email::document( $inner, $env );
+}
+
+/**
+ * The church footer: social + past-issues + copyright (mirroring the live
+ * newsletter) plus the Mailchimp merge tags (unsubscribe / update preferences /
+ * physical address) so a pushed draft is send-ready. The merge tags resolve when
+ * Mailchimp sends; in the browser preview they show literally. Filterable via
+ * `fcen_email_footer_html`.
+ */
+function fcen_email_footer(): string {
+	$maroon = '#7a1f2b';
+	$social = array(
+		'Facebook'              => 'https://www.facebook.com/firstchurchseattle',
+		'Instagram'             => 'https://www.instagram.com/firstchurchseattle/',
+		'firstchurchseattle.org' => 'https://firstchurchseattle.org/',
+	);
+	$past = 'https://us2.campaign-archive.com/home/?u=18291af87fbc7224df67d6ab8&id=24fee5f80d';
+	$year = (string) current_time( 'Y' );
+
+	$links = array();
+	foreach ( $social as $label => $url ) {
+		$links[] = '<a href="' . esc_url( $url ) . '" style="color:' . $maroon . ';">' . esc_html( $label ) . '</a>';
+	}
+
+	$html  = '<p style="margin:0 0 8px;">' . implode( ' &middot; ', $links ) . '</p>';
+	$html .= '<p style="margin:0 0 8px;"><a href="' . esc_url( $past ) . '" style="color:' . $maroon . ';">View past issues</a></p>';
+	$html .= '<p style="margin:0 0 8px;">Copyright &copy; ' . esc_html( $year ) . ' First Church Seattle. All rights reserved.</p>';
+	// Mailchimp-resolved at send (literal in preview); required for a sendable draft.
+	$html .= '<p style="margin:0;">*|HTML:LIST_ADDRESS_HTML|*<br>'
+		. '<a href="*|UPDATE_PROFILE|*" style="color:#666666;">Update preferences</a> &middot; '
+		. '<a href="*|UNSUB|*" style="color:#666666;">Unsubscribe</a></p>';
+
+	return (string) apply_filters( 'fcen_email_footer_html', $html );
 }
 
 /**
