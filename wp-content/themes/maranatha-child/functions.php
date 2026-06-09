@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version string for cache-busting child assets. Bump when the CSS/JS changes.
  */
 if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.6.11' );
+	define( 'FCS_CHILD_VERSION', '0.7.0' );
 }
 
 /**
@@ -26,6 +26,7 @@ require_once get_stylesheet_directory() . '/inc/announcements-cta.php';
 require_once get_stylesheet_directory() . '/inc/single-featured-image.php';
 require_once get_stylesheet_directory() . '/inc/block-editor-fixes.php';
 require_once get_stylesheet_directory() . '/inc/happenings-block.php';
+require_once get_stylesheet_directory() . '/inc/footer-map.php';
 
 /**
  * Enqueue parent + child stylesheets.
