@@ -16,27 +16,29 @@ maranatha-child/
 │   └── page-worship-live.php       # Template Name: Worship Live (Custom)
 ├── assets/
 │   ├── mobile.css                  # hand-written CSS (drawer, tap targets, polish)
-│   ├── tailwind.css                # COMPILED Tailwind v4 output (committed)
-│   └── src/input.css               # Tailwind v4 source
-├── bin/
-│   ├── tailwindcss                 # standalone binary (gitignored — see bin/README.md)
-│   └── README.md
+│   ├── tailwind.css                # COMPILED Tailwind v4 output (committed; CI-verified)
+│   └── src/input.css               # Tailwind v4 source (the source of truth)
+├── package.json / package-lock.json # pinned Tailwind toolchain (tailwindcss 4.3.0)
 └── build-css.sh                    # ./build-css.sh [--watch]
 ```
 
 ## Quickstart (development)
 
-```sh
-# One-time: install Tailwind CLI binary (see bin/README.md for other platforms)
-curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64
-mv tailwindcss-macos-arm64 bin/tailwindcss && chmod +x bin/tailwindcss
+The Tailwind toolchain is pinned in `package.json` (no manually-downloaded
+binary). You need Node; `build-css.sh` installs deps on first run.
 
-# Build once
+```sh
+# Build once (runs `npm ci` automatically if node_modules is missing)
 ./build-css.sh
 
 # Or watch + rebuild during development
 ./build-css.sh --watch
 ```
+
+`assets/tailwind.css` is the **committed compiled artifact** — its source of
+truth is `assets/src/input.css`. CI rebuilds it and fails if the two drift
+(`ops/scripts/check-tailwind-build.sh`), so always commit a fresh `./build-css.sh`
+output alongside any `input.css` change. (`node_modules/` is gitignored.)
 
 ## Deploying to production
 

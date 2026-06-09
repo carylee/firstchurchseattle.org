@@ -37,6 +37,9 @@
 # directly. All theme changes go in maranatha-child. See CLAUDE.md.
 !/wp-content/themes/maranatha/
 !/wp-content/themes/maranatha-child/
+# ...but never its Tailwind build deps. The compiled assets/tailwind.css is
+# committed (CI verifies it matches assets/src/input.css); node_modules is not.
+/wp-content/themes/maranatha-child/node_modules/
 !/wp-content/plugins/
 /wp-content/plugins/*
 !/wp-content/plugins/firstchurch-connection-card/

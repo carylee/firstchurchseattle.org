@@ -1,0 +1,13 @@
+{
+  "name": "maranatha-child-css",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Tailwind build for the Maranatha child theme: compiles assets/src/input.css -> assets/tailwind.css (committed artifact; production never builds).",
+  "scripts": {
+    "build": "tailwindcss -i ./assets/src/input.css -o ./assets/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.0",
+    "tailwindcss": "4.3.0"
+  }
+}
