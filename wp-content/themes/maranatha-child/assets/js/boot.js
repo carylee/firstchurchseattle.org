@@ -11,6 +11,7 @@
  * the import map and the versioned URLs.
  */
 import { wireSkipLink } from '@firstchurch/skip-link';
+import { mountWorshipLive } from '@firstchurch/worship-live';
 
 /**
  * Run fn once the DOM is parsed. Script modules are deferred, so DOMContentLoaded
@@ -28,4 +29,5 @@ function onReady(fn) {
 
 onReady(() => {
 	wireSkipLink(document);
+	mountWorshipLive(document);
 });

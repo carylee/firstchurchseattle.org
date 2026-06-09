@@ -44,13 +44,19 @@ add_action(
 			array(),
 			$ver
 		);
+		wp_register_script_module(
+			'@firstchurch/worship-live',
+			$base . '/islands/worship-live.js',
+			array(),
+			$ver
+		);
 
 		// Entry module — depends on every island it imports so they land in the
 		// import map with cache-busted URLs.
 		wp_register_script_module(
 			'@firstchurch/boot',
 			$base . '/boot.js',
-			array( '@firstchurch/skip-link' ),
+			array( '@firstchurch/skip-link', '@firstchurch/worship-live' ),
 			$ver
 		);
 

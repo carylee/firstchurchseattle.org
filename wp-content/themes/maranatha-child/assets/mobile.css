@@ -1107,3 +1107,33 @@ main#maranatha-content {
 .maranatha-home-section-content .maranatha-h2 {
 	font-weight: 300;
 }
+
+/* Worship-live status line. The slot ships hidden; the island
+   (assets/js/islands/worship-live.js) reveals it and adds .is-live during the
+   Sunday service, where a pulsing dot makes the "Live now" state read as active
+   rather than a static schedule note. */
+[data-island="worship-live"].is-live {
+	color: #2e7d32; /* a calm green, distinct from the brand maroon */
+}
+
+[data-island="worship-live"].is-live::before {
+	content: "";
+	display: inline-block;
+	width: 0.5em;
+	height: 0.5em;
+	margin-right: 0.4em;
+	border-radius: 50%;
+	background: currentColor;
+	animation: fcs-live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes fcs-live-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	[data-island="worship-live"].is-live::before {
+		animation: none;
+	}
+}
