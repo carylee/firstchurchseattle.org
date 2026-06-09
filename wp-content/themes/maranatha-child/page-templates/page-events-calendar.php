@@ -73,7 +73,11 @@ function fcs_events_calendar_after_content() {
 	$show_prev = $month > $this_month;
 	$show_next = $next->format( 'Y-m' ) <= $max_month;
 
-	echo '<section id="maranatha-calendar" class="fcs-events-calendar" aria-label="' . esc_attr__( 'Events calendar', 'maranatha-child' ) . '">';
+	// NB: deliberately NOT id="maranatha-calendar" — that id makes the parent
+	// theme's main.js (maranatha_attach_calendar_dropdowns + pjax) auto-fire and
+	// call a jQuery .dropdown() plugin we don't load (console error). We reuse the
+	// table's `maranatha-calendar-table*` styling without the parent's JS.
+	echo '<section class="fcs-events-calendar" aria-label="' . esc_attr__( 'Events calendar', 'maranatha-child' ) . '">';
 
 	// ---- Header: prev · month · next ----
 	echo '<div class="fcs-events-calendar__header">';
