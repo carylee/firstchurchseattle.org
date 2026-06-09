@@ -122,6 +122,19 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+  tailwind-build:
+    name: tailwind in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
+      - name: tailwind.css matches its source
+        run: ops/scripts/check-tailwind-build.sh
+
   child-theme-js:
     name: child theme JS (lint + unit)
     runs-on: ubuntu-latest
@@ -130,9 +143,9 @@ jobs:
         working-directory: wp-content/themes/maranatha-child
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
           cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
       - name: Install dev toolchain
