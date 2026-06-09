@@ -44,6 +44,18 @@ function fcs_weight_choices() {
 	);
 }
 
+/**
+ * Post types that carry the Prominence (weight) control, so any of them can be
+ * promoted into the /engage + e-news Featured row. Announcements are posts;
+ * events span both backends (CTC is being decommissioned, fce is current). The
+ * spine reads fcs_weight from all three (see firstchurch-happenings sources).
+ *
+ * @return array<int,string>
+ */
+function fcs_promo_post_types() {
+	return array( 'post', 'ctc_event', 'fce_event' );
+}
+
 /** Sanitize an expiry value: a YYYY-MM-DD date, or '' to clear. */
 function fcs_sanitize_expires( $value ) {
 	$value = trim( (string) $value );
@@ -92,31 +104,38 @@ add_action(
 			)
 		);
 
-		register_post_meta(
-			'post',
-			FCS_WEIGHT_KEY,
-			array(
-				'type'              => 'integer',
-				'single'            => true,
-				'show_in_rest'      => true,
-				'sanitize_callback' => 'absint',
-				'auth_callback'     => $can_edit,
-				'default'           => 0,
-			)
-		);
+		// Prominence (and expiry) ride on every promotable type — posts AND events
+		// — so a weighted event can join the Featured row (ops/docs/happenings.md
+		// Phase 4). Expiry is meaningful mainly for posts (events self-expire by
+		// date), but registering it uniformly is harmless and keeps the meta box
+		// one shape.
+		foreach ( fcs_promo_post_types() as $promo_type ) {
+			register_post_meta(
+				$promo_type,
+				FCS_WEIGHT_KEY,
+				array(
+					'type'              => 'integer',
+					'single'            => true,
+					'show_in_rest'      => true,
+					'sanitize_callback' => 'absint',
+					'auth_callback'     => $can_edit,
+					'default'           => 0,
+				)
+			);
 
-		register_post_meta(
-			'post',
-			FCS_EXPIRES_KEY,
-			array(
-				'type'              => 'string',
-				'single'            => true,
-				'show_in_rest'      => true,
-				'sanitize_callback' => 'fcs_sanitize_expires',
-				'auth_callback'     => $can_edit,
-				'default'           => '',
-			)
-		);
+			register_post_meta(
+				$promo_type,
+				FCS_EXPIRES_KEY,
+				array(
+					'type'              => 'string',
+					'single'            => true,
+					'show_in_rest'      => true,
+					'sanitize_callback' => 'fcs_sanitize_expires',
+					'auth_callback'     => $can_edit,
+					'default'           => '',
+				)
+			);
+		}
 	}
 );
 
@@ -127,6 +146,7 @@ add_action(
 add_action(
 	'add_meta_boxes',
 	function () {
+		// CTA button is post-only — events carry their own registration URL field.
 		add_meta_box(
 			'fcs-cta',
 			__( 'Call to Action (button)', 'maranatha-child' ),
@@ -135,14 +155,17 @@ add_action(
 			'side',
 			'default'
 		);
-		add_meta_box(
-			'fcs-promo',
-			__( 'Promotion & expiry', 'maranatha-child' ),
-			'fcs_promo_meta_box_render',
-			'post',
-			'side',
-			'default'
-		);
+		// Prominence rides on posts AND events so either can be featured.
+		foreach ( fcs_promo_post_types() as $promo_type ) {
+			add_meta_box(
+				'fcs-promo',
+				__( 'Promotion & expiry', 'maranatha-child' ),
+				'fcs_promo_meta_box_render',
+				$promo_type,
+				'side',
+				'default'
+			);
+		}
 	}
 );
 
@@ -186,8 +209,12 @@ function fcs_cta_meta_box_render( $post ) {
  * @param WP_Post $post Current post.
  */
 function fcs_promo_meta_box_render( $post ) {
+	wp_nonce_field( 'fcs_promo_save', 'fcs_promo_nonce' );
 	$weight  = (int) get_post_meta( $post->ID, FCS_WEIGHT_KEY, true );
 	$expires = get_post_meta( $post->ID, FCS_EXPIRES_KEY, true );
+	// Events self-expire by date, so the explicit "stop showing after" date is a
+	// posts-only control; events show Prominence alone.
+	$show_expiry = ( 'post' === $post->post_type );
 	?>
 	<p>
 		<label for="fcs_weight_field" style="display:block;font-weight:600;margin-bottom:4px;">
@@ -201,6 +228,7 @@ function fcs_promo_meta_box_render( $post ) {
 			<?php endforeach; ?>
 		</select>
 	</p>
+	<?php if ( $show_expiry ) : ?>
 	<p>
 		<label for="fcs_expires_field" style="display:block;font-weight:600;margin-bottom:4px;">
 			<?php esc_html_e( 'Stop showing after', 'maranatha-child' ); ?>
@@ -208,8 +236,13 @@ function fcs_promo_meta_box_render( $post ) {
 		<input type="date" id="fcs_expires_field" name="fcs_expires_field"
 		       value="<?php echo esc_attr( $expires ); ?>" class="widefat">
 	</p>
+	<?php endif; ?>
 	<p style="color:#666;font-size:12px;margin:0;">
-		<?php esc_html_e( 'Featured/Pinned float this up the What\'s Happening page and lobby screen. After the expiry date it drops off those surfaces but stays in the news archive.', 'maranatha-child' ); ?>
+		<?php
+		echo $show_expiry
+			? esc_html__( 'Featured/Pinned float this up the What\'s Happening page and lobby screen. After the expiry date it drops off those surfaces but stays in the news archive.', 'maranatha-child' )
+			: esc_html__( 'Featured/Pinned float this event up the What\'s Happening page, the e-news, and the lobby screen. Past events drop off on their own.', 'maranatha-child' );
+		?>
 	</p>
 	<?php
 }
@@ -242,14 +275,41 @@ add_action(
 
 		update_post_meta( $post_id, FCS_CTA_TEXT_KEY, $text );
 		update_post_meta( $post_id, FCS_CTA_URL_KEY, $url );
+	}
+);
+
+/**
+ * Save the Promotion & expiry box — on posts AND events (the box renders on every
+ * fcs_promo_post_types()). Its own nonce, since the box appears on screens that
+ * lack the post-only CTA box. Expiry is only present in POST for posts (events
+ * hide it); when absent we leave the stored value untouched rather than clearing
+ * it.
+ */
+add_action(
+	'save_post',
+	function ( $post_id ) {
+		if ( ! isset( $_POST['fcs_promo_nonce'] )
+			|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['fcs_promo_nonce'] ) ), 'fcs_promo_save' ) ) {
+			return;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
 
 		$weight = isset( $_POST['fcs_weight_field'] ) ? absint( wp_unslash( $_POST['fcs_weight_field'] ) ) : 0;
-		$expires = isset( $_POST['fcs_expires_field'] )
-			? fcs_sanitize_expires( wp_unslash( $_POST['fcs_expires_field'] ) )
-			: '';
-
 		update_post_meta( $post_id, FCS_WEIGHT_KEY, $weight );
-		update_post_meta( $post_id, FCS_EXPIRES_KEY, $expires );
+
+		// Posts-only field: only touch expiry when the control was on screen.
+		if ( isset( $_POST['fcs_expires_field'] ) ) {
+			update_post_meta(
+				$post_id,
+				FCS_EXPIRES_KEY,
+				fcs_sanitize_expires( wp_unslash( $_POST['fcs_expires_field'] ) )
+			);
+		}
 	}
 );
 
