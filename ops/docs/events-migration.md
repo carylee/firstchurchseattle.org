@@ -59,8 +59,41 @@ events. Leave history in CTC (or export later); re-seed what's actually used.
 5. **Decommission:** once the live set is fully on fce and verified, deactivate the CTC events
    capability (`church-content-pro` provides recurrence; `church-theme-content` the CPT). Keep them
    *installed but inactive* for a cycle as rollback insurance before removing.
-6. **Sermons:** separate, simpler call — retire the dead `ctc_sermon` archive to the YouTube
-   channel/playlists (already the real archive) rather than rebuilding. Not part of this migration.
+6. **Sermons:** separate, simpler call — and **partly already done, partly broken**. The
+   `ctc_sermon` archive still exists and resolves at `/worship/sermons-2/topics/` (the CTC
+   archive base `/sermons/` 301s there; individual sermons live at `/sermons/<slug>/`). Content is
+   effectively dead — newest sermon is **2025-07-14** (~11 months stale; YouTube is the real
+   archive now). **The live bug is the nav link:** the "Sermons" menu item points at
+   `/worship/sermons/`, which **404s** (the page got slug `sermons-2` because `sermons` was taken
+   by the CPT archive base, so `/worship/sermons/` never existed). **Fix (prod data, not code):**
+   repoint the menu item to the YouTube channel/playlists (the intended destination) or, if keeping
+   the WP archive, to `/sermons/`. Optionally clean up the `sermons-2` slug. Not part of the events
+   migration, but tracked here so it isn't lost.
+
+## Display-layer gap: the standalone event pages — **CLOSED (#31)**
+
+The transition wired `fce_event` into the **spine** (`happenings_event_items()` merges CTC +
+`fce_event_items()`), so every *spine consumer* shows the migrated events: `/engage`, the carousel,
+and the `/events.ics` feed. But two public pages were **not** spine consumers — they were the parent
+Maranatha **CTC page templates**, which queried `ctc_event` directly and bypassed the spine entirely:
+
+| Page (in main nav) | Template (parent theme) | Read |
+|---|---|---|
+| `/events-calendar/` | `maranatha/page-templates/events-calendar.php` (`ctfw_event_calendar_data()`) | `ctc_event` |
+| `/upcoming-events/` | `maranatha/page-templates/events-upcoming.php` (`maranatha_loop_after_content_query`) | `ctc_event` |
+| `/past-events/`     | `maranatha/page-templates/events-past.php` | `ctc_event` |
+
+Once the live set moved to `fce_event` and the CTC originals were unpublished, these pages rendered
+**200-but-empty** — zero event titles in their HTML, while `/engage` and `/events.ics` listed the
+same events fine.
+
+**Resolved via option 1 (child-theme template overrides), PR #31.** `maranatha-child` now ships
+spine-backed `page-templates/events-calendar.php` + `events-upcoming.php` that render from the spine
+(`happenings_event_items()` / `happenings_event_occurrences()`) instead of CTC, so the standalone
+nav pages no longer query `ctc_event` for the live set. This was the clean end state and the
+prerequisite for dropping `church-content-pro`, so step 5 (decommission CTC) is now unblocked for
+these pages. (For the record, the alternatives considered were: 2 — 301 both nav URLs to `/engage`
+and drop them from the menu; 3 — re-point the page bodies to a Happenings block/shortcode.)
 
 ## Import script (sketch — review before running)
 
