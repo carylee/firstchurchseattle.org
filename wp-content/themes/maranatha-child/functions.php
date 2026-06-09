@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version string for cache-busting child assets. Bump when the CSS/JS changes.
  */
 if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.8.0' );
+	define( 'FCS_CHILD_VERSION', '0.12.0' );
 }
 
 /**
@@ -30,6 +30,7 @@ require_once get_stylesheet_directory() . '/inc/footer-map.php';
 require_once get_stylesheet_directory() . '/inc/font-optimization.php';
 require_once get_stylesheet_directory() . '/inc/sermon-structured-data.php';
 require_once get_stylesheet_directory() . '/inc/event-structured-data.php';
+require_once get_stylesheet_directory() . '/inc/scripts.php';
 
 /**
  * Enqueue parent + child stylesheets.
@@ -91,27 +92,8 @@ add_action( 'wp_body_open', function () {
 } );
 
 /**
- * The theme renders <main id="maranatha-content"> on most pages and
- * <main id="maranatha-home-main"> on the homepage. Rather than override either
- * template, inject a tiny inline script that adds id="main-content" + tabindex
- * to whichever one exists. Runs in <head> so the anchor is wired before paint.
+ * The skip link's #main-content target is injected by the skip-link island
+ * (assets/js/islands/skip-link.js), enqueued as an ES module from inc/scripts.php
+ * — replacing what used to be an inline wp_head script here. Moving it out of an
+ * inline <script> also unblocks a stricter Content-Security-Policy later.
  */
-add_action( 'wp_head', function () {
-	?>
-	<script>
-	document.addEventListener('DOMContentLoaded', function () {
-		var m = document.querySelector('main[id]');
-		if (m && !document.getElementById('main-content')) {
-			m.id = m.id; // keep original
-			m.setAttribute('tabindex', '-1');
-			// Add an additional anchor target so the skip link works regardless of which main id is in use.
-			var anchor = document.createElement('span');
-			anchor.id = 'main-content';
-			anchor.setAttribute('tabindex', '-1');
-			anchor.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);';
-			m.insertBefore(anchor, m.firstChild);
-		}
-	});
-	</script>
-	<?php
-}, 1 );

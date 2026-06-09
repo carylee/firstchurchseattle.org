@@ -111,7 +111,8 @@ function happenings_event_occurrences(string $from, string $to): array
 
 function happenings_event_to_item(WP_Post $post): array
 {
-    $reg = (string) get_post_meta($post->ID, '_ctc_event_registration_url', true);
+    $reg    = (string) get_post_meta($post->ID, '_ctc_event_registration_url', true);
+    $weight = (int) get_post_meta($post->ID, 'fcs_weight', true);
 
     return happenings_item([
         'id'     => 'event-' . $post->ID,
@@ -122,6 +123,9 @@ function happenings_event_to_item(WP_Post $post): array
         'when'   => happenings_event_when($post->ID),
         'ctaUrl' => $reg ?: (string) get_permalink($post),
         'image'  => (string) get_the_post_thumbnail_url($post, 'full'),
+        // Prominence, so a weighted event can join the Featured row (Phase 4).
+        // Present only when > 0 (Item drops 0), matching the announcement source.
+        'weight' => $weight > 0 ? $weight : '',
         'url'    => (string) get_permalink($post),
     ]);
 }
@@ -166,13 +170,42 @@ function happenings_news_items(int $days): array
 }
 
 /**
- * Posts promoted to the Featured row: any published post with fcs_weight > 0,
- * honoring expiry, sorted by weight (desc) then date (desc), capped. Featured is
- * curated by weight — it is NOT recency-bound and not limited to the
- * Announcements category (the weight meta is post-wide). A promoted post stays
- * featured until its weight is cleared or it expires. Projected like news.
+ * The Featured row: the most prominent Happenings, curated by weight — spanning
+ * BOTH announcements and upcoming events (Phase 4). Either source can be promoted
+ * (set fcs_weight > 0); a weighted event joins the row carrying its real when-line
+ * and Register CTA, so a dated happening no longer has to masquerade as a
+ * date-suppressed announcement.
+ *
+ * Pool:
+ *   - announcements/posts — any published post with fcs_weight > 0, honoring
+ *     expiry. NOT recency-bound and not limited to the Announcements category
+ *     (the weight meta is post-wide); a promoted post stays featured until its
+ *     weight is cleared or it expires.
+ *   - events — weighted upcoming events (CTC + fce) within the look-ahead window;
+ *     past events drop out by virtue of the window.
+ *
+ * Ranking (weight desc, then date) is the pure Featured::rank(); this function
+ * only assembles the candidate pool.
  */
-function happenings_featured_news(int $count): array
+function happenings_featured(int $count, int $weeks = HAPPENINGS_DEFAULT_WEEKS): array
+{
+    return \FirstChurch\Happenings\Featured::rank(
+        array_merge(happenings_featured_events($weeks), happenings_featured_posts()),
+        $count
+    );
+}
+
+/** Weighted upcoming events (both backends), projected — the event side of Featured. */
+function happenings_featured_events(int $weeks): array
+{
+    return array_values(array_filter(
+        happenings_event_items($weeks),
+        static fn (array $it): bool => (int) ($it['weight'] ?? 0) > 0
+    ));
+}
+
+/** Weighted, unexpired posts, projected — the announcement side of Featured. */
+function happenings_featured_posts(): array
 {
     $q = new WP_Query([
         'post_type'      => 'post',
@@ -186,13 +219,7 @@ function happenings_featured_news(int $count): array
         ],
     ]);
 
-    $posts   = $q->posts;
-    $weights = happenings_weight_map($posts);
-    usort($posts, static function ($a, $b) use ($weights) {
-        return ($weights[$b->ID] <=> $weights[$a->ID]) ?: strcmp($b->post_date, $a->post_date);
-    });
-
-    return array_slice(array_map('happenings_news_to_item', $posts), 0, max(0, $count));
+    return array_map('happenings_news_to_item', $q->posts);
 }
 
 /** Read fcs_weight once per post into an [id => weight] map for sort comparators. */

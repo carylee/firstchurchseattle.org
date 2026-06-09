@@ -4,22 +4,29 @@
  * Dynamic block: this only collects attributes; the front end is rendered in PHP
  * by fcs_happenings_block_render() from the firstchurch-happenings spine. The
  * live preview uses ServerSideRender, so the editor shows the real cards.
+ *
+ * This is a classic editor script (registered with wp-* deps), not an ES module
+ * — it relies on the global `wp` the block editor provides. The front-end
+ * islands under assets/js/ are the module side of the theme.
  */
-( function ( wp ) {
+((wp) => {
+	// biome-ignore lint/suspicious/noRedundantUseStrict: classic (non-module) editor script — strict mode is not implied here.
 	'use strict';
 
-	var el = wp.element.createElement;
-	var __ = wp.i18n.__;
-	var registerBlockType = wp.blocks.registerBlockType;
-	var InspectorControls = wp.blockEditor.InspectorControls;
-	var useBlockProps = wp.blockEditor.useBlockProps;
-	var c = wp.components;
-	var ServerSideRender = wp.serverSideRender;
+	const el = wp.element.createElement;
+	const { __ } = wp.i18n;
+	const { registerBlockType } = wp.blocks;
+	const { InspectorControls, useBlockProps } = wp.blockEditor;
+	const c = wp.components;
+	const ServerSideRender = wp.serverSideRender;
 
-	registerBlockType( 'firstchurch/happenings', {
+	registerBlockType('firstchurch/happenings', {
 		apiVersion: 3,
-		title: __( 'Happenings', 'maranatha-child' ),
-		description: __( 'Show a section of the Happenings feed (Featured, Upcoming events, or Recent announcements) as cards.', 'maranatha-child' ),
+		title: __('Happenings', 'maranatha-child'),
+		description: __(
+			'Show a section of the Happenings feed (Featured, Upcoming events, or Recent announcements) as cards.',
+			'maranatha-child',
+		),
 		icon: 'megaphone',
 		category: 'widgets',
 		attributes: {
@@ -28,77 +35,86 @@
 			weeks: { type: 'number', default: 8 },
 			days: { type: 'number', default: 30 },
 			heading: { type: 'string', default: '' },
-			excludeFeatured: { type: 'boolean', default: false }
+			excludeFeatured: { type: 'boolean', default: false },
 		},
 
-		edit: function ( props ) {
-			var a = props.attributes;
-			var set = props.setAttributes;
+		edit(props) {
+			const a = props.attributes;
+			const set = props.setAttributes;
 
 			// Only meaningful for the recency list: drop items already promoted
 			// into a Featured block on the same page (weight > 0) so they don't
 			// show twice.
-			var excludeControl = a.section === 'featured'
-				? null
-				: el( c.ToggleControl, {
-						label: __( 'Hide items already featured', 'maranatha-child' ),
-						checked: !! a.excludeFeatured,
-						onChange: function ( v ) { set( { excludeFeatured: v } ); }
-				  } );
+			const excludeControl =
+				a.section === 'featured'
+					? null
+					: el(c.ToggleControl, {
+							label: __('Hide items already featured', 'maranatha-child'),
+							checked: !!a.excludeFeatured,
+							onChange: (v) => set({ excludeFeatured: v }),
+						});
 
-			var windowControl = a.section === 'events'
-				? el( c.RangeControl, {
-						label: __( 'Look ahead (weeks)', 'maranatha-child' ),
-						value: a.weeks, min: 1, max: 52,
-						onChange: function ( v ) { set( { weeks: v } ); }
-				  } )
-				: el( c.RangeControl, {
-						label: __( 'Look back (days)', 'maranatha-child' ),
-						value: a.days, min: 1, max: 365,
-						onChange: function ( v ) { set( { days: v } ); }
-				  } );
+			const windowControl =
+				a.section === 'events'
+					? el(c.RangeControl, {
+							label: __('Look ahead (weeks)', 'maranatha-child'),
+							value: a.weeks,
+							min: 1,
+							max: 52,
+							onChange: (v) => set({ weeks: v }),
+						})
+					: el(c.RangeControl, {
+							label: __('Look back (days)', 'maranatha-child'),
+							value: a.days,
+							min: 1,
+							max: 365,
+							onChange: (v) => set({ days: v }),
+						});
 
-			var controls = el(
-				InspectorControls, {},
+			const controls = el(
+				InspectorControls,
+				{},
 				el(
 					c.PanelBody,
-					{ title: __( 'Happenings', 'maranatha-child' ), initialOpen: true },
-					el( c.SelectControl, {
-						label: __( 'Section', 'maranatha-child' ),
+					{ title: __('Happenings', 'maranatha-child'), initialOpen: true },
+					el(c.SelectControl, {
+						label: __('Section', 'maranatha-child'),
 						value: a.section,
 						options: [
-							{ label: __( 'Featured (by weight)', 'maranatha-child' ), value: 'featured' },
-							{ label: __( 'Upcoming events', 'maranatha-child' ), value: 'events' },
-							{ label: __( 'Recent announcements', 'maranatha-child' ), value: 'announcements' }
+							{ label: __('Featured (by weight)', 'maranatha-child'), value: 'featured' },
+							{ label: __('Upcoming events', 'maranatha-child'), value: 'events' },
+							{ label: __('Recent announcements', 'maranatha-child'), value: 'announcements' },
 						],
-						onChange: function ( v ) { set( { section: v } ); }
-					} ),
-					el( c.RangeControl, {
-						label: __( 'How many', 'maranatha-child' ),
-						value: a.count, min: 1, max: 12,
-						onChange: function ( v ) { set( { count: v } ); }
-					} ),
-					el( c.TextControl, {
-						label: __( 'Heading (optional)', 'maranatha-child' ),
+						onChange: (v) => set({ section: v }),
+					}),
+					el(c.RangeControl, {
+						label: __('How many', 'maranatha-child'),
+						value: a.count,
+						min: 1,
+						max: 12,
+						onChange: (v) => set({ count: v }),
+					}),
+					el(c.TextControl, {
+						label: __('Heading (optional)', 'maranatha-child'),
 						value: a.heading,
-						onChange: function ( v ) { set( { heading: v } ); }
-					} ),
+						onChange: (v) => set({ heading: v }),
+					}),
 					windowControl,
-					excludeControl
-				)
+					excludeControl,
+				),
 			);
 
-			var preview = el( ServerSideRender, {
+			const preview = el(ServerSideRender, {
 				block: 'firstchurch/happenings',
-				attributes: a
-			} );
+				attributes: a,
+			});
 
-			return el( 'div', useBlockProps(), controls, preview );
+			return el('div', useBlockProps(), controls, preview);
 		},
 
 		// Dynamic block: rendered in PHP.
-		save: function () {
+		save() {
 			return null;
-		}
-	} );
-} )( window.wp );
+		},
+	});
+})(window.wp);

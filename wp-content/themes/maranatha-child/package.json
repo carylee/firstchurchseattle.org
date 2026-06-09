@@ -1,13 +1,24 @@
 {
-  "name": "maranatha-child-css",
-  "private": true,
-  "version": "0.0.0",
-  "description": "Tailwind build for the Maranatha child theme: compiles assets/src/input.css -> assets/tailwind.css (committed artifact; production never builds).",
-  "scripts": {
-    "build": "tailwindcss -i ./assets/src/input.css -o ./assets/tailwind.css --minify"
-  },
-  "devDependencies": {
-    "@tailwindcss/cli": "4.3.0",
-    "tailwindcss": "4.3.0"
-  }
+	"name": "maranatha-child-dev",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Dev-only toolchain for the Maranatha Child theme (First Church Seattle): Tailwind CSS build + JS lint/test. NOT shipped — production runs no build step; see ops/deploy.sh excludes.",
+	"type": "module",
+	"scripts": {
+		"build": "tailwindcss -i ./assets/src/input.css -o ./assets/tailwind.css --minify",
+		"test": "vitest run --passWithNoTests",
+		"test:watch": "vitest",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"e2e": "playwright test",
+		"e2e:install": "playwright install chromium"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@playwright/test": "^1.49.1",
+		"@tailwindcss/cli": "4.3.0",
+		"happy-dom": "^15.11.7",
+		"tailwindcss": "4.3.0",
+		"vitest": "^2.1.9"
+	}
 }

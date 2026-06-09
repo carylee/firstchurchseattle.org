@@ -74,7 +74,7 @@ function fcs_happenings_block_render( $attrs ) {
 			break;
 		case 'featured':
 		default:
-			$items = happenings_featured_news( $count );
+			$items = happenings_featured( $count, $weeks );
 			break;
 	}
 
@@ -95,12 +95,6 @@ function fcs_happenings_block_render( $attrs ) {
 		return '';
 	}
 
-	// Featured is a curated highlight row, not a chronological list, so its
-	// cards suppress the published-on date (it reads as the item's "when" and
-	// misleads for posts whose real date lives in the title/body — e.g. a dated
-	// announcement). Other sections keep the date/when line.
-	$show_meta = ( 'featured' !== $section );
-
 	$heading = isset( $attrs['heading'] ) ? trim( (string) $attrs['heading'] ) : '';
 
 	ob_start();
@@ -112,6 +106,13 @@ function fcs_happenings_block_render( $attrs ) {
 	echo '<div class="fcs-card-grid">';
 
 	foreach ( $items as $item ) {
+		// The Featured row is curated, not chronological, so it suppresses an
+		// ANNOUNCEMENT's published-on date (it reads as the item's "when" and
+		// misleads when the real date lives in the title/body). An EVENT's meta is
+		// its genuine when-line ("June 17 at 7:00 pm"), which is exactly what a
+		// featured event should show (Phase 4), so it is never suppressed. Other
+		// sections keep every item's meta line.
+		$show_meta = ( 'featured' !== $section ) || ( 'event' === ( $item['source'] ?? '' ) );
 		echo fcs_render_happening_card( happenings_card_view( $item ), $show_meta ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes internally.
 	}
 

@@ -94,15 +94,27 @@ Discovery improvements for content Yoast doesn't already cover.
   the CPT public with single templates first. Left out of this PR deliberately.
 - **Verify:** Google Rich Results Test on a live sermon URL.
 
-## Phase 6 — Longer-term modernization (separate, optional track) ☐
+## Phase 6 — Longer-term modernization (separate, optional track) ◐
 Bigger lifts, intentionally walled off so they never gate the cheap wins above.
 
+- **First-party JS modernization (shipped).** The child theme now has a
+  buildless native-ES-module foundation: WordPress Script Modules API
+  (`inc/scripts.php`), a progressive-enhancement "islands" pattern under
+  `assets/js/`, and a dev-only test stack — Vitest (unit, in CI) + Playwright
+  (browser, local-only) + Biome (lint/format, in CI). The inline `wp_head`
+  skip-link script was replaced by a module (`assets/js/islands/skip-link.js`),
+  and `happenings-block.js` was modernized to ES2022. See the child theme README
+  ("First-party JavaScript"). Note: Playwright e2e stays **local-only** — it
+  needs a running WordPress, which CI deliberately doesn't provision.
 - Reduce the parent theme's jQuery dependency (Superfish / MeanMenu / jQuery
   Validate, loaded render-blocking in `<head>`) — large, regression-prone,
-  touches navigation. Its own project with its own baseline.
-- Full Content-Security-Policy — start report-only; the inline theme styles make
-  a strict policy non-trivial.
-- Add PHPCS + the WordPress-Coding-Standards ruleset to CI.
+  touches navigation. Its own project with its own baseline. (Our own code is now
+  jQuery-free; this is purely the vendored parent.)
+- Full Content-Security-Policy — start report-only. Removing the inline
+  skip-link script (above) cleared one of our own inline `<script>` blocks, so
+  the remaining blockers are parent-theme inline styles/scripts, not ours.
+- Add PHPCS + the WordPress-Coding-Standards ruleset to CI (the JS side already
+  has Biome).
 
 ---
 

@@ -105,6 +105,11 @@ $past_services    = 'https://youtube.com/playlist?list=PLeNlEFIwMCurkDsg-R2rQoAJ
 				</span>
 			</div>
 
+			<?php // Filled + revealed by the worship-live island (assets/js/islands/worship-live.js); stays hidden with no JS. ?>
+			<p data-island="worship-live"
+			   class="m-0 mb-3 text-sm font-medium text-brand uppercase tracking-wider"
+			   hidden></p>
+
 			<a href="<?php echo esc_url( $livestream_url ); ?>"
 			   class="block rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow ring-1 ring-brand-line"
 			   aria-label="<?php esc_attr_e( 'Open the First Church live worship stream on YouTube', 'maranatha-child' ); ?>">

@@ -71,3 +71,11 @@ wp-config-ddev.php
 # Dev-only build artifacts inside our plugins (Composer deps, PHPUnit cache).
 /wp-content/plugins/*/vendor/
 /wp-content/plugins/*/.phpunit.cache/
+
+# Dev-only JS toolchain artifacts in the child theme (Node modules, test output).
+# The committed source (assets/js/, tests/, e2e/, *.config.js) IS tracked; these
+# generated dirs are not. They're also excluded from deploy in ops/deploy.sh.
+/wp-content/themes/maranatha-child/node_modules/
+/wp-content/themes/maranatha-child/playwright-report/
+/wp-content/themes/maranatha-child/test-results/
+/wp-content/themes/maranatha-child/coverage/

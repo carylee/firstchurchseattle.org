@@ -135,6 +135,28 @@ jobs:
       - name: tailwind.css matches its source
         run: ops/scripts/check-tailwind-build.sh
 
+  child-theme-js:
+    name: child theme JS (lint + unit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wp-content/themes/maranatha-child
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
+      - name: Install dev toolchain
+        run: npm ci --no-audit --no-fund
+      - name: Biome lint + format check
+        run: npm run lint
+      # Unit tests only (happy-dom). Playwright e2e is local-only — it needs a
+      # running WordPress, which this CI deliberately does not provision.
+      - name: Vitest
+        run: npm test
+
   composer-audit:
     name: composer audit (${{ matrix.plugin }})
     runs-on: ubuntu-latest
