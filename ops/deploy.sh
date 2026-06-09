@@ -32,11 +32,24 @@ trap 'ssh $MUX -O exit firstchurch 2>/dev/null || true' EXIT
 
 REMOTE="firstchurch:public_html/wp-content"
 
+# Guard: assets/tailwind.css is a BUILT artifact (gitignored, not committed). The
+# CD workflow compiles it on the runner before invoking this script; a manual
+# deploy must build it first (./build-css.sh, needs Node) or pull it (ddev
+# pull-prod). Refuse rather than let the theme's --delete mirror (below) wipe
+# prod's copy and leave the site unstyled.
+TW="wp-content/themes/maranatha-child/assets/tailwind.css"
+if [ -z "$DRY" ] && [ ! -f "$TW" ]; then
+  echo "ERROR: $TW is missing — it's built, not committed." >&2
+  echo "  Build it:  wp-content/themes/maranatha-child/build-css.sh   (needs Node)" >&2
+  echo "  or pull it: ddev pull-prod --files-only" >&2
+  exit 1
+fi
+
 # Theme + plugin are fully ours -> mirror with --delete. The child theme now
 # carries a dev-only JS toolchain (Node modules, Vitest/Playwright tests, config)
 # that must NOT ship to prod — prod runs no build step. Exclude those, the same
-# way the TDD'd plugins exclude their Composer/PHPUnit artifacts. The committed
-# runtime assets (assets/js/, assets/*.css) DO ship.
+# way the TDD'd plugins exclude their Composer/PHPUnit artifacts. The built
+# tailwind.css (verified present above) and the committed assets/js/ DO ship.
 rsync -av $DRY --delete \
   --exclude='node_modules/' --exclude='tests/' --exclude='e2e/' \
   --exclude='playwright-report/' --exclude='test-results/' --exclude='coverage/' \

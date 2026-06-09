@@ -123,7 +123,7 @@ jobs:
         run: vendor/bin/phpunit
 
   tailwind-build:
-    name: tailwind in sync
+    name: tailwind builds
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -132,8 +132,11 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
-      - name: tailwind.css matches its source
-        run: ops/scripts/check-tailwind-build.sh
+      # Smoke test: prove assets/src/input.css still compiles. tailwind.css is
+      # NOT committed (CD builds it on deploy), so there's nothing to diff against
+      # — this just catches a broken source at PR time instead of at deploy time.
+      - name: Compile Tailwind from source
+        run: wp-content/themes/maranatha-child/build-css.sh
 
   child-theme-js:
     name: child theme JS (lint + unit)

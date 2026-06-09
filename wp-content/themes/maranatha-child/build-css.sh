@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 #
-# Compile the child theme's Tailwind source -> the committed artifact:
+# Compile the child theme's Tailwind source -> the built artifact:
 #   assets/src/input.css  ->  assets/tailwind.css
 #
-# Production NEVER runs this (HostGator has no Node); the compiled CSS is
-# committed and CI verifies it stays in sync (ops/scripts/check-tailwind-build.sh).
+# assets/tailwind.css is NOT committed (gitignored) — it's built. The CD workflow
+# runs this on the deploy runner so prod serves a fresh copy; HostGator itself has
+# no Node. Run it locally only when you're editing styles; otherwise `ddev
+# pull-prod` fetches prod's built copy so local dev needs no Node.
 # Run from anywhere:  ./build-css.sh            (one-off)
 #                     ./build-css.sh --watch    (rebuild on change)
 set -euo pipefail
