@@ -43,6 +43,17 @@ final class Entries
     private const PHONE_TYPES = ['phone', 'phone_number'];
 
     /**
+     * Label substrings that mark a single_line field as an email/phone capture.
+     * Breeze types both as `single_line`, so the field type alone doesn't tell
+     * us — these forms label them "Email"/"Phone", so the label does.
+     */
+    private const EMAIL_LABELS = ['email', 'e-mail'];
+    private const PHONE_LABELS = ['phone', 'mobile', 'cell'];
+
+    /** Bookkeeping keys Breeze rides along on a name object — never part of the name. */
+    private const NAME_JUNK_KEYS = ['id', 'oid', 'person_id', 'created_on'];
+
+    /**
      * Parse a raw list_form_entries response body into entry rows.
      *
      * @return array<int,array<string,mixed>>|null null signals an unparseable
@@ -58,10 +69,19 @@ final class Entries
     }
 
     /**
-     * Build a field-id → {label, type} map from a list_form_fields payload.
+     * Build a field-id → {label, type, options} map from a list_form_fields payload.
+     *
+     * Entry responses are keyed by Breeze's `field_id` (e.g. "2147341367"), NOT
+     * the field-definition row `id` (e.g. "75906239") — those are different
+     * numbers. Key on `field_id` so the join with an entry's `response` actually
+     * matches; fall back to `id` only for payloads that omit `field_id`.
+     *
+     * Choice fields (multiple_choice/checkbox/dropdown) answer with only an
+     * option id in their `{value}` payload, so we also fold in the field's
+     * `options` as an `option_id => label` map for normalize() to resolve.
      *
      * @param array<int,array<string,mixed>> $fieldsPayload
-     * @return array<string,array{label:string,type:string}>
+     * @return array<string,array{label:string,type:string,options:array<string,string>}>
      */
     public static function field_map(array $fieldsPayload): array
     {
@@ -70,7 +90,7 @@ final class Entries
             if (!is_array($f)) {
                 continue;
             }
-            $id = trim((string) ($f['id'] ?? ''));
+            $id = trim((string) ($f['field_id'] ?? $f['id'] ?? ''));
             if ($id === '') {
                 continue;
             }
@@ -80,9 +100,26 @@ final class Entries
             $label = html_entity_decode((string) $label, ENT_QUOTES, 'UTF-8');
             $label = trim((string) preg_replace('/\s+/', ' ', $label));
 
+            // option_id → label, for turning a choice answer's bare option id
+            // (Breeze sends {"value":"972","name":null}) into its readable text.
+            $options = [];
+            if (isset($f['options']) && is_array($f['options'])) {
+                foreach ($f['options'] as $opt) {
+                    if (!is_array($opt)) {
+                        continue;
+                    }
+                    $oid = trim((string) ($opt['option_id'] ?? $opt['id'] ?? ''));
+                    if ($oid === '') {
+                        continue;
+                    }
+                    $options[$oid] = trim((string) ($opt['name'] ?? ''));
+                }
+            }
+
             $map[$id] = [
-                'label' => $label,
-                'type'  => strtolower(trim((string) ($f['field_type'] ?? ''))),
+                'label'   => $label,
+                'type'    => strtolower(trim((string) ($f['field_type'] ?? ''))),
+                'options' => $options,
             ];
         }
 
@@ -115,8 +152,10 @@ final class Entries
             $responses = [];
 
             foreach ($response as $fieldId => $value) {
-                $meta  = $fieldMap[(string) $fieldId] ?? ['label' => (string) $fieldId, 'type' => ''];
-                $type  = $meta['type'];
+                $meta    = $fieldMap[(string) $fieldId] ?? ['label' => (string) $fieldId, 'type' => '', 'options' => []];
+                $type    = $meta['type'];
+                $options = $meta['options'] ?? [];
+                $lcLabel = strtolower($meta['label']);
 
                 if (in_array($type, self::NAME_TYPES, true)) {
                     $name = self::format_name($value);
@@ -125,19 +164,24 @@ final class Entries
                     }
                     continue;
                 }
-                if (in_array($type, self::EMAIL_TYPES, true) && $contact['email'] === '') {
-                    $contact['email'] = self::flatten_value($value);
-                    continue;
-                }
-                if (in_array($type, self::PHONE_TYPES, true) && $contact['phone'] === '') {
-                    $contact['phone'] = self::flatten_value($value);
-                    continue;
-                }
+                // Instructional chrome is dropped before label-based contact
+                // sniffing, so a "…email, and website publicity" paragraph can't
+                // be mistaken for the submitter's email field.
                 if (in_array($type, self::INSTRUCTIONAL, true)) {
                     continue;
                 }
+                // Email/phone come back as field_type single_line on these forms,
+                // so type alone won't catch them — fall back to the field label.
+                if ($contact['email'] === '' && (in_array($type, self::EMAIL_TYPES, true) || self::label_matches($lcLabel, self::EMAIL_LABELS))) {
+                    $contact['email'] = self::flatten_value($value, $options);
+                    continue;
+                }
+                if ($contact['phone'] === '' && (in_array($type, self::PHONE_TYPES, true) || self::label_matches($lcLabel, self::PHONE_LABELS))) {
+                    $contact['phone'] = self::flatten_value($value, $options);
+                    continue;
+                }
 
-                $flat = self::flatten_value($value);
+                $flat = self::flatten_value($value, $options);
                 if ($flat === '') {
                     continue;
                 }
@@ -161,12 +205,17 @@ final class Entries
 
     /**
      * Flatten a Breeze answer value to a single trimmed string. Strings pass
-     * through; numbers stringify; arrays (assoc name/address objects or
-     * list-valued checkboxes) join their non-empty parts with ", ".
+     * through; numbers stringify; arrays join their non-empty parts with ", ".
      *
-     * @param mixed $value
+     * Choice answers arrive as `{"value":"<option_id>","name":null}` (single) or
+     * a list of those (checkbox). When `$options` (option_id → label, from
+     * field_map) is supplied we resolve the option id to its readable label;
+     * otherwise we fall back to any embedded `name`, then the bare id.
+     *
+     * @param mixed                 $value
+     * @param array<string,string>  $options option_id → label for the field.
      */
-    public static function flatten_value($value): string
+    public static function flatten_value($value, array $options = []): string
     {
         if (is_string($value)) {
             return trim($value);
@@ -175,9 +224,22 @@ final class Entries
             return (string) $value;
         }
         if (is_array($value)) {
+            // A single choice object: {value: <option_id>, name: <label|null>}.
+            if (array_key_exists('value', $value) && !is_array($value['value'])) {
+                $optId = trim((string) $value['value']);
+                if ($optId === '') {
+                    return '';
+                }
+                $name = isset($value['name']) ? trim((string) $value['name']) : '';
+                if ($name !== '') {
+                    return $name;
+                }
+                return $options[$optId] ?? $optId;
+            }
+            // Otherwise a list (checkbox) or assoc object — flatten each part.
             $parts = [];
             foreach ($value as $v) {
-                $s = self::flatten_value($v);
+                $s = self::flatten_value($v, $options);
                 if ($s !== '') {
                     $parts[] = $s;
                 }
@@ -188,29 +250,52 @@ final class Entries
         return '';
     }
 
+    /** True if $lcLabel (already lowercased) contains any of the given substrings. */
+    private static function label_matches(string $lcLabel, array $needles): bool
+    {
+        if ($lcLabel === '') {
+            return false;
+        }
+        foreach ($needles as $needle) {
+            if (strpos($lcLabel, $needle) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
-     * Format a Breeze name value. A name field is often an assoc object
-     * (`{first, last, ...}`) — join its parts with a space so we get
-     * "Jane Doe", not "Jane, Doe". Falls back to flatten_value for a string.
+     * Format a Breeze name value. A name field is an assoc object that, on the
+     * live API, looks like `{id, oid, first_name, last_name, created_on}` — so
+     * we drop the bookkeeping keys and join the name parts in conventional order
+     * ("Elisabeth Ellis", not "21193406, 57833, Elisabeth, Ellis, …"). Falls
+     * back to flatten_value for a plain string.
      *
      * @param mixed $value
      */
     private static function format_name($value): string
     {
         if (is_array($value)) {
-            $order = ['title', 'first', 'middle', 'last', 'suffix'];
-            $parts = [];
-            // Prefer the conventional name order when present; otherwise take the values as given.
             $keyed = array_change_key_case($value, CASE_LOWER);
+            foreach (self::NAME_JUNK_KEYS as $junk) {
+                unset($keyed[$junk]);
+            }
+            // Accept both the short (`first`/`last`) and live (`first_name`/
+            // `last_name`) key spellings.
+            $order = ['title', 'prefix', 'first', 'first_name', 'middle', 'middle_name', 'last', 'last_name', 'maiden', 'suffix'];
+            $parts = [];
             if (array_intersect($order, array_keys($keyed))) {
                 foreach ($order as $k) {
-                    $s = self::flatten_value($keyed[$k] ?? '');
+                    if (!array_key_exists($k, $keyed)) {
+                        continue;
+                    }
+                    $s = self::flatten_value($keyed[$k]);
                     if ($s !== '') {
                         $parts[] = $s;
                     }
                 }
             } else {
-                foreach ($value as $v) {
+                foreach ($keyed as $v) {
                     $s = self::flatten_value($v);
                     if ($s !== '') {
                         $parts[] = $s;
