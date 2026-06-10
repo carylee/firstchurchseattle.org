@@ -17,6 +17,10 @@
 		var statusEl = form.querySelector('.fcc-form__status');
 		var submitBtn = form.querySelector('.fcc-submit');
 		var STORAGE_KEY = 'fcc_profile_v1';
+		// Track whether the visitor manually opened/closed the contact panel, so
+		// applyScenario() stops auto-managing its open state once they've taken
+		// the wheel.
+		var contactTouched = false;
 
 		// Returning members fill this out on their own phone every week, and the
 		// stable half of the card (name, email, phone, address, member status,
@@ -25,6 +29,22 @@
 		// The transient half (attendance, prayer/comments, learn-more, pastor
 		// contact) is deliberately never restored — it starts blank each visit.
 		restoreProfile();
+
+		// Reshape the card to the selected "I am a" scenario, on load and on
+		// every change to that choice — a returning member (prefilled above)
+		// lands directly on the contracted check-in layout, a visitor on the
+		// fuller "tell us about yourself" one.
+		applyScenario();
+
+		// A click on the summary (mouse or keyboard activation) means the user
+		// took the wheel — programmatic open/close doesn't fire it, so the
+		// scenario logic stops auto-managing the panel from here on.
+		var contactSummary = form.querySelector('.fcc-contact > summary');
+		if (contactSummary) {
+			contactSummary.addEventListener('click', function () {
+				contactTouched = true;
+			});
+		}
 
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
@@ -60,6 +80,8 @@
 						saveProfile();
 						showStatus('success', "Thanks for checking in! We're glad you're here.");
 						form.reset();
+						contactTouched = false;
+						applyScenario();
 					} else if (result.status === 429) {
 						showStatus(
 							'error',
@@ -94,6 +116,9 @@
 			var fs = e.target.closest('.fcc-fieldset');
 			if (fs && fs.hasAttribute('aria-invalid')) {
 				fs.removeAttribute('aria-invalid');
+			}
+			if (e.target.name === 'i_am_a') {
+				applyScenario();
 			}
 		});
 
@@ -133,6 +158,7 @@
 				newsletter: fd.get('newsletter') ? true : false,
 				change_of_info: fd.get('change_of_info') ? true : false,
 				heard_from: fd.get('heard_from') || '',
+				prayer_request: fd.get('prayer_request') || '',
 				comments: fd.get('comments') || '',
 				learn_more: fd.getAll('learn_more[]'),
 				pastor_contact: fd.getAll('pastor_contact[]'),
@@ -246,19 +272,15 @@
 			}
 
 			if (saved.address) {
-				var hasAddr = false;
+				// Prefill the values; they sit inside the contact panel, which
+				// applyScenario() keeps tucked for a member. A collapsed
+				// <details> still submits its inputs, so they post either way.
 				['street', 'city', 'state', 'zip'].forEach(function (part) {
 					var el = form.querySelector('[name="address[' + part + ']"]');
 					if (el && saved.address[part]) {
 						el.value = saved.address[part];
-						hasAddr = true;
 					}
 				});
-				// Surface the saved address so it's visibly there to confirm.
-				if (hasAddr) {
-					var details = form.querySelector('.fcc-details');
-					if (details) details.open = true;
-				}
 			}
 
 			renderWelcomeBack(saved);
@@ -268,6 +290,42 @@
 			if (!value) return;
 			var el = form.querySelector('[name="' + name + '"]');
 			if (el) el.value = value;
+		}
+
+		// -- Scenario-shaped disclosure ---------------------------------
+
+		// "I am a" is the pivot: a visitor is introducing themselves (show the
+		// welcome fields, open the contact panel), a member is checking in (hide
+		// the visitor-only fields, tuck contact away). Fields hidden from the
+		// active scenario are also cleared so nothing the user can't see is
+		// submitted.
+		function applyScenario() {
+			var selected = form.querySelector('input[name="i_am_a"]:checked');
+			var who = selected ? selected.value : '';
+			var isVisitor = who === 'first-time' || who === 'second-time';
+
+			form.querySelectorAll('[data-fcc-when="visitor"]').forEach(function (el) {
+				toggleBranch(el, isVisitor);
+			});
+
+			// Open the contact panel for a visitor, tuck it for a member — but
+			// never fight a choice the user has made themselves.
+			var contact = form.querySelector('.fcc-contact');
+			if (contact && !contactTouched) {
+				contact.open = isVisitor;
+			}
+		}
+
+		function toggleBranch(el, show) {
+			el.hidden = !show;
+			if (show) return;
+			el.querySelectorAll('input, textarea, select').forEach(function (f) {
+				if (f.type === 'checkbox' || f.type === 'radio') {
+					f.checked = false;
+				} else {
+					f.value = '';
+				}
+			});
 		}
 
 		// A small banner so a prefilled form is never a surprise, with a
@@ -294,8 +352,11 @@
 				clearProfile();
 				form.reset();
 				banner.remove();
-				var details = form.querySelector('.fcc-details');
-				if (details) details.open = false;
+				contactTouched = false;
+				form.querySelectorAll('.fcc-details').forEach(function (d) {
+					d.open = false;
+				});
+				applyScenario();
 				var first = form.querySelector('[name="first_name"]');
 				if (first) first.focus();
 			});

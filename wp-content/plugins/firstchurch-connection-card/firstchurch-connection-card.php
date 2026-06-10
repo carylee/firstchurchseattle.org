@@ -88,14 +88,21 @@ function fcc_render_shortcode($atts = []): string {
         <?php endif; ?>
 
         <p class="fcc-form__intro">
-            <strong>Note for in-person worship attendees:</strong><br>
-            <em>Please take a moment to fill out the contact information below.</em>
+            <em>Welcome! Check in below so we know you worshipped with us — it only takes a moment.</em>
         </p>
 
         <fieldset class="fcc-fieldset fcc-fieldset--inline" data-required>
             <legend>I attended today's service <span class="fcc-required" aria-hidden="true">*</span></legend>
             <label class="fcc-radio"><input type="radio" name="attended" value="in-person" required> In-person</label>
             <label class="fcc-radio"><input type="radio" name="attended" value="online"> Online</label>
+        </fieldset>
+
+        <fieldset class="fcc-fieldset" data-required>
+            <legend>I am a <span class="fcc-required" aria-hidden="true">*</span></legend>
+            <label class="fcc-radio"><input type="radio" name="i_am_a" value="first-time"> First-time visitor</label>
+            <label class="fcc-radio"><input type="radio" name="i_am_a" value="second-time"> Second-time visitor</label>
+            <label class="fcc-radio"><input type="radio" name="i_am_a" value="regular"> Regular attendee</label>
+            <label class="fcc-radio"><input type="radio" name="i_am_a" value="member"> Member</label>
         </fieldset>
 
         <div class="fcc-row fcc-row--split">
@@ -119,13 +126,22 @@ function fcc_render_shortcode($atts = []): string {
             I'd like to receive the weekly E-Newsletter
         </label>
 
-        <div class="fcc-field">
-            <label for="fcc-phone">Phone <span class="fcc-optional">(optional)</span></label>
-            <input id="fcc-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel">
+        <!-- Visitor-only: meaningless for a returning member, so JS hides &
+             clears it unless First/Second-time is selected. -->
+        <div class="fcc-field fcc-branch" data-fcc-when="visitor">
+            <label for="fcc-heard-from">How did you hear about First Church?</label>
+            <textarea id="fcc-heard-from" name="heard_from" rows="2"></textarea>
         </div>
 
-        <details class="fcc-details">
-            <summary>Address <span class="fcc-optional">(optional)</span></summary>
+        <!-- Contact info: one panel for phone + address + the change flag. JS
+             opens it for a visitor (we're meeting them) and tucks it closed for
+             a returning member whose details rarely change. -->
+        <details class="fcc-details fcc-contact">
+            <summary>Contact info <span class="fcc-optional">(phone &amp; address)</span></summary>
+            <div class="fcc-field">
+                <label for="fcc-phone">Phone <span class="fcc-optional">(optional)</span></label>
+                <input id="fcc-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel">
+            </div>
             <div class="fcc-field">
                 <label for="fcc-street">Street</label>
                 <input id="fcc-street" name="address[street]" type="text" autocomplete="street-address">
@@ -144,46 +160,39 @@ function fcc_render_shortcode($atts = []): string {
                     <input id="fcc-zip" name="address[zip]" type="text" autocomplete="postal-code" inputmode="numeric" size="6">
                 </div>
             </div>
+            <label class="fcc-checkbox">
+                <input type="checkbox" name="change_of_info" value="1">
+                This updates my contact information on file
+            </label>
         </details>
 
-        <label class="fcc-checkbox">
-            <input type="checkbox" name="change_of_info" value="1">
-            This is a change of contact information
-        </label>
-
-        <fieldset class="fcc-fieldset" data-required>
-            <legend>I am a <span class="fcc-required" aria-hidden="true">*</span></legend>
-            <label class="fcc-radio"><input type="radio" name="i_am_a" value="first-time"> First-time visitor</label>
-            <label class="fcc-radio"><input type="radio" name="i_am_a" value="second-time"> Second-time visitor</label>
-            <label class="fcc-radio"><input type="radio" name="i_am_a" value="regular"> Regular attendee</label>
-            <label class="fcc-radio"><input type="radio" name="i_am_a" value="member"> Member</label>
-        </fieldset>
-
         <div class="fcc-field">
-            <label for="fcc-heard-from">For visitors — I heard about First Church from:</label>
-            <textarea id="fcc-heard-from" name="heard_from" rows="2"></textarea>
+            <label for="fcc-prayer">Prayer request <span class="fcc-optional">(optional)</span></label>
+            <textarea id="fcc-prayer" name="prayer_request" rows="3"></textarea>
         </div>
 
-        <fieldset class="fcc-fieldset">
-            <legend>I would like to learn more about</legend>
-            <?php foreach (fcc_learn_more_choices() as $value => $label) : ?>
-                <label class="fcc-checkbox">
-                    <input type="checkbox" name="learn_more[]" value="<?php echo esc_attr($value); ?>">
-                    <?php echo esc_html($label); ?>
-                </label>
-            <?php endforeach; ?>
-        </fieldset>
+        <div class="fcc-field">
+            <label for="fcc-comments">Anything else? <span class="fcc-optional">(optional)</span></label>
+            <textarea id="fcc-comments" name="comments" rows="2"></textarea>
+        </div>
+
+        <details class="fcc-details">
+            <summary>I'd like to learn more about… <span class="fcc-optional">(optional)</span></summary>
+            <div class="fcc-learn-more">
+                <?php foreach (fcc_learn_more_choices() as $value => $label) : ?>
+                    <label class="fcc-checkbox">
+                        <input type="checkbox" name="learn_more[]" value="<?php echo esc_attr($value); ?>">
+                        <?php echo esc_html($label); ?>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+        </details>
 
         <fieldset class="fcc-fieldset fcc-fieldset--inline">
             <legend>I would like a phone call or email from a pastor</legend>
             <label class="fcc-checkbox"><input type="checkbox" name="pastor_contact[]" value="254"> Phone call</label>
             <label class="fcc-checkbox"><input type="checkbox" name="pastor_contact[]" value="255"> Email</label>
         </fieldset>
-
-        <div class="fcc-field">
-            <label for="fcc-comments">Comments</label>
-            <textarea id="fcc-comments" name="comments" rows="3"></textarea>
-        </div>
 
         <div class="fcc-honeypot" aria-hidden="true">
             <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>

@@ -262,8 +262,20 @@
 }
 
 .fcc-details > .fcc-field,
-.fcc-details > .fcc-row {
+.fcc-details > .fcc-row,
+.fcc-details > .fcc-checkbox {
 	margin: 12px 14px;
+}
+
+.fcc-details > .fcc-learn-more {
+	padding: 4px 14px 12px;
+}
+
+/* A branch hidden from the active scenario stays in the DOM but out of view.
+   Belt-and-suspenders over the [hidden] attribute, since flex/grid display
+   on descendants can otherwise win over the UA default. */
+.fcc-form [hidden] {
+	display: none !important;
 }
 
 /* -- Honeypot (visually hidden from humans) ------------------------- */

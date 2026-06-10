@@ -117,6 +117,31 @@ final class BuildInputsTest extends TestCase
             'comments'   => 'Looking forward to it',
         ]));
         $this->assertSame('A friend invited me', $by[FCC_F_HEARD_FROM][0]['response']);
+        // Comment alone stays unlabeled — byte-identical to the pre-prayer field.
         $this->assertSame('Looking forward to it', $by[FCC_F_COMMENTS][0]['response']);
+    }
+
+    public function test_prayer_request_alone_is_labeled(): void
+    {
+        $by = $this->byField($this->build(['prayer_request' => 'Please pray for my mother']));
+        $this->assertSame("Prayer request:\nPlease pray for my mother", $by[FCC_F_COMMENTS][0]['response']);
+    }
+
+    public function test_prayer_and_comment_merge_into_one_labeled_block(): void
+    {
+        $by = $this->byField($this->build([
+            'prayer_request' => 'Healing for a friend',
+            'comments'       => 'See you Sunday',
+        ]));
+        $this->assertSame(
+            "Prayer request:\nHealing for a friend\n\nComments:\nSee you Sunday",
+            $by[FCC_F_COMMENTS][0]['response']
+        );
+    }
+
+    public function test_blank_prayer_and_comment_emit_no_comments_field(): void
+    {
+        $by = $this->byField($this->build(['prayer_request' => '   ', 'comments' => '']));
+        $this->assertArrayNotHasKey(FCC_F_COMMENTS, $by);
     }
 }

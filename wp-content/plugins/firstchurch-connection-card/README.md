@@ -42,6 +42,26 @@ fresh"** escape for a shared family phone (clears the saved profile and resets
 the form). If `localStorage` is unavailable (private mode), the feature degrades
 silently to the old blank-form behavior.
 
+## Scenario-shaped disclosure
+
+A visitor and a member have opposite jobs at this card — a visitor is
+introducing themselves, a member is checking in — so **"I am a"** is promoted to
+the top and drives what the rest of the card shows (`applyScenario()` in
+`connection-card.js`, re-run on every change to that choice):
+
+- **First/second-time visitor** → the welcome fields appear: "How did you hear
+  about us" (`data-fcc-when="visitor"`) shows, and the contact panel opens.
+- **Regular / member** → the card contracts to a check-in: the visitor-only
+  fields hide (and are *cleared*, so nothing the user can't see is submitted),
+  and phone/address fold into a closed **Contact info** `<details>`. A collapsed
+  `<details>` still submits its inputs, so a returning member's prefilled
+  contact info posts whether or not they open it.
+
+Phone, address and the change-of-info flag now live together in that one
+**Contact info** panel; the heavy 10-checkbox "learn more" list is tucked behind
+its own `<details>`. Disclosure is progressive enhancement — without JS every
+field is visible and submittable; the JS only collapses/hides.
+
 ## How submission works
 
 `fcc_submit()` (the `POST /wp-json/firstchurch/v1/connection-card` handler)
@@ -75,7 +95,7 @@ live in `inc/form.php` and are pinned by `tests/OptionsTest.php`.
 | Heard about us | `FCC_F_HEARD_FROM` | optional textarea |
 | Learn more about… | `FCC_F_LEARN_MORE` | whitelisted option ids only |
 | Pastor contact | `FCC_F_PASTOR` | `254` (call) / `255` (email) |
-| Comments | `FCC_F_COMMENTS` | optional textarea |
+| Prayer request + Comments | `FCC_F_COMMENTS` | two separate UI fields, merged by `fcc_merge_notes()` into Breeze's single Comments field — labeled only when both are present, so a lone comment stays byte-identical to before |
 
 ## Anti-spam
 
