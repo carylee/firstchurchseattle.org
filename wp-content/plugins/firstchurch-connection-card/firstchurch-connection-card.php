@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Connection Card
  * Description: Server-side bridge that posts the Check-in & Connection Card to Breeze (form 320238).
- * Version:     0.3.0
+ * Version:     0.3.1
  * Author:      First Church Seattle
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-const FCC_VERSION     = '0.3.0';
+const FCC_VERSION     = '0.3.1';
 const FCC_BREEZE_BASE = 'https://firstchurchseattle.breezechms.com';
 const FCC_FORM_ID     = '320238';
 const FCC_FORM_SLUG   = '603d6c';
@@ -97,7 +97,7 @@ function fcc_render_shortcode($atts = []): string {
             <label class="fcc-radio"><input type="radio" name="attended" value="online"> Online</label>
         </fieldset>
 
-        <fieldset class="fcc-fieldset" data-required>
+        <fieldset class="fcc-fieldset fcc-fieldset--options" data-required>
             <legend>I am a <span class="fcc-required" aria-hidden="true">*</span></legend>
             <label class="fcc-radio"><input type="radio" name="i_am_a" value="first-time"> First-time visitor</label>
             <label class="fcc-radio"><input type="radio" name="i_am_a" value="second-time"> Second-time visitor</label>
