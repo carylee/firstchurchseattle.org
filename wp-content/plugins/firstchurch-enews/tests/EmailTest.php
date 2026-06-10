@@ -113,6 +113,57 @@ final class EmailTest extends TestCase
         $this->assertStringContainsString($inner, $html);
     }
 
+    public function test_document_emits_bulletproof_head_with_mso_and_dark_mode(): void
+    {
+        $html = Email::document('<p>x</p>', []);
+        // Outlook (Word engine) DPI fix + dark-mode + responsive stylesheet — the
+        // bulletproof scaffolding ported from ../mailchimp first-church-template.html.
+        $this->assertStringContainsString('PixelsPerInch', $html);
+        $this->assertStringContainsString('prefers-color-scheme: dark', $html);
+        $this->assertStringContainsString('max-width: 620px', $html);
+    }
+
+    public function test_document_renders_the_masthead_chrome(): void
+    {
+        $html = Email::document('<p>body</p>', ['subject' => 'Weekly News']);
+        // Maroon topbar with a "view in browser" archive link.
+        $this->assertStringContainsString('#800000', $html);
+        $this->assertStringContainsString('*|ARCHIVE|*', $html);
+        $this->assertStringContainsString('View in your browser', $html);
+        // Logo header.
+        $this->assertStringContainsString('alt="First Church Seattle"', $html);
+        // Worship CTA buttons (livestream + in-person).
+        $this->assertStringContainsString('firstchurchseattle.org/livestream', $html);
+        $this->assertStringContainsString('firstchurchseattle.org/visit', $html);
+        // Tan brand divider.
+        $this->assertStringContainsString('#e9dbb7', $html);
+    }
+
+    public function test_document_renders_a_social_row(): void
+    {
+        $html = Email::document('<p>body</p>', []);
+        $this->assertStringContainsString('facebook.com/firstchurchseattle', $html);
+        $this->assertStringContainsString('instagram.com/firstchurchseattle', $html);
+    }
+
+    public function test_document_topbar_defaults_and_is_overridable_and_escaped(): void
+    {
+        $default = Email::document('<p>x</p>', []);
+        $this->assertStringContainsString('Worship with us', $default);
+
+        $custom = Email::document('<p>x</p>', ['topbar' => 'Pride Sunday <3 & all']);
+        $this->assertStringContainsString('Pride Sunday &lt;3 &amp; all', $custom);
+        $this->assertStringNotContainsString('Pride Sunday <3', $custom);
+    }
+
+    public function test_document_body_slot_carries_the_serif_letter_font(): void
+    {
+        // The issue body (the pastoral letter prose) reads in the serif stack;
+        // sans is reserved for chrome + announcement cards.
+        $html = Email::document('<p>Dear First Church,</p>', []);
+        $this->assertStringContainsString('Georgia', $html);
+    }
+
     public function test_document_tolerates_missing_envelope_fields(): void
     {
         $html = Email::document('<p>x</p>', []);
