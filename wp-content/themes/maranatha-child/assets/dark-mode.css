@@ -14,6 +14,13 @@
  * palette, which re-skins all of the child theme's own UI (cards, the visit
  * card, happenings band, calendar list, 404, etc.) for free.
  *
+ * The Tailwind layer rides the SAME tokens: assets/src/input.css registers them
+ * as semantic colour utilities via `@theme inline` (bg-surface / text-ink /
+ * text-muted / text-accent / border-line / …), so the custom templates and the
+ * Tailwind components flip from this one palette too — guaranteeing a
+ * Tailwind-rendered card and a mobile.css-rendered card share the exact same
+ * dark colour. Hence there is no Tailwind-specific override section below.
+ *
  * Step 2 re-colours the *parent* Maranatha theme, whose 163 KB stylesheet has
  * no variables and hard-codes a neutral grey palette (#fff / #444 / #000 /
  * #f7f7f7 / #e5e5e5 …). We override only the content-canvas surfaces — body,
@@ -168,48 +175,14 @@
 	}
 
 	/* ---------------------------------------------------------------------
-	 * 4. Tailwind layer — components (assets/tailwind.css) and the handful of
-	 *    utility classes the custom templates use. tailwind.css loads before
-	 *    this file, so plain overrides win. (We override here rather than in
-	 *    assets/src/input.css so dark mode needs no Tailwind rebuild.)
+	 * 4. Tailwind layer — nothing needed here.
+	 *
+	 * The child's Tailwind markup (page-worship-live, single-fce_event, the
+	 * components in assets/src/input.css) consumes the semantic colour utilities
+	 * registered with `@theme inline` (bg-surface / text-ink / text-muted /
+	 * text-accent / border-line / …), which resolve to the --fcs-* tokens the
+	 * step-1 block above flips. So those surfaces re-colour for free — no
+	 * per-class overrides. Genuine per-element refinements (e.g. dimming a
+	 * decorative image) use `dark:` variants in the markup instead.
 	 * ------------------------------------------------------------------- */
-	.card-action,
-	.cta-tile {
-		background-color: var(--fcs-surface-2);
-		border-color: var(--fcs-border);
-	}
-
-	/* Ghost button: brand-as-outline -> lightened accent (filled :hover keeps
-	   its maroon background from the base rule). */
-	.btn-ghost {
-		color: var(--fcs-accent);
-		border-color: var(--fcs-accent);
-	}
-
-	/* Surface / text utilities used in page-worship-live, single-fce_event and
-	   the home partials. bg-brand / text-white / btn-primary stay branded. */
-	.bg-white {
-		background-color: var(--fcs-surface-2) !important;
-	}
-
-	.text-brand-ink {
-		color: var(--fcs-text) !important;
-	}
-
-	.text-brand {
-		color: var(--fcs-accent) !important;
-	}
-
-	.text-brand-dark {
-		color: var(--fcs-accent-strong) !important;
-	}
-
-	.text-gray-600 {
-		color: var(--fcs-text-muted) !important;
-	}
-
-	.text-gray-700,
-	.text-gray-800 {
-		color: var(--fcs-text-soft) !important;
-	}
 }

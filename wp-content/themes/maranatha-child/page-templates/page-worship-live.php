@@ -81,7 +81,7 @@ $livestream_url   = 'https://www.youtube.com/@firstchurchseattle/live';
 $past_services    = 'https://youtube.com/playlist?list=PLeNlEFIwMCurkDsg-R2rQoAJFUiB7hx4_';
 ?>
 
-<main id="maranatha-content" tabindex="-1" class="bg-white">
+<main id="maranatha-content" tabindex="-1" class="bg-surface">
 	<div class="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-12">
 
 		<!-- ===== Action card ===== -->
@@ -97,38 +97,38 @@ $past_services    = 'https://youtube.com/playlist?list=PLeNlEFIwMCurkDsg-R2rQoAJ
 		<!-- ===== Watch Live ===== -->
 		<section aria-labelledby="live-heading" class="mt-10">
 			<div class="flex items-baseline justify-between mb-3">
-				<h2 id="live-heading" class="m-0 text-2xl sm:text-3xl font-display font-medium text-brand-ink">
+				<h2 id="live-heading" class="m-0 text-2xl sm:text-3xl font-display font-medium text-ink">
 					<?php esc_html_e( 'Watch Live', 'maranatha-child' ); ?>
 				</h2>
-				<span class="text-sm font-medium text-brand uppercase tracking-wider">
+				<span class="text-sm font-medium text-accent uppercase tracking-wider">
 					<?php esc_html_e( 'Sundays · 10:30 AM PT', 'maranatha-child' ); ?>
 				</span>
 			</div>
 
 			<?php // Filled + revealed by the worship-live island (assets/js/islands/worship-live.js); stays hidden with no JS. ?>
 			<p data-island="worship-live"
-			   class="m-0 mb-3 text-sm font-medium text-brand uppercase tracking-wider"
+			   class="m-0 mb-3 text-sm font-medium text-accent uppercase tracking-wider"
 			   hidden></p>
 
 			<a href="<?php echo esc_url( $livestream_url ); ?>"
-			   class="block rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow ring-1 ring-brand-line"
+			   class="block rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow ring-1 ring-line"
 			   aria-label="<?php esc_attr_e( 'Open the First Church live worship stream on YouTube', 'maranatha-child' ); ?>">
 				<img src="<?php echo esc_url( $livestream_thumb ); ?>"
 				     alt=""
-				     class="w-full h-auto block"
+				     class="w-full h-auto block dark:opacity-95"
 				     loading="lazy">
 			</a>
 
-			<p class="mt-3 text-sm text-gray-600 text-center sm:text-left">
+			<p class="mt-3 text-sm text-muted text-center sm:text-left">
 				<?php esc_html_e( 'Or', 'maranatha-child' ); ?>
-				<a href="<?php echo esc_url( $past_services ); ?>" class="text-brand underline hover:text-brand-dark">
+				<a href="<?php echo esc_url( $past_services ); ?>" class="text-accent underline hover:text-accent-strong">
 					<?php esc_html_e( 'browse past services', 'maranatha-child' ); ?></a>.
 			</p>
 		</section>
 
 		<!-- ===== Secondary CTA grid ===== -->
 		<section aria-labelledby="connect-heading" class="mt-12">
-			<h2 id="connect-heading" class="m-0 mb-5 text-2xl sm:text-3xl font-display font-medium text-brand-ink">
+			<h2 id="connect-heading" class="m-0 mb-5 text-2xl sm:text-3xl font-display font-medium text-ink">
 				<?php esc_html_e( 'Connect &amp; respond', 'maranatha-child' ); ?>
 			</h2>
 
@@ -137,13 +137,13 @@ $past_services    = 'https://youtube.com/playlist?list=PLeNlEFIwMCurkDsg-R2rQoAJ
 					<article class="cta-tile">
 						<img src="<?php echo esc_url( $t['image'] ); ?>"
 						     alt=""
-						     class="w-full h-32 object-cover block"
+						     class="w-full h-32 object-cover block dark:opacity-90"
 						     loading="lazy">
 						<div class="p-5 flex flex-col gap-3 grow">
-							<h3 class="m-0 text-lg font-display font-medium text-brand-ink">
+							<h3 class="m-0 text-lg font-display font-medium text-ink">
 								<?php echo esc_html( $t['title'] ); ?>
 							</h3>
-							<p class="m-0 text-sm leading-relaxed text-gray-700 grow">
+							<p class="m-0 text-sm leading-relaxed text-soft grow">
 								<?php echo wp_kses_post( $t['body'] ); ?>
 							</p>
 							<div>

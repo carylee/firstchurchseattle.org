@@ -45,30 +45,30 @@ while ( have_posts() ) :
 	// the spine is inactive. Rendered with the_content filters at the surface.
 	$body = $item ? (string) ( $item['content'] ?? '' ) : (string) get_the_content();
 	?>
-	<main id="maranatha-content" tabindex="-1" class="bg-white">
+	<main id="maranatha-content" tabindex="-1" class="bg-surface">
 		<article class="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
 
 			<p class="mb-4">
-				<a href="<?php echo esc_url( home_url( '/upcoming-events/' ) ); ?>" class="text-brand hover:text-brand-dark">
+				<a href="<?php echo esc_url( home_url( '/upcoming-events/' ) ); ?>" class="text-accent hover:text-accent-strong">
 					&larr; <?php esc_html_e( 'All events', 'maranatha-child' ); ?>
 				</a>
 			</p>
 
 			<?php if ( '' !== $image ) : ?>
-				<div class="rounded-xl overflow-hidden mb-6 ring-1 ring-brand-line">
+				<div class="rounded-xl overflow-hidden mb-6 ring-1 ring-line">
 					<?php // Above-the-fold hero is the LCP: load it eagerly + high priority, not lazily. ?>
 						<img src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $title ); ?>" class="w-full h-auto block" loading="eager" fetchpriority="high">
 				</div>
 			<?php endif; ?>
 
-			<h1 class="m-0 text-3xl sm:text-4xl font-display font-medium text-brand-ink"><?php echo esc_html( $title ); ?></h1>
+			<h1 class="m-0 text-3xl sm:text-4xl font-display font-medium text-ink"><?php echo esc_html( $title ); ?></h1>
 
 			<?php if ( '' !== $when ) : ?>
-				<p class="mt-3 text-lg text-brand font-medium"><?php echo esc_html( $when ); ?></p>
+				<p class="mt-3 text-lg text-accent font-medium"><?php echo esc_html( $when ); ?></p>
 			<?php endif; ?>
 
 			<?php if ( '' !== $next ) : ?>
-				<p class="mt-1 text-sm text-gray-600">
+				<p class="mt-1 text-sm text-muted">
 					<?php printf( esc_html__( 'Next: %s', 'maranatha-child' ), esc_html( $next ) ); ?>
 				</p>
 			<?php endif; ?>
@@ -80,7 +80,7 @@ while ( have_posts() ) :
 			<?php endif; ?>
 
 			<?php if ( '' !== trim( $body ) ) : ?>
-				<div class="entry-content mt-6 leading-relaxed text-gray-800">
+				<div class="entry-content mt-6 leading-relaxed text-soft">
 					<?php echo apply_filters( 'the_content', $body ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the_content renders/sanitizes post HTML. ?>
 				</div>
 			<?php endif; ?>

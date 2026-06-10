@@ -29,6 +29,30 @@
   --font-display: "Raleway", "Lato", system-ui, sans-serif;
 }
 
+/* Semantic colour utilities (bg-surface, text-ink, text-muted, text-accent,
+ * border-line, …). `inline` makes the generated utilities reference the
+ * --fcs-* custom properties DIRECTLY, so when assets/dark-mode.css flips those
+ * vars under @media (prefers-color-scheme: dark) the utilities flip with them —
+ * no `dark:` variant needed for a plain colour swap, and a Tailwind-rendered
+ * card is guaranteed the same dark colour as a mobile.css-rendered one (one
+ * palette, no desync). The fallbacks keep utilities working if the always-on
+ * mobile.css somehow isn't present. Light values live in mobile.css :root; dark
+ * values in dark-mode.css. Brand FILL colours stay in the static @theme above.
+ *
+ * Use `dark:` variants in markup only for genuine per-element refinements
+ * (e.g. dimming a decorative image), not for colour flips the tokens handle. */
+@theme inline {
+  --color-surface: var(--fcs-surface, #fff);
+  --color-elevated: var(--fcs-surface-2, #faf6f8);
+  --color-band: var(--fcs-surface-3, #f7f4f6);
+  --color-ink: var(--fcs-text, #3a2a33);
+  --color-soft: var(--fcs-text-soft, #4a414c);
+  --color-muted: var(--fcs-text-muted, #8a7d86);
+  --color-line: var(--fcs-border, #ebe1e5);
+  --color-accent: var(--fcs-accent, #70334e);
+  --color-accent-strong: var(--fcs-accent-strong, #5a2940);
+}
+
 /* ---- Components (plain, unlayered) ---------------------------------------- */
 .btn-primary {
   display: inline-flex;
@@ -61,10 +85,10 @@
   align-items: center;
   min-height: 2.75rem;
   padding: .75rem 1.25rem;
-  border: 1px solid var(--color-brand);
+  border: 1px solid var(--fcs-accent);
   border-radius: .5rem;
   background-color: #0000;
-  color: var(--color-brand);
+  color: var(--fcs-accent);
   font-size: .875rem;
   font-weight: 600;
   line-height: 1.2;
@@ -79,9 +103,9 @@
 
 .card-action {
   padding: 1.5rem;
-  border: 1px solid var(--color-brand-line);
+  border: 1px solid var(--fcs-border);
   border-radius: 1rem;
-  background-color: var(--color-brand-soft);
+  background-color: var(--fcs-surface-2);
   box-shadow: 0 1px 3px #70334e0a;
 }
 @media (min-width: 640px) {
@@ -93,9 +117,9 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  border: 1px solid var(--color-brand-line);
+  border: 1px solid var(--fcs-border);
   border-radius: .75rem;
-  background-color: #fff;
+  background-color: var(--fcs-surface-2);
   box-shadow: 0 2px 12px #70334e14;
   transition: box-shadow .18s ease-out, transform .18s ease-out;
 }
