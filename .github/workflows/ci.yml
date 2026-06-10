@@ -51,137 +51,46 @@ jobs:
       - name: Every tracked plugin/theme is wired into ops/deploy.sh
         run: ops/scripts/check-deploy-coverage.sh
 
-  breeze-forms:
-    name: breeze-forms PHPUnit
+  # The PHPUnit and composer-audit matrices are DISCOVERED from tracked files,
+  # not hand-listed: a plugin with a phpunit.xml.dist gets a test job, one with
+  # a composer.lock gets a CVE audit. A new plugin's suite runs the moment it
+  # lands — no ci.yml edit, so tests can't be silently skipped the way an
+  # unwired deploy path could (see ops/scripts/check-deploy-coverage.sh).
+  discover:
+    name: discover plugin suites
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wp-content/plugins/firstchurch-breeze-forms
+    outputs:
+      phpunit: ${{ steps.list.outputs.phpunit }}
+      audit: ${{ steps.list.outputs.audit }}
     steps:
       - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-          coverage: none
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
+      - name: Build matrices from tracked plugin markers
+        id: list
+        run: |
+          phpunit=$(git ls-files | { grep -E '^wp-content/plugins/[^/]+/phpunit\.xml\.dist$' || true; } | cut -d/ -f3 | sort | jq -R . | jq -cs .)
+          audit=$(git ls-files | { grep -E '^wp-content/plugins/[^/]+/composer\.lock$' || true; } | cut -d/ -f3 | sort | jq -R . | jq -cs .)
+          echo "phpunit=$phpunit" >> "$GITHUB_OUTPUT"
+          echo "audit=$audit" >> "$GITHUB_OUTPUT"
+          echo "PHPUnit matrix: $phpunit"
+          echo "Audit matrix:   $audit"
+          # A tracked plugin with no suite at all is lint-only — surface it, don't fail.
+          for p in $(git ls-files wp-content/plugins | awk -F/ 'NF>=4 {print $3}' | sort -u); do
+            [ -f "wp-content/plugins/$p/phpunit.xml.dist" ] || \
+              echo "::warning::wp-content/plugins/$p has no PHPUnit suite — lint-only."
+          done
 
-  carousel:
-    name: carousel PHPUnit
+  phpunit:
+    name: PHPUnit (${{ matrix.plugin }})
+    needs: discover
+    if: needs.discover.outputs.phpunit != '[]'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: ${{ fromJSON(needs.discover.outputs.phpunit) }}
     defaults:
       run:
-        working-directory: wp-content/plugins/firstchurch-carousel
-    steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-          coverage: none
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
-
-  stock-photos:
-    name: stock-photos PHPUnit
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wp-content/plugins/firstchurch-stock-photos
-    steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-          coverage: none
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
-  events:
-    name: events PHPUnit
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wp-content/plugins/firstchurch-events
-    steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-          coverage: none
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
-
-  people:
-    name: people PHPUnit
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wp-content/plugins/firstchurch-people
-    steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-          coverage: none
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
-
-  happenings:
-    name: happenings PHPUnit
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wp-content/plugins/firstchurch-happenings
-    steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-          coverage: none
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
-
-  connection-card:
-    name: connection-card PHPUnit
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wp-content/plugins/firstchurch-connection-card
-    steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-          coverage: none
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
-
-  enews:
-    name: enews PHPUnit
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wp-content/plugins/firstchurch-enews
+        working-directory: wp-content/plugins/${{ matrix.plugin }}
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
@@ -234,19 +143,13 @@ jobs:
 
   composer-audit:
     name: composer audit (${{ matrix.plugin }})
+    needs: discover
+    if: needs.discover.outputs.audit != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        plugin:
-          - firstchurch-breeze-forms
-          - firstchurch-carousel
-          - firstchurch-stock-photos
-          - firstchurch-happenings
-          - firstchurch-events
-          - firstchurch-people
-          - firstchurch-connection-card
-          - firstchurch-enews
+        plugin: ${{ fromJSON(needs.discover.outputs.audit) }}
     defaults:
       run:
         working-directory: wp-content/plugins/${{ matrix.plugin }}
