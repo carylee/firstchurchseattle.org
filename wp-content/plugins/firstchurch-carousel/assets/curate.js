@@ -140,7 +140,7 @@
 	function deckTile( e ) {
 		return $(
 			'<li class="fccar-tile" data-id="' + attr( e.id ) + '">' +
-				'<div class="fccar-thumb" title="Drag to reorder"></div>' +
+				'<div class="fccar-thumb" title="Click to edit · drag to reorder"></div>' +
 				'<div class="fccar-tile-bar">' +
 					badge( e ) + ( e.preserviceOnly ? preBadge() : '' ) + warnBadge( entryWarnings( e ) ) +
 					'<span class="fccar-tname">' + esc( e.title || e.srcTitle ) + '</span>' +
@@ -207,17 +207,30 @@
 	} );
 
 	/* ---- ordering ---- */
+	// A sortable drag ends with mouseup, which the browser may follow with a
+	// click — we don't want that click to also open the editor. Flag while
+	// dragging and clear it just after stop (the stray click fires in between).
+	var deckDragged = false;
 	$deck.sortable( {
 		items: '> .fccar-tile',
 		placeholder: 'fccar-placeholder',
 		forcePlaceholderSize: true,
 		tolerance: 'pointer',
 		cancel: 'input,textarea,button,a',
+		start: function () { deckDragged = true; },
 		stop: function () {
 			var order = $deck.children( '.fccar-tile' ).map( function () { return String( $( this ).data( 'id' ) ); } ).get();
 			D.deck.sort( function ( a, b ) { return order.indexOf( a.id ) - order.indexOf( b.id ); } );
 			markDirty();
+			setTimeout( function () { deckDragged = false; }, 0 );
 		}
+	} );
+
+	/* Clicking the rendered slide (not just the pencil) opens the editor. */
+	$deck.on( 'click', '.fccar-thumb', function () {
+		if ( deckDragged ) { return; }
+		var e = entryById( String( $( this ).closest( '.fccar-tile' ).data( 'id' ) ) );
+		if ( e ) { openDrawer( e ); }
 	} );
 
 	/* ---- add / remove ---- */
