@@ -15,6 +15,12 @@
  *    pages rendering identical content. The published vanity URL (/live) and
  *    the footer "Watch Live" link both point at /worship/live/, so it wins.
  *
+ * 3. Location singles retirement — /locations/firstchurch/ was near-orphaned
+ *    (in no menu, linked from no theme code), so single ctc_location URLs 301
+ *    to the Contact page. The post itself stays published: footer.php reads
+ *    its authored coordinates for the footer static map. The /locations/
+ *    archive already 301s to /campus-locations/ elsewhere and is left alone.
+ *
  * @package Maranatha_Child
  */
 
@@ -72,6 +78,14 @@ add_action(
 		// Children of /worship/ (prayer, live, …) are exact-match exempt.
 		if ( '/worship' === untrailingslashit( strtolower( $path ) ) ) {
 			wp_safe_redirect( home_url( '/worship/live/' ), 301 );
+			exit;
+		}
+
+		// Location singles retirement. The path prefix requires something
+		// after /locations/ so the bare archive keeps its existing 301 to
+		// /campus-locations/; the conditional is the ?p= safety net.
+		if ( is_singular( 'ctc_location' ) || preg_match( '~^/locations/.~', strtolower( $path ) ) ) {
+			wp_safe_redirect( home_url( '/about/contact-us/' ), 301 );
 			exit;
 		}
 	}
