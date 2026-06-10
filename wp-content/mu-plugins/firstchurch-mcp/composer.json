@@ -1,0 +1,20 @@
+{
+    "name": "firstchurch/mcp-abilities-tests",
+    "description": "Test harness for the First Church MCP Abilities mu-plugin (../firstchurch-mcp-abilities.php). Dev-only: PHPUnit + lightweight WordPress shims. No runtime code lives here.",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FirstChurch\\Mcp\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
