@@ -21,6 +21,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// The parent maps its own events-calendar.php template to the full 1170px
+// container (maranatha_content_width() in includes/content.php special-cases it
+// by filename). This replacement template isn't on that list, so it would fall
+// back to the 700px reading width — far too narrow for a 7-column month grid.
+// Claim the full width here; this file only loads when the template is active.
+add_filter(
+	'maranatha_content_width',
+	function () {
+		return 1170;
+	}
+);
+
 add_action( 'maranatha_after_content', 'fcs_events_calendar_after_content' );
 function fcs_events_calendar_after_content() {
 	if ( ! function_exists( 'happenings_event_occurrences' ) || ! function_exists( 'fcs_render_happening_card' ) ) {
