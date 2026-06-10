@@ -44,12 +44,14 @@ jobs:
           exit $fail
 
   deploy-coverage:
-    name: deploy coverage
+    name: sync coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Every tracked plugin/theme is wired into ops/deploy.sh
         run: ops/scripts/check-deploy-coverage.sh
+      - name: Every tracked plugin/theme/mu-plugin is protected from ddev pull-prod
+        run: ops/scripts/check-pull-protection.sh
 
   # The PHPUnit and composer-audit matrices are DISCOVERED from tracked files,
   # not hand-listed: a suite dir (under plugins/ OR mu-plugins/) with a
