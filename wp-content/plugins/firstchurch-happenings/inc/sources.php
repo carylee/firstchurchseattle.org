@@ -118,6 +118,7 @@ function happenings_event_to_item(WP_Post $post): array
         'id'     => 'event-' . $post->ID,
         'source' => 'event',
         'layout' => 'event',
+        'kind'   => happenings_event_kind($post->ID),
         'title'  => happenings_text(get_the_title($post)),
         'date'   => (string) get_post_meta($post->ID, '_ctc_event_start_date', true),
         'when'   => happenings_event_when($post->ID),
