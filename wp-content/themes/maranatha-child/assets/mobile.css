@@ -1574,3 +1574,20 @@ a.fcs-rhythm-strip__title:focus {
 	color: var(--fcs-maroon);
 	font-weight: 600;
 }
+
+/* ============================================================
+   Homepage hero legibility
+   The hero is a CT Section widget: thin white text over a
+   photo with a Customizer-set opacity wash. A soft shadow on
+   the text block and a faint fill behind the ghost buttons
+   lift contrast without touching the (DB-side) image/opacity.
+   ============================================================ */
+
+#maranatha-home-section-1 .maranatha-home-section-content {
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 2px 14px rgba(0, 0, 0, 0.25);
+}
+
+#maranatha-home-section-1 .maranatha-circle-buttons-list a {
+	background: rgba(0, 0, 0, 0.18);
+	text-shadow: none;
+}
