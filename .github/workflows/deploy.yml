@@ -96,3 +96,14 @@ jobs:
           else
             ops/deploy.sh
           fi
+
+      # Catch a broken deploy in the run that caused it, not when someone visits
+      # the site. Routes must answer; the synced mu-plugins must still parse
+      # (the lint deploy.sh itself recommends). /events/ 301s by design, so
+      # follow it and require the destination to be a 200.
+      - name: Post-deploy smoke test
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        run: |
+          curl -fsS --retry 3 -o /dev/null -w 'homepage: %{http_code}\n' https://firstchurchseattle.org/
+          curl -fsSL --retry 3 -o /dev/null -w 'events: %{http_code} (%{url_effective})\n' https://firstchurchseattle.org/events/
+          ssh firstchurch 'cd ~/public_html/wp-content/mu-plugins && for f in firstchurch-*.php sso.php; do php -l "$f"; done'
