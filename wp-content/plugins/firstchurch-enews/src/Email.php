@@ -68,16 +68,24 @@ final class Email
      * text) and a base font. $inner is trusted HTML (block render output + cards)
      * and is embedded verbatim.
      *
-     * @param array{subject?:string,preview?:string,date?:string} $env Issue envelope.
+     * @param array{subject?:string,preview?:string,date?:string,footer?:string} $env Issue envelope.
      */
     public static function document(string $inner, array $env): string
     {
         $subject = (string) ($env['subject'] ?? 'First Church Weekly News');
         $preview = (string) ($env['preview'] ?? '');
+        $footer  = (string) ($env['footer'] ?? '');
 
         // Hidden preheader: the inbox preview line, kept out of the visible body.
         $preheader = $preview !== ''
             ? '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">' . self::esc($preview) . '</div>'
+            : '';
+
+        // Footer (trusted HTML from the glue: social/past-issues/copyright + the
+        // Mailchimp unsubscribe/address merge tags). Quiet, centered, below the body.
+        $footerRow = $footer !== ''
+            ? '<tr><td style="padding:16px 24px 24px;' . self::FONT . 'font-size:12px;line-height:1.6;color:'
+                . self::MUTED . ';text-align:center;border-top:1px solid #eeeeee;">' . $footer . '</td></tr>'
             : '';
 
         return '<!DOCTYPE html><html><head><meta charset="utf-8">'
@@ -91,7 +99,9 @@ final class Email
             . 'style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;">'
             . '<tr><td style="padding:24px;' . self::FONT . 'color:' . self::INK . ';">'
             . $inner
-            . '</td></tr></table>'
+            . '</td></tr>'
+            . $footerRow
+            . '</table>'
             . '</td></tr></table></body></html>';
     }
 

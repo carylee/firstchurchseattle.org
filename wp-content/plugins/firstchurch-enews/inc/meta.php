@@ -131,6 +131,11 @@ function fcen_settings_meta_box_render( $post ): void {
 		</p>
 		<?php
 	endif;
+
+	// The "Push to Mailchimp" control (creates/updates a draft campaign).
+	if ( function_exists( 'fcen_mailchimp_button' ) ) {
+		fcen_mailchimp_button( $post );
+	}
 }
 
 add_action( 'save_post_' . FCEN_CPT, 'fcen_settings_save' );

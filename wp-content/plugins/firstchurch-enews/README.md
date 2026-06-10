@@ -1,8 +1,9 @@
 # First Church E-News — the weekly newsletter as a spine surface
 
 Makes the weekly e-news an **authoring surface over the Happenings spine** instead of a
-hand-built Mailchimp campaign. See the design: [`ops/docs/enews-spine.md`](../../../ops/docs/enews-spine.md)
-(this is roadmap **step 6.3**).
+hand-built Mailchimp campaign — author an issue, render it to email, push it to Mailchimp as a
+draft. See the design: [`ops/docs/enews-spine.md`](../../../ops/docs/enews-spine.md)
+(roadmap **steps 6.3–6.5**).
 
 ## What it does
 
@@ -26,11 +27,13 @@ block editor. The issue is a *thin curation layer*, not a content store:
 firstchurch-enews/
 ├── firstchurch-enews.php   # bootstrap: CPT slug + meta keys, requires, rewrite flush
 ├── src/
-│   └── Email.php           # pure, unit-tested email render (card + document scaffold)
+│   ├── Email.php           # pure, unit-tested email render (card + document scaffold + footer)
+│   └── Mailchimp.php       # pure, unit-tested Marketing-API payload/parse helpers
 ├── inc/
 │   ├── cpt.php             # register enews_issue + its pre-fill block template
 │   ├── meta.php            # subject / preview / send-date meta + the settings meta box
-│   └── render.php          # walk an issue's blocks → email HTML; staff "Preview email"
+│   ├── render.php          # walk an issue's blocks → email HTML; the church footer; "Preview email"
+│   └── mailchimp.php       # credentials + HTTP + "Push to Mailchimp draft" action
 └── tests/                  # PHPUnit for src/ (dev-only, not deployed)
 ```
 
@@ -51,6 +54,27 @@ ddev exec 'cd wp-content/plugins/firstchurch-enews && composer install && vendor
 `vendor/`, `tests/`, `composer.*`, `phpunit.xml.dist` are dev-only — gitignored where applicable
 and excluded from the deploy. Production loads `src/` via explicit `require_once` (no Composer).
 
+## Push to Mailchimp (draft, never auto-sent)
+
+The **Push to Mailchimp** button in the *E-News Settings* box renders the issue and creates — or
+updates, on re-push — a **draft** campaign via the Marketing API v3, then links to it. It never
+sends: the irreversible step stays a human action in Mailchimp's UI after review. The campaign id
+is remembered on the issue (so re-pushing updates one draft, recreating it if it 404s or was
+already sent), and Mailchimp's own error detail is surfaced on failure. The email footer carries
+the `*|UNSUB|*` / address merge tags Mailchimp requires to send.
+
+Credentials live in **wp-config constants** (never committed):
+
+```php
+define( 'FCEN_MAILCHIMP_API_KEY',     'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-us2' ); // the -us2 suffix is the datacenter
+define( 'FCEN_MAILCHIMP_AUDIENCE_ID',  'xxxxxxxxxx' );  // Audience → Settings → Unique id
+// optional:
+define( 'FCEN_MAILCHIMP_FROM_NAME',    'First Church Seattle' );
+define( 'FCEN_MAILCHIMP_REPLY_TO',     'comms@firstchurchseattle.org' );
+```
+
+Without the two required constants the button hides behind a one-line hint; nothing else breaks.
+
 ## Depends on
 
 - **firstchurch-happenings** (the spine) — the timely sections are empty without it.
@@ -58,7 +82,8 @@ and excluded from the deploy. Production loads `src/` via explicit `require_once
 
 ## Deploy / activation
 
-Wired into `ops/deploy.sh`. After the first deploy, activate it and flush rewrites once:
+Wired into `ops/deploy.sh`. After the first deploy, activate it, flush rewrites, and set the
+Mailchimp constants in prod's `wp-config.php`:
 
 ```bash
 ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-enews && wp rewrite flush'
@@ -66,8 +91,9 @@ ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-enews && wp 
 
 ## Not yet (follow-ups, see enews-spine.md §7)
 
-- **6.5** push the rendered issue to Mailchimp (campaign API / import-from-URL) for sending.
 - Projecting the evergreen "Recurring at First Church" list from a real source rather than
   seeding it as editable furniture.
 - Inline-styling the editorial blocks (headings/paragraphs render as semantic HTML today; the
   scaffold sets a base font, which most clients honor — revisit if a client needs more).
+- Optional: a one-click "schedule"/"send test" from WordPress (deliberately omitted — sending
+  stays in Mailchimp).
