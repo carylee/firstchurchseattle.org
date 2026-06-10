@@ -158,6 +158,24 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+  enews:
+    name: enews PHPUnit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wp-content/plugins/firstchurch-enews
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
   tailwind-build:
     name: tailwind builds
     runs-on: ubuntu-latest
@@ -209,6 +227,7 @@ jobs:
           - firstchurch-happenings
           - firstchurch-events
           - firstchurch-connection-card
+          - firstchurch-enews
     defaults:
       run:
         working-directory: wp-content/plugins/${{ matrix.plugin }}
