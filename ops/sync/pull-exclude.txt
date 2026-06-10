@@ -24,9 +24,17 @@
 # ship with ops/deploy.sh; do NOT edit them directly on prod (a pull won't capture that and
 # the next deploy would overwrite it).
 /wp-content/themes/maranatha-child/
-/wp-content/plugins/firstchurch-connection-card/
 /wp-content/plugins/firstchurch-breeze-forms/
+/wp-content/plugins/firstchurch-carousel/
+/wp-content/plugins/firstchurch-connection-card/
+/wp-content/plugins/firstchurch-enews/
+/wp-content/plugins/firstchurch-events/
+/wp-content/plugins/firstchurch-happenings/
+/wp-content/plugins/firstchurch-people/
+/wp-content/plugins/firstchurch-stock-photos/
+/wp-content/mu-plugins/firstchurch-google-register-policy.php
 /wp-content/mu-plugins/firstchurch-mcp-abilities.php
+/wp-content/mu-plugins/firstchurch-security-headers.php
 /wp-content/mu-plugins/sso.php
 # Dev-only test harness for the mu-plugin above — never on prod (not in deploy.sh),
 # so without this line the pull's --delete would wipe it locally.
