@@ -35,9 +35,6 @@ final class Email
     public const SANS  = "font-family: Helvetica, Arial, sans-serif;";
     public const SERIF = "font-family: Georgia, 'Times New Roman', serif;";
 
-    /** Back-compat alias for the body slot's base font (the serif letter). */
-    private const FONT = self::SERIF;
-
     /*
      * Brand chrome (the masthead + footer furniture) — identical every week, so
      * it lives here as constants rather than as editor fields. Mirrors
@@ -55,8 +52,12 @@ final class Email
     private const TOPBAR      = "Worship with us every Sunday at 10:30\u{00A0}AM!";
 
     /**
-     * One Happening as an email-safe card (a bordered table). Mirrors the web
-     * card's shape — linked title, meta line, blurb, CTA button — but inline.
+     * One Happening as an email-safe announcement block, matching ../mailchimp's
+     * repeatable announcement: a maroon sans title under a short tan rule, the
+     * optional image, a sans body, and a "label »" text-link CTA. Consumes the
+     * same CardView the web `.fcs-card` does (title, url, meta, blurb, image,
+     * ctaUrl, ctaLabel) so email and web never disagree; only the markup differs.
+     * Borderless — it sits inside the white body slot, separated by spacing.
      *
      * @param array<string,mixed> $view     A CardView view-model (happenings_card_view()).
      * @param bool                $showMeta  Show the date/when line. Featured announcements
@@ -68,6 +69,7 @@ final class Email
         $url    = (string) ($view['url'] ?? '');
         $meta   = (string) ($view['meta'] ?? '');
         $blurb  = (string) ($view['blurb'] ?? '');
+        $image  = (string) ($view['image'] ?? '');
         $ctaUrl = (string) ($view['ctaUrl'] ?? '');
         $ctaLbl = (string) ($view['ctaLabel'] ?? '');
 
@@ -76,21 +78,29 @@ final class Email
             $titleHtml = '<a href="' . self::escAttr($url) . '" style="color:' . self::MAROON . ';text-decoration:none;">' . $titleHtml . '</a>';
         }
 
-        $rows = '<tr><td style="' . self::FONT . 'font-size:18px;font-weight:bold;line-height:1.3;color:' . self::INK . ';padding:0 0 4px;">' . $titleHtml . '</td></tr>';
+        // Maroon sans heading.
+        $rows = '<tr><td class="h2 text-dark" style="' . self::SANS . 'font-size:20px;line-height:26px;font-weight:bold;color:' . self::MAROON . ';padding:0 0 6px;">' . $titleHtml . '</td></tr>';
+
+        // Short tan brand rule under the heading (44px).
+        $rows .= '<tr><td style="padding:0 0 12px;"><table role="presentation" width="44" cellspacing="0" cellpadding="0" border="0"><tr>'
+            . '<td height="3" style="height:3px;line-height:3px;font-size:3px;background-color:' . self::TAN . ';">&nbsp;</td></tr></table></td></tr>';
 
         if ($showMeta && $meta !== '') {
-            $rows .= '<tr><td style="' . self::FONT . 'font-size:13px;color:' . self::MUTED . ';padding:0 0 6px;">' . self::esc($meta) . '</td></tr>';
+            $rows .= '<tr><td class="text-muted" style="' . self::SANS . 'font-size:13px;line-height:18px;color:' . self::MUTED . ';padding:0 0 10px;">' . self::esc($meta) . '</td></tr>';
+        }
+        if ($image !== '') {
+            $rows .= '<tr><td style="padding:0 0 14px;"><img src="' . self::escAttr($image) . '" alt="" class="fluid" style="display:block;width:100%;max-width:520px;height:auto;border-radius:4px;"></td></tr>';
         }
         if ($blurb !== '') {
-            $rows .= '<tr><td style="' . self::FONT . 'font-size:15px;line-height:1.5;color:' . self::INK . ';padding:0 0 10px;">' . self::esc($blurb) . '</td></tr>';
+            $rows .= '<tr><td class="body-text text-dark" style="' . self::SANS . 'font-size:16px;line-height:25px;color:' . self::INK . ';padding:0 0 10px;">' . self::esc($blurb) . '</td></tr>';
         }
         if ($ctaUrl !== '') {
             $label = $ctaLbl !== '' ? $ctaLbl : 'Learn more';
-            $rows .= '<tr><td style="padding:0;"><a href="' . self::escAttr($ctaUrl) . '" style="' . self::FONT . 'display:inline-block;background:' . self::MAROON . ';color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;padding:8px 16px;border-radius:4px;">' . self::esc($label) . '</a></td></tr>';
+            $rows .= '<tr><td class="body-text" style="' . self::SANS . 'font-size:16px;line-height:25px;padding:0;">'
+                . '<a href="' . self::escAttr($ctaUrl) . '" target="_blank" style="color:' . self::MAROON . ';font-weight:bold;text-decoration:underline;">' . self::esc($label) . ' &raquo;</a></td></tr>';
         }
 
-        return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
-            . 'style="border:1px solid #e5e5e5;border-radius:6px;margin:0 0 16px;"><tr><td style="padding:16px;">'
+        return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px;"><tr><td style="padding:0;">'
             . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' . $rows . '</table>'
             . '</td></tr></table>';
     }

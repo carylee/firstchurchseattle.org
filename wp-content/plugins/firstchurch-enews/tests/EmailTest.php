@@ -94,6 +94,29 @@ final class EmailTest extends TestCase
         $this->assertStringContainsString('1 &lt; 2 &amp;', $html);
     }
 
+    public function test_card_renders_the_optional_image_when_present(): void
+    {
+        // The CardView has always carried `image`; the announcement design finally
+        // uses it (matching the template's hideable image region).
+        $html = Email::card(self::view(['image' => 'https://x/uploads/open-mic.jpg']));
+        $this->assertStringContainsString('<img', $html);
+        $this->assertStringContainsString('https://x/uploads/open-mic.jpg', $html);
+    }
+
+    public function test_card_omits_the_image_when_absent(): void
+    {
+        $html = Email::card(self::view(['image' => '']));
+        $this->assertStringNotContainsString('<img', $html);
+    }
+
+    public function test_card_body_uses_the_sans_stack(): void
+    {
+        // Announcement bodies are sans (Helvetica/Arial), per the template; the
+        // serif is reserved for the pastoral letter in the body slot.
+        $html = Email::card(self::view());
+        $this->assertStringContainsString('Helvetica', $html);
+    }
+
     public function test_document_wraps_inner_in_an_email_scaffold(): void
     {
         $inner = '<h2>This Week</h2><p>hello</p>';
