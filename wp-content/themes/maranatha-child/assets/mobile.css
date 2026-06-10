@@ -208,6 +208,22 @@
 	border-radius: 2px;
 }
 
+/* The whole top of the card — title, date, excerpt, and the surrounding
+   padding — clicks through to the item, not just the title text. The title's
+   link stretches over the body via a pseudo-element; negative insets push the
+   hit area out across the card's 20px padding (`overflow: hidden` on .fcs-card
+   keeps it inside the rounded corners). The CTA strip below sits outside
+   .fcs-card__body, so it stays its own separate link. */
+.fcs-card__body {
+	position: relative;
+}
+
+.fcs-card__title a::after {
+	content: "";
+	position: absolute;
+	inset: -20px -20px -8px;
+}
+
 .fcs-card__date,
 .fcs-card__meta {
 	margin: 0 !important;
