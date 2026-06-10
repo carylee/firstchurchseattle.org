@@ -677,7 +677,18 @@ main#maranatha-content {
 		align-items: center !important;
 		justify-content: center !important;
 		gap: 3px !important;
-		top: 8px !important;
+		/* Center the button in the fixed 78px header (24px pad + 30px logo +
+		   24px pad), instead of riding meanmenu's flow offset. meanmenu appends
+		   its bar as a sibling AFTER the logo and the theme nudges .mean-bar up
+		   with a magic `top` tuned for the original ~18px icon; with our 44px
+		   tap target that offset dropped the button to y≈47–91, so its center
+		   sat below the logo and its bottom spilled past the header band. Pin it
+		   to the (also-fixed) header instead: (78 − 44) / 2 = 17px from the top.
+		   right:12px gives an edge margin matching the logo's left inset. */
+		position: fixed !important;
+		top: 17px !important;
+		right: 12px !important;
+		left: auto !important;
 		/* Sit above the drawer (z-index 99990) so the open-state ✕ — which
 		   shares .mean-bar's stacking context with the drawer <ul> — isn't
 		   painted under the full-height fixed panel. */
