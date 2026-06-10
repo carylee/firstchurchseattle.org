@@ -24,7 +24,7 @@
 		apiVersion: 3,
 		title: __('Happenings', 'maranatha-child'),
 		description: __(
-			'Show a section of the Happenings feed (Featured, Upcoming events, or Recent announcements) as cards.',
+			'Show a section of the Happenings feed (Featured, Upcoming events, Weekly rhythms, Groups, or Recent announcements).',
 			'maranatha-child',
 		),
 		icon: 'megaphone',
@@ -55,7 +55,7 @@
 						});
 
 			const windowControl =
-				a.section === 'events'
+				a.section === 'events' || a.section === 'rhythms' || a.section === 'groups'
 					? el(c.RangeControl, {
 							label: __('Look ahead (weeks)', 'maranatha-child'),
 							value: a.weeks,
@@ -82,7 +82,9 @@
 						value: a.section,
 						options: [
 							{ label: __('Featured (by weight)', 'maranatha-child'), value: 'featured' },
-							{ label: __('Upcoming events', 'maranatha-child'), value: 'events' },
+							{ label: __('Upcoming events (one-offs)', 'maranatha-child'), value: 'events' },
+							{ label: __('Weekly rhythms (strip)', 'maranatha-child'), value: 'rhythms' },
+							{ label: __('Groups & gatherings', 'maranatha-child'), value: 'groups' },
 							{ label: __('Recent announcements', 'maranatha-child'), value: 'announcements' },
 						],
 						onChange: (v) => set({ section: v }),

@@ -9,6 +9,7 @@
  */
 
 use FirstChurch\Happenings\Id;
+use FirstChurch\Happenings\Kind;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -37,9 +38,14 @@ function happenings_resolve(array $args = []): array
  * exclude-featured de-dup, or the count cap. Rendering (web card vs. email card)
  * stays per-surface; this returns the ordered, capped Happening[] only.
  *
- * @param string $section          'featured' | 'events' | 'announcements'
+ * Sections and kinds (ops/docs/event-kinds.md): 'events' is the date-sorted
+ * rail of TIME-BOUND happenings only — the standing weekly rhythms and the
+ * monthly groups live in their own sections ('rhythms', 'groups') so their
+ * always-imminent next occurrences can't monopolize the rail's slots.
+ *
+ * @param string $section          'featured' | 'events' | 'rhythms' | 'groups' | 'announcements'
  * @param int    $count            Max items to return.
- * @param int    $weeks            Event look-ahead (featured/events).
+ * @param int    $weeks            Event look-ahead (featured/events/rhythms/groups).
  * @param int    $days             Announcement look-back.
  * @param bool   $exclude_featured Drop items already promoted into Featured (so a
  *                                 Featured block + an Events block don't double).
@@ -58,7 +64,13 @@ function happenings_section_items(
 
     switch ($section) {
         case 'events':
-            $items = happenings_event_items($weeks);
+            $items = happenings_event_items($weeks, [Kind::EVENT]);
+            break;
+        case 'rhythms':
+            $items = happenings_rhythm_items($weeks);
+            break;
+        case 'groups':
+            $items = happenings_event_items($weeks, [Kind::GROUP]);
             break;
         case 'announcements':
             $items = happenings_news_items($days);
@@ -78,6 +90,26 @@ function happenings_section_items(
     }
 
     return array_slice($items, 0, $count);
+}
+
+/**
+ * The standing weekly rhythms, ordered by time of day — NOT by date: every
+ * rhythm's next occurrence is within the week, so date order is meaningless.
+ * Time-of-day order makes the "Every Sunday" strip read as the day actually
+ * runs: breakfast → centering prayer → worship → evening study. Items without
+ * a clock time (date-only `start`) sort first; ties fall back to title.
+ */
+function happenings_rhythm_items(int $weeks): array
+{
+    $items = happenings_event_items($weeks, [Kind::RHYTHM]);
+    $tod   = static fn (array $it): string => substr((string) ($it['start'] ?? ''), 11, 8);
+    usort(
+        $items,
+        static fn (array $a, array $b): int =>
+            strcmp($tod($a), $tod($b)) ?: strcmp((string) ($a['title'] ?? ''), (string) ($b['title'] ?? ''))
+    );
+
+    return $items;
 }
 
 /**

@@ -68,6 +68,22 @@ function fce_metabox_render( WP_Post $post ): void {
 	<p class="fce-sub" data-when="weekly monthly yearly" <?php echo $row; ?>>
 		<label><?php esc_html_e( 'Until (optional)', 'firstchurch-events' ); ?> <input type="date" name="fce_until" value="<?php echo esc_attr( $f['end_date'] ); ?>"></label></p>
 
+	<?php $kind_override = (string) get_post_meta( $post->ID, FCE_KIND, true ); ?>
+	<p <?php echo $row; ?>><label><strong><?php esc_html_e( 'Shows as', 'firstchurch-events' ); ?></strong> <span style="color:#666">(<?php esc_html_e( 'how surfaces classify it — Auto follows the Repeats setting', 'firstchurch-events' ); ?>)</span><br>
+		<select name="fce_kind">
+			<?php
+			$kinds = array(
+				''       => __( 'Auto (from Repeats)', 'firstchurch-events' ),
+				'rhythm' => __( 'Weekly rhythm (standing pattern, e.g. Sunday worship)', 'firstchurch-events' ),
+				'group'  => __( 'Group / gathering (ongoing community)', 'firstchurch-events' ),
+				'event'  => __( 'Event (time-bound, promotable)', 'firstchurch-events' ),
+			);
+			foreach ( $kinds as $v => $l ) :
+				?>
+				<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $kind_override, $v ); ?>><?php echo esc_html( $l ); ?></option>
+			<?php endforeach; ?>
+		</select></label></p>
+
 	<p <?php echo $row; ?>><label><strong><?php esc_html_e( 'Cancelled dates', 'firstchurch-events' ); ?></strong> <span style="color:#666">(<?php esc_html_e( 'one YYYY-MM-DD per line', 'firstchurch-events' ); ?>)</span><br>
 		<textarea name="fce_skip_dates" rows="2" class="widefat"><?php echo esc_textarea( $skip ); ?></textarea></label></p>
 
@@ -102,6 +118,7 @@ add_action( 'save_post_' . FCE_CPT, static function ( $post_id ) {
 		'time'             => isset( $_POST['fce_time'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_time'] ) ) : '',
 		'venue'            => isset( $_POST['fce_venue'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_venue'] ) ) : '',
 		'registration_url' => isset( $_POST['fce_regurl'] ) ? esc_url_raw( wp_unslash( $_POST['fce_regurl'] ) ) : '',
+		'kind'             => isset( $_POST['fce_kind'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_kind'] ) ) : '',
 		'skip_dates'       => $skip,
 		'recurrence'       => array(
 			'frequency'     => 'none' === $freq ? '' : $freq,

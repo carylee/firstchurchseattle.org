@@ -81,6 +81,13 @@ function fcs_happenings_block_render( $attrs ) {
 		echo '<h2 class="fcs-happenings__heading">' . esc_html( $heading ) . '</h2>';
 	}
 
+	// Rhythms are site furniture, not news: one quiet line each ("Every
+	// Sunday" strip), not cards competing with the promotable one-offs.
+	if ( 'rhythms' === $section ) {
+		echo fcs_render_rhythm_strip( $items ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes internally.
+		return (string) ob_get_clean();
+	}
+
 	echo '<div class="fcs-card-grid">';
 
 	foreach ( $items as $item ) {
@@ -95,6 +102,42 @@ function fcs_happenings_block_render( $attrs ) {
 	}
 
 	echo '</div>';
+
+	return (string) ob_get_clean();
+}
+
+/**
+ * Render the weekly rhythms as a compact strip — one line per item (title +
+ * when-line), shared by the /engage block's Rhythms section and the
+ * spine-backed Upcoming Events template. Escapes all output; returns HTML.
+ *
+ * @param array $items Happening[] (raw spine items, not card views).
+ * @return string
+ */
+function fcs_render_rhythm_strip( array $items ): string {
+	if ( empty( $items ) ) {
+		return '';
+	}
+
+	ob_start();
+	echo '<ul class="fcs-rhythm-strip">';
+	foreach ( $items as $item ) {
+		$title = (string) ( $item['title'] ?? '' );
+		$url   = (string) ( $item['url'] ?? '' );
+		$when  = (string) ( $item['when'] ?? '' );
+
+		echo '<li class="fcs-rhythm-strip__item">';
+		if ( '' !== $url ) {
+			echo '<a class="fcs-rhythm-strip__title" href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a>';
+		} else {
+			echo '<span class="fcs-rhythm-strip__title">' . esc_html( $title ) . '</span>';
+		}
+		if ( '' !== $when ) {
+			echo '<span class="fcs-rhythm-strip__when">' . esc_html( $when ) . '</span>';
+		}
+		echo '</li>';
+	}
+	echo '</ul>';
 
 	return (string) ob_get_clean();
 }

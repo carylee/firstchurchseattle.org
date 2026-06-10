@@ -43,6 +43,21 @@ function fce_rrule( int $post_id ): string {
 	return (string) ( Recurrence::toRrule( fce_recurrence_fields( $post_id ) ) ?? '' );
 }
 
+/**
+ * The event's kind (rhythm | group | event): the explicit _fce_kind override
+ * when set, else derived from the recurrence fields by the spine's pure
+ * Kind::derive() (ops/docs/event-kinds.md). '' when the spine is inactive —
+ * item projection then omits the field and lens filters treat it as 'event'.
+ */
+function fce_kind( int $post_id ): string {
+	if ( ! class_exists( '\FirstChurch\Happenings\Kind' ) ) {
+		return '';
+	}
+	$f         = fce_recurrence_fields( $post_id );
+	$f['kind'] = (string) get_post_meta( $post_id, FCE_KIND, true );
+	return \FirstChurch\Happenings\Kind::derive( $f );
+}
+
 /** Human "when" — reuses the spine's church-phrased EventWhen when available. */
 function fce_when( int $post_id ): string {
 	$f = fce_recurrence_fields( $post_id );
@@ -87,8 +102,8 @@ function fce_occurrences_between( string $dtstart, string $rrule, DateTimeInterf
  * mapped to the stored CTC-shaped meta.
  *
  * $in keys (all optional except as enforced by callers): date, time, venue,
- * registration_url, skip_dates[], recurrence{ frequency, interval, weekdays[],
- * monthly_weeks[], until }.
+ * registration_url, kind, skip_dates[], recurrence{ frequency, interval,
+ * weekdays[], monthly_weeks[], until }.
  *
  * @param array<string,mixed> $in
  */
@@ -104,6 +119,10 @@ function fce_write_event( int $post_id, array $in ): void {
 	}
 	if ( array_key_exists( 'registration_url', $in ) ) {
 		update_post_meta( $post_id, FCE_REGURL, esc_url_raw( (string) $in['registration_url'] ) );
+	}
+	if ( array_key_exists( 'kind', $in ) ) {
+		$kind = strtolower( sanitize_text_field( (string) $in['kind'] ) );
+		update_post_meta( $post_id, FCE_KIND, in_array( $kind, array( 'rhythm', 'group', 'event' ), true ) ? $kind : '' );
 	}
 	if ( array_key_exists( 'skip_dates', $in ) ) {
 		$dates = array_filter( array_map( 'sanitize_text_field', (array) $in['skip_dates'] ) );

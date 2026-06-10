@@ -41,8 +41,14 @@ function happenings_unexpired_clause(): array
  * transition: until events are migrated off CTC, both surface. fce_event_items()
  * is guarded — when that plugin is inactive the spine reads CTC only. No dedup
  * needed: migration unpublishes the CTC original when it moves an event.
+ *
+ * $kinds optionally narrows to specific Kind values (rhythm | group | event) —
+ * how a date-sorted rail keeps the always-imminent weekly rhythms from
+ * monopolizing its slots (ops/docs/event-kinds.md). Null returns every kind.
+ *
+ * @param array<int,string>|null $kinds
  */
-function happenings_event_items(int $weeks): array
+function happenings_event_items(int $weeks, ?array $kinds = null): array
 {
     $from = current_time('Y-m-d');
     $to   = gmdate('Y-m-d', strtotime("+{$weeks} weeks", strtotime($from)));
@@ -65,6 +71,15 @@ function happenings_event_items(int $weeks): array
     if (function_exists('fce_event_items')) {
         $items = array_merge($items, fce_event_items($weeks));
         usort($items, static fn ($a, $b) => strcmp($a['date'] ?? '', $b['date'] ?? ''));
+    }
+
+    if ($kinds !== null) {
+        // An item without kind (spine projected it before classification, or a
+        // foreign source) reads as a plain event — the pre-kinds behavior.
+        $items = array_values(array_filter(
+            $items,
+            static fn (array $it): bool => in_array($it['kind'] ?? \FirstChurch\Happenings\Kind::EVENT, $kinds, true)
+        ));
     }
 
     return $items;
@@ -118,6 +133,7 @@ function happenings_event_to_item(WP_Post $post): array
         'id'     => 'event-' . $post->ID,
         'source' => 'event',
         'layout' => 'event',
+        'kind'   => happenings_event_kind($post->ID),
         'title'  => happenings_text(get_the_title($post)),
         'date'   => (string) get_post_meta($post->ID, '_ctc_event_start_date', true),
         'when'   => happenings_event_when($post->ID),
