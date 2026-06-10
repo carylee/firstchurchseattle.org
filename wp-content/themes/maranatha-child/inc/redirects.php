@@ -71,6 +71,13 @@ add_action(
 			wp_safe_redirect( fcs_sermons_redirect_target(), 301 );
 			exit;
 		}
+
+		// /worship/ duplicates /worship/live/ — canonicalize to the latter.
+		// Children of /worship/ (prayer, live, …) are exact-match exempt.
+		if ( '/worship' === untrailingslashit( strtolower( $path ) ) ) {
+			wp_safe_redirect( home_url( '/worship/live/' ), 301 );
+			exit;
+		}
 	}
 );
 
