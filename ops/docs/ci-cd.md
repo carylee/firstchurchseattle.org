@@ -79,6 +79,7 @@ into the checked-out tree that `deploy.sh` then rsyncs.
    | `DEPLOY_HOST` | HostGator hostname/IP for the `firstchurch` account |
    | `DEPLOY_USER` | SSH username |
    | `DEPLOY_PORT` | SSH port (optional; defaults to `22`) |
+   | `DEPLOY_KNOWN_HOSTS` | The host's public keys, from `ssh-keyscan -p <port> <host>` — the deploy pins these (`StrictHostKeyChecking yes`) and fails if the secret is empty. Refresh it if HostGator ever rotates keys. |
 
    Host/user/port live in secrets (not the workflow file) so prod connection
    details aren't committed.
@@ -99,8 +100,9 @@ into the checked-out tree that `deploy.sh` then rsyncs.
 
 - The workflow writes the key + an `~/.ssh/config` `firstchurch` host block at
   runtime; `ops/deploy.sh` connects through that alias unchanged.
-- `StrictHostKeyChecking accept-new` trusts the host on first connect. To pin
-  it instead, add the host's public key to `~/.ssh/known_hosts` in the
-  *Configure SSH* step (e.g. from a `DEPLOY_KNOWN_HOSTS` secret).
+- The host key is **pinned**: `~/.ssh/known_hosts` is written from the
+  `DEPLOY_KNOWN_HOSTS` secret with `StrictHostKeyChecking yes` — no
+  trust-on-first-use. If a deploy fails with a host-key mismatch, verify the
+  change is legitimate, then refresh the secret from `ssh-keyscan`.
 - To deploy a hotfix without a merge: Actions → *Deploy to production* → *Run
   workflow* (optionally with **dry_run** first to preview).
