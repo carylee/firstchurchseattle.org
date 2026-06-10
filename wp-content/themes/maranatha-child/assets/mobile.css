@@ -1591,3 +1591,27 @@ a.fcs-rhythm-strip__title:focus {
 	background: rgba(0, 0, 0, 0.18);
 	text-shadow: none;
 }
+
+/* -- Contact-column static map (footer.php) -- */
+
+.fcs-footer__map {
+	display: block;
+	margin-top: 16px;
+	max-width: 280px;
+	border-radius: 10px;
+	overflow: hidden;
+	line-height: 0;
+}
+
+.fcs-footer__map img {
+	width: 100%;
+	height: auto;
+	display: block;
+	opacity: 0.92;
+	transition: opacity 0.12s ease-out;
+}
+
+.fcs-footer__map:hover img,
+.fcs-footer__map:focus img {
+	opacity: 1;
+}
