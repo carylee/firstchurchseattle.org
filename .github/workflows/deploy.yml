@@ -43,12 +43,12 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     environment: production
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           # Deploy the exact commit CI validated (auto), or the dispatched ref (manual).
           ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '24'
           cache: npm
@@ -62,10 +62,20 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          # Pin the host key (no trust-on-first-use): every runner is a fresh
+          # first connect, so accept-new would trust whatever answers. Refresh
+          # the secret if HostGator rotates keys:  ssh-keyscan -p <port> <host>
+          if [ -z "$DEPLOY_KNOWN_HOSTS" ]; then
+            echo "::error::DEPLOY_KNOWN_HOSTS secret is empty — populate it with: ssh-keyscan -p \$DEPLOY_PORT \$DEPLOY_HOST"
+            exit 1
+          fi
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
           # deploy.sh connects via the `firstchurch` host alias, so define it here.
           {
             echo "Host firstchurch"
@@ -74,7 +84,7 @@ jobs:
             echo "  Port $DEPLOY_PORT"
             echo "  IdentityFile ~/.ssh/deploy_key"
             echo "  IdentitiesOnly yes"
-            echo "  StrictHostKeyChecking accept-new"
+            echo "  StrictHostKeyChecking yes"
           } > ~/.ssh/config
           chmod 600 ~/.ssh/config
 
@@ -86,3 +96,14 @@ jobs:
           else
             ops/deploy.sh
           fi
+
+      # Catch a broken deploy in the run that caused it, not when someone visits
+      # the site. Routes must answer; the synced mu-plugins must still parse
+      # (the lint deploy.sh itself recommends). /events/ 301s by design, so
+      # follow it and require the destination to be a 200.
+      - name: Post-deploy smoke test
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        run: |
+          curl -fsS --retry 3 -o /dev/null -w 'homepage: %{http_code}\n' https://firstchurchseattle.org/
+          curl -fsSL --retry 3 -o /dev/null -w 'events: %{http_code} (%{url_effective})\n' https://firstchurchseattle.org/events/
+          ssh firstchurch 'cd ~/public_html/wp-content/mu-plugins && for f in firstchurch-*.php sso.php; do php -l "$f"; done'

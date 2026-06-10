@@ -15,9 +15,13 @@ updates:
     directories:
       - /wp-content/plugins/firstchurch-breeze-forms
       - /wp-content/plugins/firstchurch-carousel
-      - /wp-content/plugins/firstchurch-stock-photos
-      - /wp-content/plugins/firstchurch-happenings
+      - /wp-content/plugins/firstchurch-connection-card
+      - /wp-content/plugins/firstchurch-enews
       - /wp-content/plugins/firstchurch-events
+      - /wp-content/plugins/firstchurch-happenings
+      - /wp-content/plugins/firstchurch-people
+      - /wp-content/plugins/firstchurch-stock-photos
+      - /wp-content/mu-plugins/firstchurch-mcp
     schedule:
       interval: monthly
     groups:

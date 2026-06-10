@@ -130,7 +130,7 @@ firstchurchseattle.org/                 ← git repo + DDEV project
 | Path | What |
 |---|---|
 | `ops/deploy.sh` | **Push** to prod |
-| `ops/scripts/check-deploy-coverage.sh` | CI guardrail: fails if a tracked plugin/theme isn't wired into `deploy.sh` |
+| `ops/scripts/check-deploy-coverage.sh` | CI guardrail: fails if a tracked plugin/theme/mu-plugin isn't wired into `deploy.sh` |
 | `ops/scripts/check-pull-protection.sh` | CI guardrail: fails if tracked custom code isn't excluded from `ddev pull-prod` |
 | `ops/sync/ownership.md` | The push/pull ownership model (start here) |
 | `ops/sync/pull-exclude.txt` | What the pull never overwrites |

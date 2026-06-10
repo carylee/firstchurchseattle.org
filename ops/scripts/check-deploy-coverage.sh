@@ -21,7 +21,8 @@ DEPLOY="ops/deploy.sh"
 
 # Tracked directories that are intentionally NOT deployed. Keep short + justified.
 NOT_DEPLOYED=(
-  "wp-content/themes/maranatha"   # vendored parent theme: pinned for drift detection, not ours to push
+  "wp-content/themes/maranatha"          # vendored parent theme: pinned for drift detection, not ours to push
+  "wp-content/mu-plugins/firstchurch-mcp" # dev-only test harness; WP never loads mu-plugin subdirs
 )
 
 is_exempt() {
@@ -49,7 +50,33 @@ for base in wp-content/plugins wp-content/themes; do
   done < <(git ls-files "$base" | awk -F/ 'NF>=3 {print $1"/"$2"/"$3}' | sort -u)
 done
 
+# mu-plugins are synced as INDIVIDUAL files in deploy.sh (the dir also holds
+# host must-use plugins we don't own, so it's never mirrored). A new tracked
+# top-level mu-plugin .php therefore needs its own rsync line — without one it
+# merges green and silently never ships, same trap as an unwired plugin dir.
+while read -r f; do
+  [ -z "$f" ] && continue
+  if ! grep -qF "$f" "$DEPLOY"; then
+    echo "::error::$f is tracked but not referenced in $DEPLOY."
+    echo "  → Add an rsync line for it in $DEPLOY (sync the single file; NEVER --delete mu-plugins/)."
+    fail=1
+  fi
+done < <(git ls-files wp-content/mu-plugins | awk -F/ 'NF==3' | sort -u)
+
+# Tracked SUBDIRS of mu-plugins (WordPress doesn't auto-load these) must be
+# deployed explicitly or listed in NOT_DEPLOYED above.
+while read -r dir; do
+  [ -z "$dir" ] && continue
+  is_exempt "$dir" && continue
+  if ! grep -qF "$dir/" "$DEPLOY"; then
+    echo "::error::$dir is tracked but not referenced in $DEPLOY."
+    echo "  → Add an rsync line for it in $DEPLOY, or add it to NOT_DEPLOYED in"
+    echo "    ops/scripts/check-deploy-coverage.sh if it is intentionally not deployed."
+    fail=1
+  fi
+done < <(git ls-files wp-content/mu-plugins | awk -F/ 'NF>=4 {print $1"/"$2"/"$3}' | sort -u)
+
 if [ "$fail" -eq 0 ]; then
-  echo "Deploy coverage OK: every tracked plugin/theme is wired into $DEPLOY (or explicitly exempt)."
+  echo "Deploy coverage OK: every tracked plugin/theme/mu-plugin is wired into $DEPLOY (or explicitly exempt)."
 fi
 exit $fail
