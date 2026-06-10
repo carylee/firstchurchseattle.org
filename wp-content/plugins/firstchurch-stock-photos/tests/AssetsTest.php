@@ -19,18 +19,23 @@ final class AssetsTest extends TestCase
         \fcsp_test_reset();
     }
 
-    public function testEditorScreensIncludePostAndUpload(): void
+    public function testEditorScreensCoverEveryMediaModalSurface(): void
     {
         $screens = \fcsp_picker_editor_screens();
 
+        // Every admin screen that can open the shared wp.media modal.
         self::assertContains('post', $screens, 'classic + block post editor');
         self::assertContains('upload', $screens, 'media library');
+        self::assertContains('site-editor', $screens, 'full-site editor');
+        self::assertContains('widgets', $screens, 'block widgets screen');
+        self::assertContains('customize', $screens, 'the Customizer');
     }
 
     public function testPickerLoadsOnEditorScreens(): void
     {
-        self::assertTrue(\fcsp_should_load_picker_on_screen('post'));
-        self::assertTrue(\fcsp_should_load_picker_on_screen('upload'));
+        foreach (array('post', 'upload', 'site-editor', 'widgets', 'customize') as $base) {
+            self::assertTrue(\fcsp_should_load_picker_on_screen($base), $base);
+        }
     }
 
     public function testPickerStaysOffUnrelatedScreens(): void

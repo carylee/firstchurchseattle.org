@@ -19,14 +19,23 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Admin screen bases (WP_Screen->base) that can open the wp.media modal and so
- * should carry the in-editor picker. `post` covers both the classic and block
- * post editors (and the featured-image metabox); `upload` covers the media
- * library. Filterable for sites that surface media elsewhere.
+ * should carry the in-editor picker:
+ *
+ *   - `post`        classic + block post editors (and the featured-image metabox)
+ *   - `upload`      the media library
+ *   - `site-editor` the full-site editor
+ *   - `widgets`     the block widgets screen
+ *   - `customize`   the Customizer
+ *
+ * Filterable for sites that surface media elsewhere (or to trim the list).
  *
  * @return string[]
  */
 function fcsp_picker_editor_screens(): array {
-	return (array) apply_filters( 'fcsp_picker_editor_screens', array( 'post', 'upload' ) );
+	return (array) apply_filters(
+		'fcsp_picker_editor_screens',
+		array( 'post', 'upload', 'site-editor', 'widgets', 'customize' )
+	);
 }
 
 /**
