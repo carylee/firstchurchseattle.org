@@ -1,0 +1,13 @@
+{
+    "name": "firstchurch/people",
+    "description": "First-party staff/people directory for First Church. Adopts Church Theme Content's ctc_person in place. Composer is dev-only (PHPUnit); no runtime dependencies.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": { "phpunit/phpunit": "^11" },
+    "autoload": { "psr-4": { "FirstChurch\\People\\": "src/" } },
+    "autoload-dev": { "psr-4": { "FirstChurch\\People\\Tests\\": "tests/" } },
+    "config": { "optimize-autoloader": true }
+}

@@ -97,6 +97,18 @@ rsync -av $DRY --delete \
   -e "$RSH" wp-content/plugins/firstchurch-events/ \
   "$REMOTE/plugins/firstchurch-events/"
 
+# people is fully ours (the ctc_person replacement). No runtime deps — exclude the
+# dev artifacts like the standard plugins. Its registration stays DORMANT while
+# Church Theme Content still owns ctc_person; activating only turns on the live,
+# additive pieces (MCP create/update-person). NOTE: after first deploy, activate it
+# and flush rewrites for the /staff/ rule:
+#   ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-people && wp rewrite flush'
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-people/ \
+  "$REMOTE/plugins/firstchurch-people/"
+
 # happenings (the spine) is fully ours and TDD'd like breeze-forms — same dev-only
 # artifacts to exclude. NOTE: firstchurch-carousel depends on this; after the first
 # deploy run `ssh firstchurch 'wp plugin activate firstchurch-happenings'`.
