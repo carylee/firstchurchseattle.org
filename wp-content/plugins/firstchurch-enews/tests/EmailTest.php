@@ -72,6 +72,17 @@ final class EmailTest extends TestCase
         $this->assertStringNotContainsString('Register', $html);
     }
 
+    public function test_card_uses_the_reconciled_brand_maroon(): void
+    {
+        // The email theme's palette is the First Church brand (../mailchimp
+        // config.yml), exposed as one source of truth on Email — not the old
+        // off-brand #7a1f2b the plugin shipped with.
+        $this->assertSame('#800000', Email::MAROON);
+        $html = Email::card(self::view());
+        $this->assertStringContainsString('#800000', $html);
+        $this->assertStringNotContainsString('#7a1f2b', $html);
+    }
+
     public function test_card_escapes_html_in_text_fields(): void
     {
         $html = Email::card(self::view([
@@ -81,6 +92,29 @@ final class EmailTest extends TestCase
         $this->assertStringContainsString('Tom &amp; Jerry &lt;script&gt;', $html);
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('1 &lt; 2 &amp;', $html);
+    }
+
+    public function test_card_renders_the_optional_image_when_present(): void
+    {
+        // The CardView has always carried `image`; the announcement design finally
+        // uses it (matching the template's hideable image region).
+        $html = Email::card(self::view(['image' => 'https://x/uploads/open-mic.jpg']));
+        $this->assertStringContainsString('<img', $html);
+        $this->assertStringContainsString('https://x/uploads/open-mic.jpg', $html);
+    }
+
+    public function test_card_omits_the_image_when_absent(): void
+    {
+        $html = Email::card(self::view(['image' => '']));
+        $this->assertStringNotContainsString('<img', $html);
+    }
+
+    public function test_card_body_uses_the_sans_stack(): void
+    {
+        // Announcement bodies are sans (Helvetica/Arial), per the template; the
+        // serif is reserved for the pastoral letter in the body slot.
+        $html = Email::card(self::view());
+        $this->assertStringContainsString('Helvetica', $html);
     }
 
     public function test_document_wraps_inner_in_an_email_scaffold(): void
@@ -100,6 +134,57 @@ final class EmailTest extends TestCase
         $this->assertStringContainsString('max-width:600px', $html);
         // Inner body HTML is embedded verbatim (already rendered HTML, not escaped).
         $this->assertStringContainsString($inner, $html);
+    }
+
+    public function test_document_emits_bulletproof_head_with_mso_and_dark_mode(): void
+    {
+        $html = Email::document('<p>x</p>', []);
+        // Outlook (Word engine) DPI fix + dark-mode + responsive stylesheet — the
+        // bulletproof scaffolding ported from ../mailchimp first-church-template.html.
+        $this->assertStringContainsString('PixelsPerInch', $html);
+        $this->assertStringContainsString('prefers-color-scheme: dark', $html);
+        $this->assertStringContainsString('max-width: 620px', $html);
+    }
+
+    public function test_document_renders_the_masthead_chrome(): void
+    {
+        $html = Email::document('<p>body</p>', ['subject' => 'Weekly News']);
+        // Maroon topbar with a "view in browser" archive link.
+        $this->assertStringContainsString('#800000', $html);
+        $this->assertStringContainsString('*|ARCHIVE|*', $html);
+        $this->assertStringContainsString('View in your browser', $html);
+        // Logo header.
+        $this->assertStringContainsString('alt="First Church Seattle"', $html);
+        // Worship CTA buttons (livestream + in-person).
+        $this->assertStringContainsString('firstchurchseattle.org/livestream', $html);
+        $this->assertStringContainsString('firstchurchseattle.org/visit', $html);
+        // Tan brand divider.
+        $this->assertStringContainsString('#e9dbb7', $html);
+    }
+
+    public function test_document_renders_a_social_row(): void
+    {
+        $html = Email::document('<p>body</p>', []);
+        $this->assertStringContainsString('facebook.com/firstchurchseattle', $html);
+        $this->assertStringContainsString('instagram.com/firstchurchseattle', $html);
+    }
+
+    public function test_document_topbar_defaults_and_is_overridable_and_escaped(): void
+    {
+        $default = Email::document('<p>x</p>', []);
+        $this->assertStringContainsString('Worship with us', $default);
+
+        $custom = Email::document('<p>x</p>', ['topbar' => 'Pride Sunday <3 & all']);
+        $this->assertStringContainsString('Pride Sunday &lt;3 &amp; all', $custom);
+        $this->assertStringNotContainsString('Pride Sunday <3', $custom);
+    }
+
+    public function test_document_body_slot_carries_the_serif_letter_font(): void
+    {
+        // The issue body (the pastoral letter prose) reads in the serif stack;
+        // sans is reserved for chrome + announcement cards.
+        $html = Email::document('<p>Dear First Church,</p>', []);
+        $this->assertStringContainsString('Georgia', $html);
     }
 
     public function test_document_tolerates_missing_envelope_fields(): void

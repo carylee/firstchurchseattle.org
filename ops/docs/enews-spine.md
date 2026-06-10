@@ -179,3 +179,98 @@ Incremental, each step shippable and useful on its own:
   but the Issue CPT makes a native archive nearly free if wanted.
 - How much should `surface=enews` curate vs. show-everything? → start with show-everything in the
   week window (the feed is already self-expiring); add a curation lens only if issues get noisy.
+
+---
+
+## 9. Addendum — adopting the `../mailchimp` template as the e-news *theme*
+
+**Status:** Design → in progress (2026-06-10). Phases A–C below are being implemented in
+`firstchurch-enews`; this section is the rationale and the decisions taken.
+
+Phases 6.3–6.5 gave the issue a *content model* and a render, but the render is plain: a white
+card-box, Georgia throughout, an off-brand maroon, no masthead, no dark-mode/Outlook handling.
+Meanwhile a sibling effort in **`../mailchimp`** (a separate git repo) extracted a polished,
+**bulletproof** First Church email — `first-church-template.html` — tested across Apple/Gmail/
+Outlook/Yahoo, with a maroon masthead, logo, a serif pastor's letter, worship CTA buttons, tan
+brand rules, designed announcement blocks, a social footer, and full dark-mode + MSO support.
+This addendum records how that work folds into the plugin.
+
+### 9.1 The reusable asset is the *presentation*, not the pipeline
+
+`../mailchimp` is two things welded together: **(1) a content pipeline** — YAML issues →
+`wp_issue.py` (MCP fetch) → `wp_to_md.py` (HTML→Markdown) → `render.py` (Jinja2 + Marketing API
+push) — and **(2) a presentation layer**, the bulletproof HTML template + brand tokens.
+
+The plugin already *won the pipeline* and won it better: it sources from the spine (§3), authors
+in Gutenberg (not YAML), and pushes drafts via the same Marketing API (§5). The entire Python
+YAML/Markdown stack exists only because that repo had no live content source — `render_block()`
+already yields HTML here. **So the only thing worth porting is the presentation layer.** It lands
+in the one place designed for it: the pure, unit-tested `src/Email.php`. Once the plugin renders
+the designed template, the Python repo is reference-only — keep `first-church-template.html` as
+the canonical artifact (a pointer comment in `Email.php`); the rest can be archived.
+
+### 9.2 The two content models already line up
+
+| `first-church-template.html` region | enews plugin source |
+|---|---|
+| `*|MC:SUBJECT|*` / preheader | `_enews_subject` / `_enews_preview` meta (Bucket C) |
+| maroon **topbar** + "View in browser" (`*|ARCHIVE|*`) | brand furniture (chrome); topbar text optionally per-issue |
+| **logo** header | brand furniture (chrome) |
+| serif **pastor's letter** | the **Pastoral Message** block in the body (Bucket C) |
+| **worship buttons** (livestream / in-person) | brand furniture (chrome) |
+| tan divider | brand furniture (chrome) |
+| repeatable **announcement** (title, image, body, "Learn more »") | **Happenings cards** from the spine (Bucket A) |
+| **social** row + legal footer (merge tags) | chrome (social) + `fcen_email_footer()` (merge tags) |
+
+The match is close enough that the port is re-skinning, not redesign. Note the template's
+`mc:edit` / `mc:repeatable` regions are **not** ported: those let staff edit *inside* Mailchimp's
+builder, which is exactly the workflow §1 retires. The plugin authors in Gutenberg and pushes a
+finished draft (Mailchimp's "paste-in" Mode A), so the editable-region markup is dropped.
+
+### 9.3 Architecture: wrap, don't replace
+
+The block-walk in `inc/render.php` is unchanged — it is what gives us spine projection and
+Gutenberg editing. Only the pure presentation core in `src/Email.php` changes:
+
+- **`Email::document()` carries the full chrome.** It emits the template's masthead (topbar,
+  logo, worship buttons, tan divider) and footer (social icon row + legal panel), the `<style>`
+  block (client resets, responsive `@media`, dark-mode `prefers-color-scheme` + `[data-ogsc]`),
+  and the MSO `PixelsPerInch` / Outlook-font conditionals. The block-walk output drops into the
+  white body slot between divider and social row. The Mailchimp **merge tags** are *not*
+  hard-coded into the chrome — they keep arriving via the `footer` envelope field that
+  `fcen_email_footer()` builds, so `document()` stays content-agnostic and the existing
+  "no footer → no merge tags" guarantee holds.
+- **`Email::card()` becomes the announcement block.** Maroon sans-serif title with a short tan
+  underline rule, the optional **image** (the CardView already carries `image`; the email simply
+  ignored it until now), a sans body, and a "label »" text link CTA — matching the template's
+  repeatable announcement. The CardView contract (`title,url,meta,blurb,image,ctaUrl,ctaLabel`)
+  is preserved, so web and email stay in agreement forever.
+
+The render core stays pure, so `tests/EmailTest.php` keeps protecting it — the tests assert the
+new markup instead of the old.
+
+### 9.4 Divergences reconciled
+
+- **Palette.** The plugin shipped an off-brand maroon `#7a1f2b`, ink `#1f1f1f`, muted `#666666`;
+  the template/`config.yml` brand is maroon **`#800000`**, tan **`#e9dbb7`**, ink **`#202020`**,
+  muted **`#656565`**. The brand values win, and they become **public constants on `Email`** —
+  one source of truth that the glue (`fcen_email_footer()`) references instead of re-hard-coding.
+- **Fonts.** The template uses a **Helvetica/Arial sans** for UI + announcement bodies and
+  reserves **Georgia serif** for the pastor's letter. The plugin used Georgia everywhere; it now
+  carries both stacks (`Email::SANS` / `Email::SERIF`) — serif body slot (the letter), sans cards.
+- **Net-new chrome** (topbar, logo, worship buttons, social row) has no per-issue home today.
+  Decision: **hard-code it as brand furniture** (constants in `Email`), since it's identical
+  every week; the **topbar** line is the one exception that may later become optional issue meta.
+  We do *not* invent editor fields for furniture that never changes.
+
+### 9.5 Phasing (each a self-contained, cherry-pickable commit)
+
+| Phase | What | Tests |
+|---|---|---|
+| **A** | Reconcile brand tokens into public `Email` constants (`#800000`/`#e9dbb7`/`#202020`/`#656565` + `SANS`/`SERIF`); point `fcen_email_footer()` at them | card carries brand maroon, not `#7a1f2b` |
+| **B** | Port the masthead + footer chrome + `<style>`/MSO/dark-mode into `Email::document()`; trim the now-duplicate social text links from `fcen_email_footer()` | chrome present (doctype/PixelsPerInch/dark-mode media, topbar `*|ARCHIVE|*`, logo, worship URLs, tan rule, social); `$inner` still verbatim; footer still after body |
+| **C** | Re-skin `Email::card()` to the announcement design; render the CardView `image` | image present/absent; existing title/meta/blurb/CTA/escaping asserts still pass |
+
+> **Deploy note:** this is all inside the already-deployed `firstchurch-enews` plugin — no
+> `ops/deploy.sh` allowlist change and no prod re-activation needed; merging to `main` ships it
+> via CI/CD. Verify after deploy with the issue editor's **Preview email** button.
