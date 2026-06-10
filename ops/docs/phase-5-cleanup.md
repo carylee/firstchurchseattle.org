@@ -123,3 +123,26 @@ ssh firstchurch 'cd ~/public_html && wp post delete <id> --force'          # per
 
 **Verify:** the review-queue list returns only current drafts; published content is untouched
 (`wp post delete` to trash is reversible from `wp post list --post_status=trash`).
+
+---
+
+## 4. Connection-card cutover (added after the fact)
+
+> **✅ Done 2026-06-09.** Not in the original runbook — discovered during the post-deploy smoke
+> test: `/connection-card` was still a **Redirection rule (id 4)** 302-ing to the legacy
+> Breeze-hosted form (`firstchurchseattle.breezechms.com/form/603d6c`), and the native page
+> existed only as an untitled draft (page **7259**, body = `[firstchurch_connection_card]`).
+
+What the cutover was:
+
+1. Published page 7259 as **"Check-in & Connection Card"**, slug `connection-card`.
+2. Disabled Redirection rule 4 (`Red_Item::get_by_id(4)->disable()` — same call the MCP
+   `firstchurch/set-redirect-enabled` ability makes).
+
+**Rollback:** re-enable rule 4 — the redirect fires before WP routes to the page, so the page can
+stay published. The Breeze-hosted form URL keeps working regardless.
+
+**Verified:** anonymous fetch of `/connection-card/` renders the native form (200, nonce embedded);
+POST without `X-WP-Nonce` → 401; POST with a fresh anonymous nonce + empty payload → 400 with the
+validation messages (auth gate passes, no Breeze write). Page cache is `cache-control: max-age=300`,
+well inside the ~12 h nonce lifetime, so a cached page can't serve a stale nonce.
