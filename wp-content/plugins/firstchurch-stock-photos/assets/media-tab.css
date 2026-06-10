@@ -1,0 +1,33 @@
+/**
+ * Frame-local placement for the Stock Photos tab inside the wp.media modal.
+ * The card/grid look is inherited from admin.css; this only handles fitting
+ * the search UI into the modal's scrolling content region.
+ */
+.media-frame-content .fcsp-media-tab {
+	position: absolute;
+	inset: 0;
+	overflow: auto;
+	padding: 16px;
+}
+
+.fcsp-media-tab .fcsp-media-form {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.fcsp-media-tab .fcsp-media-q {
+	flex: 1;
+	max-width: 480px;
+}
+
+.fcsp-media-tab .fcsp-status {
+	min-height: 1.4em;
+	margin: 6px 0;
+}
+
+/* The modal is narrower than the admin page — tighten the grid a touch. */
+.fcsp-media-tab .fcsp-grid {
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	margin-top: 8px;
+}

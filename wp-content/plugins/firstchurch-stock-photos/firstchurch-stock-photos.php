@@ -41,6 +41,7 @@ require_once __DIR__ . '/inc/rest.php';
 require_once __DIR__ . '/inc/mcp.php';
 require_once __DIR__ . '/inc/policy.php';                // locks Instant Images config in code
 require_once __DIR__ . '/inc/instant-images-bridge.php'; // mirrors II uploads into our provenance
+require_once __DIR__ . '/inc/assets.php';                // cross-surface picker enqueue (wp.media + block editor)
 if ( is_admin() ) {
 	require_once __DIR__ . '/inc/admin.php';
 }
