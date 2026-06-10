@@ -48,6 +48,48 @@
 	color: var(--fcc-text);
 }
 
+/* -- Returning-member welcome banner -------------------------------- */
+
+.fcc-form__welcome {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px 16px;
+	margin: 0 0 20px;
+	padding: 12px 14px;
+	background: rgba(112, 51, 78, 0.06);
+	border: 1px solid var(--fcc-border);
+	border-radius: 8px;
+	color: var(--fcc-text);
+}
+
+.fcc-form__welcome-msg {
+	flex: 1 1 220px;
+}
+
+.fcc-form__welcome-reset {
+	flex: 0 0 auto;
+	padding: 6px 14px;
+	min-height: 36px;
+	background: transparent;
+	border: 1px solid var(--fcc-maroon);
+	border-radius: 999px;
+	color: var(--fcc-maroon);
+	font: inherit;
+	font-size: 0.9em;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.12s ease-out, color 0.12s ease-out;
+}
+
+.fcc-form__welcome-reset:hover,
+.fcc-form__welcome-reset:focus-visible {
+	background: var(--fcc-maroon);
+	color: #fff;
+	outline: none;
+}
+
 /* -- Field container ------------------------------------------------- */
 
 .fcc-field,
@@ -220,8 +262,20 @@
 }
 
 .fcc-details > .fcc-field,
-.fcc-details > .fcc-row {
+.fcc-details > .fcc-row,
+.fcc-details > .fcc-checkbox {
 	margin: 12px 14px;
+}
+
+.fcc-details > .fcc-learn-more {
+	padding: 4px 14px 12px;
+}
+
+/* A branch hidden from the active scenario stays in the DOM but out of view.
+   Belt-and-suspenders over the [hidden] attribute, since flex/grid display
+   on descendants can otherwise win over the UA default. */
+.fcc-form [hidden] {
+	display: none !important;
 }
 
 /* -- Honeypot (visually hidden from humans) ------------------------- */

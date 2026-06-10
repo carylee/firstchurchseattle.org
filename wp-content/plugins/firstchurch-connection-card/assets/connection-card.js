@@ -16,6 +16,35 @@
 		var nonce = form.dataset.nonce;
 		var statusEl = form.querySelector('.fcc-form__status');
 		var submitBtn = form.querySelector('.fcc-submit');
+		var STORAGE_KEY = 'fcc_profile_v1';
+		// Track whether the visitor manually opened/closed the contact panel, so
+		// applyScenario() stops auto-managing its open state once they've taken
+		// the wheel.
+		var contactTouched = false;
+
+		// Returning members fill this out on their own phone every week, and the
+		// stable half of the card (name, email, phone, address, member status,
+		// newsletter) almost never changes. Restore it from this device so the
+		// weekly task collapses to "confirm attendance + add anything new".
+		// The transient half (attendance, prayer/comments, learn-more, pastor
+		// contact) is deliberately never restored — it starts blank each visit.
+		restoreProfile();
+
+		// Reshape the card to the selected "I am a" scenario, on load and on
+		// every change to that choice — a returning member (prefilled above)
+		// lands directly on the contracted check-in layout, a visitor on the
+		// fuller "tell us about yourself" one.
+		applyScenario();
+
+		// A click on the summary (mouse or keyboard activation) means the user
+		// took the wheel — programmatic open/close doesn't fire it, so the
+		// scenario logic stops auto-managing the panel from here on.
+		var contactSummary = form.querySelector('.fcc-contact > summary');
+		if (contactSummary) {
+			contactSummary.addEventListener('click', function () {
+				contactTouched = true;
+			});
+		}
 
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
@@ -48,8 +77,11 @@
 				})
 				.then(function (result) {
 					if (result.ok && result.body && result.body.ok) {
+						saveProfile();
 						showStatus('success', "Thanks for checking in! We're glad you're here.");
 						form.reset();
+						contactTouched = false;
+						applyScenario();
 					} else if (result.status === 429) {
 						showStatus(
 							'error',
@@ -84,6 +116,9 @@
 			var fs = e.target.closest('.fcc-fieldset');
 			if (fs && fs.hasAttribute('aria-invalid')) {
 				fs.removeAttribute('aria-invalid');
+			}
+			if (e.target.name === 'i_am_a') {
+				applyScenario();
 			}
 		});
 
@@ -123,6 +158,7 @@
 				newsletter: fd.get('newsletter') ? true : false,
 				change_of_info: fd.get('change_of_info') ? true : false,
 				heard_from: fd.get('heard_from') || '',
+				prayer_request: fd.get('prayer_request') || '',
 				comments: fd.get('comments') || '',
 				learn_more: fd.getAll('learn_more[]'),
 				pastor_contact: fd.getAll('pastor_contact[]'),
@@ -172,6 +208,169 @@
 		function clearStatus() {
 			statusEl.removeAttribute('data-state');
 			statusEl.textContent = '';
+		}
+
+		// -- Device-side profile persistence ----------------------------
+
+		// The stable fields worth remembering between Sundays. Attendance,
+		// comments, learn-more and pastor-contact are intentionally excluded.
+		function readProfile() {
+			try {
+				var raw = window.localStorage.getItem(STORAGE_KEY);
+				return raw ? JSON.parse(raw) : null;
+			} catch (e) {
+				return null; // private mode / storage disabled — degrade quietly.
+			}
+		}
+
+		function saveProfile() {
+			try {
+				var fd = new FormData(form);
+				var profile = {
+					first_name: fd.get('first_name') || '',
+					last_name: fd.get('last_name') || '',
+					email: fd.get('email') || '',
+					phone: fd.get('phone') || '',
+					i_am_a: fd.get('i_am_a') || '',
+					newsletter: fd.get('newsletter') ? true : false,
+					address: {
+						street: fd.get('address[street]') || '',
+						city: fd.get('address[city]') || '',
+						state: fd.get('address[state]') || '',
+						zip: fd.get('address[zip]') || '',
+					},
+				};
+				window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+			} catch (e) {
+				// Non-fatal: the submission already succeeded.
+			}
+		}
+
+		function clearProfile() {
+			try {
+				window.localStorage.removeItem(STORAGE_KEY);
+			} catch (e) {}
+		}
+
+		function restoreProfile() {
+			var saved = readProfile();
+			if (!saved) return;
+
+			setValue('first_name', saved.first_name);
+			setValue('last_name', saved.last_name);
+			setValue('email', saved.email);
+			setValue('phone', saved.phone);
+
+			if (saved.newsletter) {
+				var nl = form.querySelector('input[name="newsletter"]');
+				if (nl) nl.checked = true;
+			}
+
+			if (saved.i_am_a) {
+				var radio = form.querySelector('input[name="i_am_a"][value="' + saved.i_am_a + '"]');
+				if (radio) radio.checked = true;
+			}
+
+			if (saved.address) {
+				// Prefill the values; they sit inside the contact panel, which
+				// applyScenario() keeps tucked for a member. A collapsed
+				// <details> still submits its inputs, so they post either way.
+				['street', 'city', 'state', 'zip'].forEach(function (part) {
+					var el = form.querySelector('[name="address[' + part + ']"]');
+					if (el && saved.address[part]) {
+						el.value = saved.address[part];
+					}
+				});
+			}
+
+			renderWelcomeBack(saved);
+		}
+
+		function setValue(name, value) {
+			if (!value) return;
+			var el = form.querySelector('[name="' + name + '"]');
+			if (el) el.value = value;
+		}
+
+		// -- Scenario-shaped disclosure ---------------------------------
+
+		// "I am a" is the pivot: a visitor is introducing themselves (show the
+		// welcome fields, open the contact panel), a member is checking in (hide
+		// the visitor-only fields, tuck contact away). Fields hidden from the
+		// active scenario are also cleared so nothing the user can't see is
+		// submitted.
+		function applyScenario() {
+			var selected = form.querySelector('input[name="i_am_a"]:checked');
+			var who = selected ? selected.value : '';
+			var isVisitor = who === 'first-time' || who === 'second-time';
+
+			form.querySelectorAll('[data-fcc-when="visitor"]').forEach(function (el) {
+				toggleBranch(el, isVisitor);
+			});
+
+			// Open the contact panel for a visitor, tuck it for a member — but
+			// never fight a choice the user has made themselves.
+			var contact = form.querySelector('.fcc-contact');
+			if (contact && !contactTouched) {
+				contact.open = isVisitor;
+			}
+		}
+
+		function toggleBranch(el, show) {
+			el.hidden = !show;
+			if (show) return;
+			el.querySelectorAll('input, textarea, select').forEach(function (f) {
+				if (f.type === 'checkbox' || f.type === 'radio') {
+					f.checked = false;
+				} else {
+					f.value = '';
+				}
+			});
+		}
+
+		// A small banner so a prefilled form is never a surprise, with a
+		// one-tap escape for a shared family phone ("Not you?").
+		function renderWelcomeBack(saved) {
+			if (form.querySelector('.fcc-form__welcome')) return;
+
+			var name = (saved.first_name || '').trim();
+			var banner = document.createElement('div');
+			banner.className = 'fcc-form__welcome';
+			banner.setAttribute('role', 'status');
+
+			var msg = document.createElement('span');
+			msg.className = 'fcc-form__welcome-msg';
+			msg.textContent = name
+				? 'Welcome back, ' + name + '! We filled in your saved info — confirm it and check in below.'
+				: 'Welcome back! We filled in the info you saved on this device.';
+
+			var reset = document.createElement('button');
+			reset.type = 'button';
+			reset.className = 'fcc-form__welcome-reset';
+			reset.textContent = 'Not you? Start fresh';
+			reset.addEventListener('click', function () {
+				clearProfile();
+				form.reset();
+				banner.remove();
+				contactTouched = false;
+				form.querySelectorAll('.fcc-details').forEach(function (d) {
+					d.open = false;
+				});
+				applyScenario();
+				var first = form.querySelector('[name="first_name"]');
+				if (first) first.focus();
+			});
+
+			banner.appendChild(msg);
+			banner.appendChild(reset);
+
+			// Sits below the heading/intro, just above the form fields.
+			var anchor = form.querySelector('.fcc-fieldset');
+			if (anchor) {
+				form.insertBefore(banner, anchor);
+			} else {
+				form.insertBefore(banner, form.firstChild);
+			}
 		}
 	}
 })();

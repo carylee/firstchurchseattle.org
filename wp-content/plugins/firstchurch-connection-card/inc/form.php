@@ -158,10 +158,37 @@ function fcc_build_inputs(array $params, string $first, string $last, string $em
         }
     }
 
-    $comments = trim((string) ($params['comments'] ?? ''));
-    if ($comments !== '') {
-        $inputs[] = ['field_id' => FCC_F_COMMENTS, 'response' => sanitize_textarea_field($comments), 'field_type' => 'textarea'];
+    $notes = fcc_merge_notes(
+        (string) ($params['prayer_request'] ?? ''),
+        (string) ($params['comments'] ?? '')
+    );
+    if ($notes !== '') {
+        $inputs[] = ['field_id' => FCC_F_COMMENTS, 'response' => $notes, 'field_type' => 'textarea'];
     }
 
     return $inputs;
+}
+
+/**
+ * Breeze's connection form has a single free-text "Comments" field, but the
+ * card asks members for a prayer request and a general comment as two separate
+ * inputs. Merge them into one block — labeled only when both are present, so a
+ * lone comment stays byte-identical to the pre-prayer-field behavior — so the
+ * pastoral team sees both halves in the one field Breeze gives us.
+ */
+function fcc_merge_notes(string $prayer, string $comments): string {
+    $prayer   = trim($prayer);
+    $comments = trim($comments);
+
+    $parts = [];
+    if ($prayer !== '') {
+        $parts[] = "Prayer request:\n" . sanitize_textarea_field($prayer);
+    }
+    if ($comments !== '') {
+        $parts[] = $prayer !== ''
+            ? "Comments:\n" . sanitize_textarea_field($comments)
+            : sanitize_textarea_field($comments);
+    }
+
+    return implode("\n\n", $parts);
 }
