@@ -16,17 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version string for cache-busting child assets. Bump when the CSS/JS changes.
  */
 if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.17.0' );
+	define( 'FCS_CHILD_VERSION', '0.19.0' );
 }
 
 /**
  * Feature modules. Keep functions.php thin — each concern lives in inc/.
  */
 require_once get_stylesheet_directory() . '/inc/announcements-cta.php';
+require_once get_stylesheet_directory() . '/inc/content-patches.php';
 require_once get_stylesheet_directory() . '/inc/single-featured-image.php';
 require_once get_stylesheet_directory() . '/inc/block-editor-fixes.php';
 require_once get_stylesheet_directory() . '/inc/happenings-block.php';
-require_once get_stylesheet_directory() . '/inc/footer-map.php';
 require_once get_stylesheet_directory() . '/inc/font-optimization.php';
 require_once get_stylesheet_directory() . '/inc/sermon-structured-data.php';
 require_once get_stylesheet_directory() . '/inc/event-structured-data.php';
