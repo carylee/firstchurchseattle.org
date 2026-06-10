@@ -29,6 +29,7 @@ require_once get_stylesheet_directory() . '/inc/happenings-block.php';
 require_once get_stylesheet_directory() . '/inc/font-optimization.php';
 require_once get_stylesheet_directory() . '/inc/sermon-structured-data.php';
 require_once get_stylesheet_directory() . '/inc/event-structured-data.php';
+require_once get_stylesheet_directory() . '/inc/church-schema.php';
 require_once get_stylesheet_directory() . '/inc/footer.php';
 require_once get_stylesheet_directory() . '/inc/redirects.php';
 require_once get_stylesheet_directory() . '/inc/scripts.php';
