@@ -24,6 +24,24 @@ is the target of the lobby carousel's connection-card QR callout
 (`firstchurch-carousel` seed). The shortcode enqueues its own CSS/JS (vanilla, no
 dependencies) and, when Turnstile is configured, Cloudflare's `api.js`.
 
+## Returning-member prefill (device-side)
+
+Members fill this out on their own phone every Sunday, and the *stable* half of
+the card — name, email, phone, address, member status, newsletter opt-in —
+almost never changes. To make the weekly check-in routine rather than a fresh
+12-field form, `connection-card.js` remembers those fields **on the device** (a
+single `localStorage` key, `fcc_profile_v1`) on a successful submit and restores
+them on the next visit. The *transient* half (attendance, prayer/comments,
+learn-more, pastor-contact) is deliberately **never** persisted — it starts
+blank each week.
+
+This is purely client-side: no login, no server-side identity, and nothing sent
+to WordPress or Breeze beyond what the form already submits. A small "Welcome
+back" banner makes the prefill visible and offers a one-tap **"Not you? Start
+fresh"** escape for a shared family phone (clears the saved profile and resets
+the form). If `localStorage` is unavailable (private mode), the feature degrades
+silently to the old blank-form behavior.
+
 ## How submission works
 
 `fcc_submit()` (the `POST /wp-json/firstchurch/v1/connection-card` handler)

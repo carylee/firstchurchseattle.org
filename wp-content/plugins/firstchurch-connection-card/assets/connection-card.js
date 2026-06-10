@@ -16,6 +16,15 @@
 		var nonce = form.dataset.nonce;
 		var statusEl = form.querySelector('.fcc-form__status');
 		var submitBtn = form.querySelector('.fcc-submit');
+		var STORAGE_KEY = 'fcc_profile_v1';
+
+		// Returning members fill this out on their own phone every week, and the
+		// stable half of the card (name, email, phone, address, member status,
+		// newsletter) almost never changes. Restore it from this device so the
+		// weekly task collapses to "confirm attendance + add anything new".
+		// The transient half (attendance, prayer/comments, learn-more, pastor
+		// contact) is deliberately never restored — it starts blank each visit.
+		restoreProfile();
 
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
@@ -48,6 +57,7 @@
 				})
 				.then(function (result) {
 					if (result.ok && result.body && result.body.ok) {
+						saveProfile();
 						showStatus('success', "Thanks for checking in! We're glad you're here.");
 						form.reset();
 					} else if (result.status === 429) {
@@ -172,6 +182,134 @@
 		function clearStatus() {
 			statusEl.removeAttribute('data-state');
 			statusEl.textContent = '';
+		}
+
+		// -- Device-side profile persistence ----------------------------
+
+		// The stable fields worth remembering between Sundays. Attendance,
+		// comments, learn-more and pastor-contact are intentionally excluded.
+		function readProfile() {
+			try {
+				var raw = window.localStorage.getItem(STORAGE_KEY);
+				return raw ? JSON.parse(raw) : null;
+			} catch (e) {
+				return null; // private mode / storage disabled — degrade quietly.
+			}
+		}
+
+		function saveProfile() {
+			try {
+				var fd = new FormData(form);
+				var profile = {
+					first_name: fd.get('first_name') || '',
+					last_name: fd.get('last_name') || '',
+					email: fd.get('email') || '',
+					phone: fd.get('phone') || '',
+					i_am_a: fd.get('i_am_a') || '',
+					newsletter: fd.get('newsletter') ? true : false,
+					address: {
+						street: fd.get('address[street]') || '',
+						city: fd.get('address[city]') || '',
+						state: fd.get('address[state]') || '',
+						zip: fd.get('address[zip]') || '',
+					},
+				};
+				window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+			} catch (e) {
+				// Non-fatal: the submission already succeeded.
+			}
+		}
+
+		function clearProfile() {
+			try {
+				window.localStorage.removeItem(STORAGE_KEY);
+			} catch (e) {}
+		}
+
+		function restoreProfile() {
+			var saved = readProfile();
+			if (!saved) return;
+
+			setValue('first_name', saved.first_name);
+			setValue('last_name', saved.last_name);
+			setValue('email', saved.email);
+			setValue('phone', saved.phone);
+
+			if (saved.newsletter) {
+				var nl = form.querySelector('input[name="newsletter"]');
+				if (nl) nl.checked = true;
+			}
+
+			if (saved.i_am_a) {
+				var radio = form.querySelector('input[name="i_am_a"][value="' + saved.i_am_a + '"]');
+				if (radio) radio.checked = true;
+			}
+
+			if (saved.address) {
+				var hasAddr = false;
+				['street', 'city', 'state', 'zip'].forEach(function (part) {
+					var el = form.querySelector('[name="address[' + part + ']"]');
+					if (el && saved.address[part]) {
+						el.value = saved.address[part];
+						hasAddr = true;
+					}
+				});
+				// Surface the saved address so it's visibly there to confirm.
+				if (hasAddr) {
+					var details = form.querySelector('.fcc-details');
+					if (details) details.open = true;
+				}
+			}
+
+			renderWelcomeBack(saved);
+		}
+
+		function setValue(name, value) {
+			if (!value) return;
+			var el = form.querySelector('[name="' + name + '"]');
+			if (el) el.value = value;
+		}
+
+		// A small banner so a prefilled form is never a surprise, with a
+		// one-tap escape for a shared family phone ("Not you?").
+		function renderWelcomeBack(saved) {
+			if (form.querySelector('.fcc-form__welcome')) return;
+
+			var name = (saved.first_name || '').trim();
+			var banner = document.createElement('div');
+			banner.className = 'fcc-form__welcome';
+			banner.setAttribute('role', 'status');
+
+			var msg = document.createElement('span');
+			msg.className = 'fcc-form__welcome-msg';
+			msg.textContent = name
+				? 'Welcome back, ' + name + '! We filled in your saved info — confirm it and check in below.'
+				: 'Welcome back! We filled in the info you saved on this device.';
+
+			var reset = document.createElement('button');
+			reset.type = 'button';
+			reset.className = 'fcc-form__welcome-reset';
+			reset.textContent = 'Not you? Start fresh';
+			reset.addEventListener('click', function () {
+				clearProfile();
+				form.reset();
+				banner.remove();
+				var details = form.querySelector('.fcc-details');
+				if (details) details.open = false;
+				var first = form.querySelector('[name="first_name"]');
+				if (first) first.focus();
+			});
+
+			banner.appendChild(msg);
+			banner.appendChild(reset);
+
+			// Sits below the heading/intro, just above the form fields.
+			var anchor = form.querySelector('.fcc-fieldset');
+			if (anchor) {
+				form.insertBefore(banner, anchor);
+			} else {
+				form.insertBefore(banner, form.firstChild);
+			}
 		}
 	}
 })();
