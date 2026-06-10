@@ -32,6 +32,7 @@ require_once get_stylesheet_directory() . '/inc/event-structured-data.php';
 require_once get_stylesheet_directory() . '/inc/church-schema.php';
 require_once get_stylesheet_directory() . '/inc/footer.php';
 require_once get_stylesheet_directory() . '/inc/redirects.php';
+require_once get_stylesheet_directory() . '/inc/people-display.php';
 require_once get_stylesheet_directory() . '/inc/scripts.php';
 
 /**
