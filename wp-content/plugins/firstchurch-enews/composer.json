@@ -1,10 +1,11 @@
 {
     "name": "firstchurch/enews",
-    "description": "First Church E-News: the enews_issue CPT + the email-safe render of an issue. The pure render core (src/) is unit-tested; see ops/docs/enews-spine.md.",
+    "description": "First Church E-News: the enews_issue CPT + the email-safe render of an issue + Mailchimp push. The pure render/payload core (src/) is unit-tested; the Mailchimp SDK is a prod runtime dep, isolated via PHP-Scoper at build time. See ops/docs/enews-spine.md and ops/docs/composer-on-prod.md.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "mailchimp/marketing": "^3.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^11"
@@ -20,6 +21,7 @@
         }
     },
     "config": {
-        "optimize-autoloader": true
+        "optimize-autoloader": true,
+        "allow-plugins": false
     }
 }

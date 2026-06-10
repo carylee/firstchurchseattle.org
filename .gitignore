@@ -80,3 +80,7 @@ wp-config-ddev.php
 /wp-content/themes/maranatha-child/playwright-report/
 /wp-content/themes/maranatha-child/test-results/
 /wp-content/themes/maranatha-child/coverage/
+
+# e-news ships a PHP-Scoped build (dist/), produced in CD — never committed.
+/wp-content/plugins/firstchurch-enews/dist/
+/wp-content/plugins/firstchurch-enews/php-scoper.phar
