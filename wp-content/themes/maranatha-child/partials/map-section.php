@@ -36,4 +36,5 @@ if ( is_page_template( CTFW_THEME_PAGE_TPL_DIR . '/homepage.php' )
 	$GLOBALS['fcs_home_visit_rendered'] = true;
 
 	get_template_part( 'partials/home-visit-happenings' );
+	get_template_part( 'partials/home-breakfast-story' );
 }
