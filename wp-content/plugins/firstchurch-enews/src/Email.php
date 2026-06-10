@@ -15,11 +15,28 @@ namespace FirstChurch\ENews;
  */
 final class Email
 {
-    /** A church-ish serif stack + brand maroon, inlined everywhere (no CSS cascade in email). */
-    private const FONT   = "font-family: Georgia, 'Times New Roman', serif;";
-    private const INK    = '#1f1f1f';
-    private const MUTED  = '#666666';
-    private const MAROON = '#7a1f2b';
+    /*
+     * Brand tokens — the single source of truth for the e-news theme, mirroring
+     * ../mailchimp `config.yml` (and reconciled with the web palette). Public so
+     * the WordPress glue (inc/render.php) references these instead of re-hard-
+     * coding hex. Inlined everywhere — email clients strip <style>/classes, so
+     * there's no CSS cascade to lean on.
+     */
+    public const MAROON = '#800000'; // primary  — masthead, links, headings
+    public const TAN    = '#e9dbb7'; // accent   — brand divider rules
+    public const INK    = '#202020'; // body text
+    public const MUTED  = '#656565'; // muted    — meta + footer text
+
+    /**
+     * Two stacks, matching first-church-template.html: a Helvetica/Arial sans for
+     * UI + announcement bodies, and a Georgia serif reserved for the pastor's
+     * letter (the issue's prose body slot).
+     */
+    public const SANS  = "font-family: Helvetica, Arial, sans-serif;";
+    public const SERIF = "font-family: Georgia, 'Times New Roman', serif;";
+
+    /** Back-compat alias for the body slot's base font (the serif letter). */
+    private const FONT = self::SERIF;
 
     /**
      * One Happening as an email-safe card (a bordered table). Mirrors the web

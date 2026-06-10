@@ -68,7 +68,7 @@ function fcen_render_email( int $post_id ): string {
  * `fcen_email_footer_html`.
  */
 function fcen_email_footer(): string {
-	$maroon = '#7a1f2b';
+	$maroon = Email::MAROON;
 	$social = array(
 		'Facebook'              => 'https://www.facebook.com/firstchurchseattle',
 		'Instagram'             => 'https://www.instagram.com/firstchurchseattle/',

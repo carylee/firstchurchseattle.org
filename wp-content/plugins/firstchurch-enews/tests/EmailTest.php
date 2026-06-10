@@ -72,6 +72,17 @@ final class EmailTest extends TestCase
         $this->assertStringNotContainsString('Register', $html);
     }
 
+    public function test_card_uses_the_reconciled_brand_maroon(): void
+    {
+        // The email theme's palette is the First Church brand (../mailchimp
+        // config.yml), exposed as one source of truth on Email — not the old
+        // off-brand #7a1f2b the plugin shipped with.
+        $this->assertSame('#800000', Email::MAROON);
+        $html = Email::card(self::view());
+        $this->assertStringContainsString('#800000', $html);
+        $this->assertStringNotContainsString('#7a1f2b', $html);
+    }
+
     public function test_card_escapes_html_in_text_fields(): void
     {
         $html = Email::card(self::view([
