@@ -9,11 +9,16 @@
  * 1. Visit card — the logistics a first-time visitor needs (time, address,
  *    free parking) with the two homepage CTAs: Plan Your Visit + Get
  *    Directions. Static markup, no Maps JS.
- * 2. Happenings strip — the next few time-bound one-off events from the
+ * 2. This Sunday schedule — every spine occurrence landing on the coming
+ *    Sunday (rhythms included: worship, Shared Breakfast, Centering Prayer —
+ *    a day view is exactly where the weekly rhythms belong). The dated
+ *    heading and the list change weekly with zero human effort.
+ * 3. Happenings strip — the next few time-bound one-off events from the
  *    Happenings spine ('event' kind only; the weekly rhythms would otherwise
  *    crowd this out every week — see ops/docs/event-kinds.md). Gives the
  *    homepage a heartbeat that updates itself as events are authored.
- *    Fails soft to nothing if the spine plugin is inactive.
+ *
+ * 2 and 3 fail soft to nothing if the spine plugin is inactive.
  *
  * @package Maranatha_Child
  */
@@ -25,13 +30,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** How far ahead the homepage strip looks, and how many cards it shows. */
 $fcs_home_weeks = 8;
 $fcs_home_count = 3;
+
+// The Sunday this block describes: today if it IS Sunday (people check the
+// site Sunday morning), otherwise the coming one. Site timezone throughout.
+$fcs_now           = current_datetime();
+$fcs_sunday_offset = ( 7 - (int) $fcs_now->format( 'w' ) ) % 7;
+$fcs_sunday        = $fcs_now->modify( '+' . $fcs_sunday_offset . ' days' );
+$fcs_sunday_ymd    = $fcs_sunday->format( 'Y-m-d' );
+
+// That Sunday's schedule, soonest first; entries without a start time sink
+// to the end. Soft dependency on the spine, like the strip below.
+$fcs_sunday_items = array();
+if ( function_exists( 'happenings_event_occurrences' ) ) {
+	$fcs_sunday_items = happenings_event_occurrences( $fcs_sunday_ymd, $fcs_sunday_ymd );
+	usort(
+		$fcs_sunday_items,
+		static function ( $a, $b ) {
+			return strcmp( $a['start'] ?? '9999', $b['start'] ?? '9999' );
+		}
+	);
+}
 ?>
 
 <section class="maranatha-home-section fcs-visit" aria-label="<?php esc_attr_e( 'Visit First Church', 'maranatha-child' ); ?>">
 	<div class="fcs-visit__inner">
 
 		<div class="fcs-visit__details">
-			<h2 class="fcs-visit__heading"><?php esc_html_e( 'Join us this Sunday', 'maranatha-child' ); ?></h2>
+			<h2 class="fcs-visit__heading">
+				<?php esc_html_e( 'This Sunday at First Church', 'maranatha-child' ); ?>
+				<span class="fcs-visit__date"><?php echo esc_html( wp_date( 'F j', $fcs_sunday->getTimestamp() ) ); ?></span>
+			</h2>
 			<p class="fcs-visit__time"><?php esc_html_e( 'Worship Sundays at 10:30 am — in person and live on YouTube.', 'maranatha-child' ); ?></p>
 			<address class="fcs-visit__address">
 				<a href="https://maps.google.com/?q=180+Denny+Way,+Seattle,+WA+98109" target="_blank" rel="noopener noreferrer">180 Denny Way, Seattle, WA 98109</a>
@@ -44,6 +72,38 @@ $fcs_home_count = 3;
 			<a class="fcs-visit__btn" href="<?php echo esc_url( home_url( '/worship/live/' ) ); ?>"><?php esc_html_e( 'Watch Live', 'maranatha-child' ); ?></a>
 			<a class="fcs-visit__btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=180+Denny+Way%2C+Seattle%2C+WA+98109" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get Directions', 'maranatha-child' ); ?></a>
 		</div>
+
+		<?php if ( ! empty( $fcs_sunday_items ) ) : ?>
+		<div class="fcs-visit__schedule">
+			<h3 class="fcs-visit__schedule-heading"><?php esc_html_e( 'The day at a glance', 'maranatha-child' ); ?></h3>
+			<ul class="fcs-visit__schedule-list">
+				<?php foreach ( $fcs_sunday_items as $fcs_sunday_item ) : ?>
+					<?php
+					$fcs_item_title = trim( (string) ( $fcs_sunday_item['title'] ?? '' ) );
+					if ( '' === $fcs_item_title ) {
+						continue;
+					}
+					$fcs_item_start = isset( $fcs_sunday_item['start'] ) ? date_create( (string) $fcs_sunday_item['start'] ) : false;
+					$fcs_item_url   = (string) ( $fcs_sunday_item['url'] ?? '' );
+					$fcs_item_loc   = trim( (string) ( $fcs_sunday_item['location'] ?? '' ) );
+					?>
+					<li class="fcs-visit__schedule-item">
+						<span class="fcs-visit__schedule-time"><?php echo $fcs_item_start ? esc_html( wp_date( 'g:i a', $fcs_item_start->getTimestamp() ) ) : ''; ?></span>
+						<span class="fcs-visit__schedule-what">
+							<?php if ( '' !== $fcs_item_url ) : ?>
+								<a href="<?php echo esc_url( $fcs_item_url ); ?>"><?php echo esc_html( $fcs_item_title ); ?></a>
+							<?php else : ?>
+								<?php echo esc_html( $fcs_item_title ); ?>
+							<?php endif; ?>
+							<?php if ( '' !== $fcs_item_loc ) : ?>
+								<span class="fcs-visit__schedule-loc">· <?php echo esc_html( $fcs_item_loc ); ?></span>
+							<?php endif; ?>
+						</span>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+		<?php endif; ?>
 
 	</div>
 </section>
