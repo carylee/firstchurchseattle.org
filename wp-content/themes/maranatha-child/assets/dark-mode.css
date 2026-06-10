@@ -1,0 +1,188 @@
+/**
+ * First Church Seattle — system-preference dark mode.
+ *
+ * Pure CSS: the whole sheet is one `@media (prefers-color-scheme: dark)` block.
+ * There is no toggle, no JavaScript and no persistence — the site is dark iff
+ * the visitor's OS/browser is set to dark. (A manual override would need a JS
+ * island + an anti-flash inline script; intentionally out of scope.)
+ *
+ * How it works
+ * ------------
+ * The child theme paints every colour through the semantic tokens defined in
+ * assets/mobile.css `:root` (--fcs-surface / --fcs-text / --fcs-border /
+ * --fcs-accent / …). Step 1 below simply redefines those tokens with a dark
+ * palette, which re-skins all of the child theme's own UI (cards, the visit
+ * card, happenings band, calendar list, 404, etc.) for free.
+ *
+ * The Tailwind layer rides the SAME tokens: assets/src/input.css registers them
+ * as semantic colour utilities via `@theme inline` (bg-surface / text-ink /
+ * text-muted / text-accent / border-line / …), so the custom templates and the
+ * Tailwind components flip from this one palette too — guaranteeing a
+ * Tailwind-rendered card and a mobile.css-rendered card share the exact same
+ * dark colour. Hence there is no Tailwind-specific override section below.
+ *
+ * Step 2 re-colours the *parent* Maranatha theme, whose 163 KB stylesheet has
+ * no variables and hard-codes a neutral grey palette (#fff / #444 / #000 /
+ * #f7f7f7 / #e5e5e5 …). We override only the content-canvas surfaces — body,
+ * text, links, panels, tables, the calendar grid. Brand "chrome" (the maroon
+ * header bar and the maroon footer) is deliberately left branded: maroon with
+ * white text already reads fine on a dark page, and the header background is
+ * Customizer-controlled (a DB value we can't see from the repo). If we later
+ * want the chrome to go dark too, that's an additive follow-up.
+ *
+ * Enqueued LAST (after polish.css) in functions.php so these overrides win the
+ * cascade by source order without needing !important — except where the parent
+ * itself used !important, which is matched here.
+ *
+ * @package Maranatha_Child
+ */
+
+/* Tell the UA our palette so native form controls, scrollbars and the
+ * date/select widgets adapt automatically (saves hand-styling every input). */
+:root {
+	color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+
+	/* ---------------------------------------------------------------------
+	 * 1. Dark palette — redefine the child theme's semantic tokens.
+	 *
+	 * Brand FILL tokens (--fcs-maroon / --fcs-maroon-dark / --fcs-text-light)
+	 * are intentionally NOT changed: a maroon button or the maroon footer with
+	 * white text keeps good contrast on a dark canvas. Only the surface / text /
+	 * border tokens and the "accent" (brand-as-text) tokens flip — the latter
+	 * lighten to a rose so links stay legible on dark (maroon text on near-black
+	 * fails WCAG). Contrast checked against --fcs-surface (#16181c): body text
+	 * ~14:1, muted ~5:1, accent ~7:1 — all ≥ AA.
+	 * ------------------------------------------------------------------- */
+	:root {
+		--fcs-surface: #16181c;        /* page / card background        */
+		--fcs-surface-2: #1e2127;      /* raised panel / card           */
+		--fcs-surface-3: #1a1d22;      /* section band                  */
+		--fcs-text: #e9e7e4;           /* primary text                  */
+		--fcs-text-soft: #c8c3c9;      /* secondary body                */
+		--fcs-text-muted: #9b949c;     /* meta / muted                  */
+		--fcs-border: #34373d;         /* hairline border               */
+		--fcs-border-soft: #2a2d33;    /* faint divider                 */
+		--fcs-accent: #e295b6;         /* brand-as-link, lightened      */
+		--fcs-accent-strong: #f1b6d0;  /* its hover/active              */
+		--fcs-accent-muted: #c98aac;   /* quieter brand (fallback CTAs) */
+		--fcs-live: #5cc46a;           /* "live now" green, lightened   */
+	}
+
+	/* ---------------------------------------------------------------------
+	 * 2. Parent theme (Maranatha) — content canvas re-map.
+	 * ------------------------------------------------------------------- */
+
+	/* Page background + base text. `html body` (specificity 0,0,2) beats any
+	   single-element `body{}` a Customizer colour might inject, regardless of
+	   print order. */
+	html body {
+		background-color: var(--fcs-surface);
+	}
+
+	html {
+		color: var(--fcs-text);
+	}
+
+	/* Headings (parent: color #000). `body` prefix lifts specificity above a
+	   Customizer `h1{}` rule. Headings sitting on brand bands keep their white
+	   via the parent's more-specific .maranatha-color-*-bg rules. */
+	body h1,
+	body h2,
+	body h3,
+	body h4,
+	body h5,
+	body h6,
+	body .maranatha-h1,
+	body .maranatha-h2 {
+		color: var(--fcs-text);
+	}
+
+	/* Content / widget / breadcrumb links (parent: maroon from the Customizer).
+	   Scoped to content regions so the branded header nav is untouched. */
+	.maranatha-entry-content a,
+	.maranatha-entry-content-short a,
+	.maranatha-content a,
+	.widget a,
+	#maranatha-comments a,
+	.ctfw-breadcrumbs a {
+		color: var(--fcs-accent);
+	}
+
+	.maranatha-entry-content a:hover,
+	.maranatha-entry-content a:focus,
+	.maranatha-content a:hover,
+	.maranatha-content a:focus,
+	.widget a:hover,
+	.ctfw-breadcrumbs a:hover {
+		color: var(--fcs-accent-strong);
+	}
+
+	/* Neutral surface utilities + content panels (parent: #fff / #f7f7f7). */
+	.maranatha-bg {
+		background-color: var(--fcs-surface);
+	}
+
+	.maranatha-secondary-bg,
+	.maranatha-caption-image-inner,
+	pre.wp-block-verse,
+	.wp-block-code,
+	.single-post .bypostauthor > article,
+	.wp-block-table.is-style-stripes tr:nth-child(odd) {
+		background-color: var(--fcs-surface-2);
+	}
+
+	/* The parent sets the pullquote background with !important — match it. */
+	.wp-block-pullquote {
+		background-color: var(--fcs-surface-2) !important;
+	}
+
+	/* Inline code / keyboard keys. */
+	code,
+	kbd {
+		background-color: var(--fcs-surface-2);
+		color: var(--fcs-text);
+	}
+
+	/* Contact Form 7 validation text (parent: #222 — invisible on dark). */
+	span.wpcf7-not-valid-tip,
+	div.wpcf7-validation-errors,
+	span.wpcf7-not-valid-tip-no-ajax {
+		color: var(--fcs-accent-strong);
+	}
+
+	/* ---------------------------------------------------------------------
+	 * 3. Events calendar grid (parent .maranatha-calendar-table-* classes,
+	 *    surfaced on page-templates/page-events-calendar.php).
+	 * ------------------------------------------------------------------- */
+	.maranatha-calendar-table-day {
+		background-color: var(--fcs-surface-2);
+		border-color: var(--fcs-border) !important; /* parent uses !important */
+	}
+
+	.maranatha-calendar-table-day-past {
+		background-color: var(--fcs-surface);
+	}
+
+	.maranatha-calendar-table-day-other-month {
+		background-color: var(--fcs-surface-3);
+	}
+
+	.maranatha-calendar-table-day-today {
+		background-color: #2c2616; /* dim amber — the parent's #fff8e9, darkened */
+	}
+
+	/* ---------------------------------------------------------------------
+	 * 4. Tailwind layer — nothing needed here.
+	 *
+	 * The child's Tailwind markup (page-worship-live, single-fce_event, the
+	 * components in assets/src/input.css) consumes the semantic colour utilities
+	 * registered with `@theme inline` (bg-surface / text-ink / text-muted /
+	 * text-accent / border-line / …), which resolve to the --fcs-* tokens the
+	 * step-1 block above flips. So those surfaces re-colour for free — no
+	 * per-class overrides. Genuine per-element refinements (e.g. dimming a
+	 * decorative image) use `dark:` variants in the markup instead.
+	 * ------------------------------------------------------------------- */
+}

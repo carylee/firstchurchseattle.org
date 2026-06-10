@@ -18,10 +18,37 @@
  */
 
 :root {
+	/* Brand — used as solid FILLS (buttons, footer, banner, skip link). These
+	   stay constant in dark mode: maroon with white text reads fine on dark. */
 	--fcs-maroon: #70334e;
 	--fcs-maroon-dark: #5a2940;
-	--fcs-text-light: #ffffff;
+	--fcs-text-light: #ffffff; /* text printed ON a brand/maroon fill */
 	--fcs-tap-min: 44px;
+
+	/* ---- Semantic theme tokens -------------------------------------------
+	 * Every surface / text / border / accent colour the child theme paints is
+	 * routed through one of these. Light values below reproduce the original
+	 * hard-coded colours exactly (so this refactor is a visual no-op); the dark
+	 * palette in assets/dark-mode.css redefines them under
+	 * @media (prefers-color-scheme: dark). See that file for the dark values.
+	 *
+	 * "accent" is brand maroon used as TEXT or an OUTLINE (links, headings,
+	 * ghost buttons) — distinct from the fills above because on a dark canvas a
+	 * text colour must lighten to stay legible, while a fill must not (it would
+	 * lose contrast with its white label).
+	 * ------------------------------------------------------------------- */
+	--fcs-surface: #ffffff;        /* page / card background            */
+	--fcs-surface-2: #faf6f8;      /* subtly raised panel (brand soft)  */
+	--fcs-surface-3: #f7f4f6;      /* section band (happenings)         */
+	--fcs-text: #3a2a33;           /* primary text on a surface         */
+	--fcs-text-soft: #4a414c;      /* secondary body text               */
+	--fcs-text-muted: #8a7d86;     /* meta / muted                      */
+	--fcs-border: #ebe1e5;         /* hairline border                   */
+	--fcs-border-soft: #f0e8ec;    /* very light divider                */
+	--fcs-accent: var(--fcs-maroon);        /* brand as link / accent text   */
+	--fcs-accent-strong: var(--fcs-maroon-dark); /* its hover/active state   */
+	--fcs-accent-muted: #8a5a72;   /* quieter brand (fallback CTAs)     */
+	--fcs-live: #2e7d32;           /* "live now" status green           */
 }
 
 /* -------------------------------------------------------------------------
@@ -149,8 +176,8 @@
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
-	background: #fff;
-	border: 1px solid #ebe1e5;
+	background: var(--fcs-surface);
+	border: 1px solid var(--fcs-border);
 	border-radius: 14px;
 	box-shadow: 0 2px 10px rgba(112, 51, 78, 0.06);
 	padding: 20px;
@@ -193,17 +220,17 @@
 }
 
 .fcs-card__title a {
-	color: #3a2a33;
+	color: var(--fcs-text);
 	text-decoration: none;
 }
 
 .fcs-card__title a:hover,
 .fcs-card__title a:focus {
-	color: var(--fcs-maroon);
+	color: var(--fcs-accent);
 }
 
 .fcs-card__title a:focus-visible {
-	outline: 2px solid var(--fcs-maroon);
+	outline: 2px solid var(--fcs-accent);
 	outline-offset: 2px;
 	border-radius: 2px;
 }
@@ -228,21 +255,21 @@
 .fcs-card__meta {
 	margin: 0 !important;
 	font-size: 0.8rem;
-	color: #8a7d86;
+	color: var(--fcs-text-muted);
 }
 
 /* Optional section heading for the Happenings block (/engage). */
 .fcs-happenings__heading {
 	margin: 1.5em 0 0.6em;
 	font-size: 1.4rem;
-	color: var( --fcs-maroon, #70334e );
+	color: var(--fcs-accent);
 }
 
 .fcs-card__excerpt {
 	margin: 0 !important;
 	font-size: 0.9rem;
 	line-height: 1.55;
-	color: #4a414c;
+	color: var(--fcs-text-soft);
 }
 
 /* The action lives in a full-bleed footer strip: a hairline divider, then a
@@ -250,7 +277,7 @@
    to the bottom corner — `overflow:hidden` on .fcs-card rounds it). */
 .fcs-card__cta {
 	margin: 4px -20px -20px;
-	border-top: 1px solid #f0e8ec;
+	border-top: 1px solid var(--fcs-border-soft);
 }
 
 /* Quiet, link-style CTA — no filled button. The whole strip is clickable; on
@@ -261,7 +288,7 @@
 	align-items: center;
 	gap: 0.45em;
 	padding: 14px 20px;
-	color: var(--fcs-maroon) !important;
+	color: var(--fcs-accent) !important;
 	font-weight: 600;
 	font-size: 0.9rem;
 	letter-spacing: 0.01em;
@@ -279,7 +306,7 @@
 .fcs-cta-button:hover,
 .fcs-cta-button:focus-visible {
 	background-color: rgba(112, 51, 78, 0.06);
-	color: var(--fcs-maroon-dark) !important;
+	color: var(--fcs-accent-strong) !important;
 	text-decoration: none !important;
 }
 
@@ -294,24 +321,24 @@
 }
 
 .fcs-cta-button:focus-visible {
-	outline: 2px solid var(--fcs-maroon);
+	outline: 2px solid var(--fcs-accent);
 	outline-offset: -2px;
 }
 
 /* Fallback actions ("Read more", "Event details") are secondary — lighter
    weight and muted so a real registration/sign-up link still stands out. */
 .fcs-cta-button.is-fallback {
-	color: #8a5a72 !important;
+	color: var(--fcs-accent-muted) !important;
 	font-weight: 500;
 }
 
 .fcs-cta-button.is-fallback:hover,
 .fcs-cta-button.is-fallback:focus-visible {
-	color: var(--fcs-maroon) !important;
+	color: var(--fcs-accent) !important;
 }
 
 .fcs-cards-empty {
-	color: #8a7d86;
+	color: var(--fcs-text-muted);
 	font-style: italic;
 }
 
@@ -408,8 +435,8 @@ main#maranatha-content {
    row. Wrap it in a soft card and make the buttons solid maroon. */
 
 .maranatha-entry-content > .wp-block-buttons:first-child {
-	background: #faf6f8;
-	border: 1px solid #ebe1e5;
+	background: var(--fcs-surface-2);
+	border: 1px solid var(--fcs-border);
 	border-radius: 14px;
 	padding: 24px;
 	margin: 0 0 40px 0 !important;
@@ -422,9 +449,9 @@ main#maranatha-content {
    inside .wp-block-buttons. The parent theme defaults to outlined; we
    fill them so they read as primary CTAs. */
 .maranatha-entry-content .wp-block-buttons a.maranatha-button {
-	background-color: #70334e !important;
-	color: #ffffff !important;
-	border: 1px solid #70334e !important;
+	background-color: var(--fcs-maroon) !important;
+	color: var(--fcs-text-light) !important;
+	border: 1px solid var(--fcs-maroon) !important;
 	font-weight: 600 !important;
 	letter-spacing: 0.03em !important;
 	border-radius: 999px !important;
@@ -435,9 +462,9 @@ main#maranatha-content {
 
 .maranatha-entry-content .wp-block-buttons a.maranatha-button:hover,
 .maranatha-entry-content .wp-block-buttons a.maranatha-button:focus {
-	background-color: #5a2940 !important;
-	border-color: #5a2940 !important;
-	color: #ffffff !important;
+	background-color: var(--fcs-maroon-dark) !important;
+	border-color: var(--fcs-maroon-dark) !important;
+	color: var(--fcs-text-light) !important;
 }
 
 .maranatha-entry-content .wp-block-buttons a.maranatha-button:active {
@@ -449,8 +476,8 @@ main#maranatha-content {
 .maranatha-entry-content .ctc-button-light,
 .maranatha-entry-content a.ctc-button-light {
 	background-color: transparent !important;
-	color: #70334e !important;
-	border: 1px solid #70334e !important;
+	color: var(--fcs-accent) !important;
+	border: 1px solid var(--fcs-accent) !important;
 	box-shadow: none !important;
 }
 
@@ -768,7 +795,7 @@ main#maranatha-content {
 		padding-bottom: 24px !important;
 		padding-left: 0 !important;
 		padding-right: 0 !important;
-		background-color: #70334e !important;
+		background-color: var(--fcs-maroon) !important;
 		box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35) !important;
 		overflow-y: auto !important;
 		-webkit-overflow-scrolling: touch;
@@ -1039,7 +1066,7 @@ main#maranatha-content {
 }
 
 .fcs-events__empty {
-	color: #555;
+	color: var(--fcs-text-soft);
 	font-style: italic;
 	padding: 1em 0;
 }
@@ -1066,13 +1093,13 @@ main#maranatha-content {
 .fcs-events-calendar__nav {
 	flex: 0 0 auto;
 	white-space: nowrap;
-	color: var(--fcs-maroon) !important;
+	color: var(--fcs-accent) !important;
 	text-decoration: none;
 	font-weight: 600;
 }
 
 .fcs-events-calendar__nav:hover {
-	color: var(--fcs-maroon-dark) !important;
+	color: var(--fcs-accent-strong) !important;
 	text-decoration: underline;
 }
 
@@ -1086,13 +1113,13 @@ main#maranatha-content {
 
 .fcs-events-calendar__list-heading {
 	margin: 0 0 0.75em;
-	color: var( --fcs-maroon, #70334e );
+	color: var(--fcs-accent);
 }
 
 /* Weekly-rhythm occurrences land on every week of the month grid by design;
    mute them so the one-offs and special Sundays read as the signal. */
 #maranatha-calendar-table .fcs-cal-event--rhythm a {
-	color: #8a7d86;
+	color: var(--fcs-text-muted);
 	font-weight: 400;
 	font-size: 0.85em;
 }
@@ -1112,7 +1139,7 @@ main#maranatha-content {
 	align-items: baseline;
 	gap: 0.35em 1em;
 	padding: 0.5em 0;
-	border-bottom: 1px solid #f0e8ec;
+	border-bottom: 1px solid var(--fcs-border-soft);
 }
 
 .fcs-rhythm-strip__title {
@@ -1122,12 +1149,12 @@ main#maranatha-content {
 
 a.fcs-rhythm-strip__title:hover,
 a.fcs-rhythm-strip__title:focus {
-	color: var(--fcs-maroon);
+	color: var(--fcs-accent);
 }
 
 .fcs-rhythm-strip__when {
 	font-size: 0.85rem;
-	color: #8a7d86;
+	color: var(--fcs-text-muted);
 }
 
 /* The grid's inline per-day event list isn't built for phones; below ~640px the
@@ -1221,7 +1248,7 @@ a.fcs-rhythm-strip__title:focus {
    Sunday service, where a pulsing dot makes the "Live now" state read as active
    rather than a static schedule note. */
 [data-island="worship-live"].is-live {
-	color: #2e7d32; /* a calm green, distinct from the brand maroon */
+	color: var(--fcs-live); /* a calm green, distinct from the brand maroon */
 }
 
 [data-island="worship-live"].is-live::before {
@@ -1479,9 +1506,9 @@ a.fcs-rhythm-strip__title:focus {
 .fcs-404__links a {
 	display: inline-block;
 	padding: 10px 18px;
-	border: 1px solid var(--fcs-maroon);
+	border: 1px solid var(--fcs-accent);
 	border-radius: 999px;
-	color: var(--fcs-maroon);
+	color: var(--fcs-accent);
 	text-decoration: none;
 	min-height: var(--fcs-tap-min);
 }
@@ -1520,7 +1547,7 @@ a.fcs-rhythm-strip__title:focus {
    ============================================================ */
 
 .fcs-visit {
-	background: #fff;
+	background: var(--fcs-surface);
 	padding: 48px 24px;
 }
 
@@ -1541,7 +1568,7 @@ a.fcs-rhythm-strip__title:focus {
 .fcs-visit__heading {
 	margin: 0 0 10px;
 	font-size: 1.7rem;
-	color: var(--fcs-maroon);
+	color: var(--fcs-accent);
 }
 
 .fcs-visit__time {
@@ -1558,7 +1585,7 @@ a.fcs-rhythm-strip__title:focus {
 .fcs-visit__parking {
 	margin: 0;
 	font-size: 0.92rem;
-	color: #5a5158;
+	color: var(--fcs-text-soft);
 }
 
 .fcs-visit__actions {
@@ -1574,9 +1601,9 @@ a.fcs-rhythm-strip__title:focus {
 	text-align: center;
 	padding: 12px 26px;
 	min-height: var(--fcs-tap-min);
-	border: 1px solid var(--fcs-maroon);
+	border: 1px solid var(--fcs-accent);
 	border-radius: 999px;
-	color: var(--fcs-maroon);
+	color: var(--fcs-accent);
 	text-decoration: none;
 	font-weight: 600;
 }
@@ -1728,7 +1755,7 @@ a.fcs-rhythm-strip__title:focus {
 }
 
 .fcs-home-happenings {
-	background: #f7f4f6;
+	background: var(--fcs-surface-3);
 	padding: 48px 24px 40px;
 }
 
@@ -1740,7 +1767,7 @@ a.fcs-rhythm-strip__title:focus {
 .fcs-home-happenings__heading {
 	margin: 0 0 18px;
 	font-size: 1.7rem;
-	color: var(--fcs-maroon);
+	color: var(--fcs-accent);
 	text-align: center;
 }
 
@@ -1756,7 +1783,7 @@ a.fcs-rhythm-strip__title:focus {
 }
 
 .fcs-home-happenings__more a {
-	color: var(--fcs-maroon);
+	color: var(--fcs-accent);
 	font-weight: 600;
 }
 

@@ -93,6 +93,18 @@ add_action( 'wp_enqueue_scripts', function () {
 		$polish_deps,
 		FCS_CHILD_VERSION
 	);
+
+	// System-preference dark mode. A single @media (prefers-color-scheme: dark)
+	// override layer that flips the semantic tokens defined in mobile.css and
+	// re-colours the parent theme's content surfaces. Enqueued LAST (depends on
+	// polish) so its overrides win the cascade by source order. Pure CSS — no
+	// toggle, no JS. See assets/dark-mode.css.
+	wp_enqueue_style(
+		'maranatha-child-dark-mode',
+		get_stylesheet_directory_uri() . '/assets/dark-mode.css',
+		array( 'maranatha-child-polish' ),
+		FCS_CHILD_VERSION
+	);
 }, 20 );
 
 /**
