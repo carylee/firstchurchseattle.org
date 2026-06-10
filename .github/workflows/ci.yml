@@ -179,3 +179,29 @@ jobs:
         run: ops/scripts/check-asset-version-bump.sh
         env:
           BASE_REF: origin/${{ github.base_ref }}
+
+  # Aggregate gate: the ONE status check branch protection requires. The matrix
+  # job names change as plugins come and go, so protection can't enumerate them
+  # — it requires this job instead. Fails if any upstream job failed or was
+  # cancelled; "skipped" is fine (asset-version only runs on PRs, and the matrix
+  # jobs skip only when discovery finds nothing to run).
+  ci-ok:
+    name: CI OK
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - lint
+      - deploy-coverage
+      - discover
+      - phpunit
+      - tailwind-build
+      - child-theme-js
+      - composer-audit
+      - asset-version
+    steps:
+      - name: Fail if any upstream job failed or was cancelled
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$RESULTS" | jq -e 'all(.[]; .result == "success" or .result == "skipped")' >/dev/null
