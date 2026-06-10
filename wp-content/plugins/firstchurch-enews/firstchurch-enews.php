@@ -30,6 +30,15 @@ const FCEN_DATE_KEY     = '_enews_date';        // YYYY-MM-DD send date / window
 require_once __DIR__ . '/src/Email.php';
 require_once __DIR__ . '/src/Mailchimp.php';
 
+// Third-party runtime deps (the Mailchimp SDK) are Composer-managed and isolated
+// into a private namespace by PHP-Scoper at build time — see build.sh and
+// ops/docs/composer-on-prod.md. The shipped plugin IS the scoped dist/ build, so
+// vendor/autoload.php is present in prod; load it when it exists (a source-only
+// checkout without a build simply has no Mailchimp push).
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor/autoload.php';
+}
+
 require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/meta.php';
 require_once __DIR__ . '/inc/render.php';

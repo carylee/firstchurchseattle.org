@@ -1,12 +1,12 @@
 <?php
 /**
- * Push a rendered issue to Mailchimp as a DRAFT campaign (Marketing API v3).
+ * Push a rendered issue to Mailchimp as a DRAFT campaign, via the official
+ * `mailchimp/marketing` SDK (vendored + PHP-Scoped into FirstChurch\ENews\Vendor
+ * at build time — see ops/docs/composer-on-prod.md and build.sh).
  *
  * Boundary on purpose: this only ever creates/updates a *draft* — it never
- * sends. A staffer reviews the draft in Mailchimp and sends it there, so the
- * irreversible step stays a human action in Mailchimp's own UI. Re-pushing the
- * same issue updates its existing draft (the campaign id is stored on the post)
- * rather than piling up duplicates.
+ * sends. A staffer reviews the draft in Mailchimp and sends it there. Re-pushing
+ * an issue updates its existing draft (the campaign id is stored on the post).
  *
  * Credentials live in wp-config constants (never committed):
  *   FCEN_MAILCHIMP_API_KEY      e.g. "abc…-us2" (the -us2 suffix is the datacenter)
@@ -14,13 +14,17 @@
  *   FCEN_MAILCHIMP_FROM_NAME    optional (default "First Church Seattle")
  *   FCEN_MAILCHIMP_REPLY_TO     optional (default comms@firstchurchseattle.org)
  *
- * The payload shaping + error parsing is the pure src/Mailchimp.php; this is the
- * WordPress glue (HTTP, credentials, the admin action, notices, the button).
+ * The payload shaping + error parsing stays in the pure src/Mailchimp.php (still
+ * unit-tested) — it just feeds the SDK now instead of wp_remote_request. The SDK
+ * owns transport, retries, and auth.
  *
  * @package FirstChurch\ENews
  */
 
 use FirstChurch\ENews\Mailchimp;
+// Real SDK namespace in source; PHP-Scoper rewrites these to
+// FirstChurch\ENews\Vendor\MailchimpMarketing\… in the shipped build.
+use MailchimpMarketing\ApiClient;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -52,47 +56,20 @@ function fcen_mailchimp_config(): ?array {
 }
 
 /**
- * One Marketing-API request. Basic auth (any user + the key as password).
+ * A configured SDK client for the account's datacenter.
  *
  * @param array{key:string,dc:string,list:string,from:string,reply:string} $config
- * @param array<string,mixed>|null                                         $body
- * @return array{status:int,body:mixed,raw:string,error:?string}
  */
-function fcen_mailchimp_request( array $config, string $method, string $path, ?array $body = null ): array {
-	$args = array(
-		'method'  => $method,
-		'timeout' => 15,
-		'headers' => array(
-			'Authorization' => 'Basic ' . base64_encode( 'fcen:' . $config['key'] ),
-			'Content-Type'  => 'application/json',
-		),
-	);
-	if ( null !== $body ) {
-		$args['body'] = wp_json_encode( $body );
-	}
-
-	$resp = wp_remote_request( Mailchimp::apiBase( $config['dc'] ) . $path, $args );
-	if ( is_wp_error( $resp ) ) {
-		return array( 'status' => 0, 'body' => null, 'raw' => '', 'error' => $resp->get_error_message() );
-	}
-
-	$raw = (string) wp_remote_retrieve_body( $resp );
-	return array(
-		'status' => (int) wp_remote_retrieve_response_code( $resp ),
-		'body'   => json_decode( $raw, true ),
-		'raw'    => $raw,
-		'error'  => null,
-	);
+function fcen_mailchimp_client( array $config ): ApiClient {
+	$client = new ApiClient();
+	$client->setConfig( array( 'apiKey' => $config['key'], 'server' => $config['dc'] ) );
+	return $client;
 }
 
-/** True for a 2xx with no transport error. @param array{status:int,error:?string} $res */
-function fcen_mailchimp_ok( array $res ): bool {
-	return null === $res['error'] && $res['status'] >= 200 && $res['status'] < 300;
-}
-
-/** A human error line from a request result. @param array{error:?string,raw:string} $res */
-function fcen_mailchimp_error( array $res ): string {
-	return $res['error'] ?? Mailchimp::errorMessage( (string) $res['raw'] );
+/** A human error line from an SDK exception (its response body, else its message). */
+function fcen_mailchimp_exception_message( \Throwable $e ): string {
+	$raw = method_exists( $e, 'getResponseBody' ) ? (string) $e->getResponseBody() : '';
+	return '' !== $raw ? Mailchimp::errorMessage( $raw ) : $e->getMessage();
 }
 
 /**
@@ -120,36 +97,37 @@ function fcen_push_to_mailchimp( int $post_id ): array {
 		'reply_to'  => $config['reply'],
 	);
 
+	$client      = fcen_mailchimp_client( $config );
 	$campaign_id = (string) get_post_meta( $post_id, FCEN_MC_CAMPAIGN_KEY, true );
 
-	// Update the existing draft's settings; if it's gone (404) or no longer
-	// editable (e.g. already sent — 400), fall through to creating a fresh one.
-	if ( '' !== $campaign_id ) {
-		$res = fcen_mailchimp_request( $config, 'PATCH', "/campaigns/{$campaign_id}", array( 'settings' => Mailchimp::settings( $env ) ) );
-		if ( 404 === $res['status'] || 400 === $res['status'] ) {
-			$campaign_id = '';
-		} elseif ( ! fcen_mailchimp_ok( $res ) ) {
-			return array( 'ok' => false, 'message' => fcen_mailchimp_error( $res ) );
+	try {
+		// Update the existing draft's settings; if it's gone (404) or no longer
+		// editable (already sent — 400), fall through to creating a fresh one.
+		if ( '' !== $campaign_id ) {
+			try {
+				$client->campaigns->update( $campaign_id, array( 'settings' => Mailchimp::settings( $env ) ) );
+			} catch ( \Throwable $e ) {
+				if ( ! in_array( (int) $e->getCode(), array( 400, 404 ), true ) ) {
+					throw $e;
+				}
+				$campaign_id = '';
+			}
 		}
-	}
 
-	if ( '' === $campaign_id ) {
-		$res = fcen_mailchimp_request( $config, 'POST', '/campaigns', Mailchimp::campaignPayload( $config['list'], $env ) );
-		if ( ! fcen_mailchimp_ok( $res ) ) {
-			return array( 'ok' => false, 'message' => fcen_mailchimp_error( $res ) );
-		}
-		$campaign_id = (string) ( $res['body']['id'] ?? '' );
 		if ( '' === $campaign_id ) {
-			return array( 'ok' => false, 'message' => 'Mailchimp did not return a campaign id.' );
+			$created     = $client->campaigns->create( Mailchimp::campaignPayload( $config['list'], $env ) );
+			$campaign_id = (string) ( $created->id ?? '' );
+			if ( '' === $campaign_id ) {
+				return array( 'ok' => false, 'message' => 'Mailchimp did not return a campaign id.' );
+			}
+			update_post_meta( $post_id, FCEN_MC_CAMPAIGN_KEY, $campaign_id );
+			update_post_meta( $post_id, FCEN_MC_WEBID_KEY, (int) ( $created->web_id ?? 0 ) );
 		}
-		update_post_meta( $post_id, FCEN_MC_CAMPAIGN_KEY, $campaign_id );
-		update_post_meta( $post_id, FCEN_MC_WEBID_KEY, (int) ( $res['body']['web_id'] ?? 0 ) );
-	}
 
-	// Push the rendered issue as the campaign's HTML content.
-	$res = fcen_mailchimp_request( $config, 'PUT', "/campaigns/{$campaign_id}/content", array( 'html' => fcen_render_email( $post_id ) ) );
-	if ( ! fcen_mailchimp_ok( $res ) ) {
-		return array( 'ok' => false, 'message' => fcen_mailchimp_error( $res ) );
+		// Push the rendered issue as the campaign's HTML content.
+		$client->campaigns->setContent( $campaign_id, array( 'html' => fcen_render_email( $post_id ) ) );
+	} catch ( \Throwable $e ) {
+		return array( 'ok' => false, 'message' => fcen_mailchimp_exception_message( $e ) );
 	}
 
 	$web_id = (int) get_post_meta( $post_id, FCEN_MC_WEBID_KEY, true );
