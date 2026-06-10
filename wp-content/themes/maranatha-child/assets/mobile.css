@@ -1593,6 +1593,65 @@ a.fcs-rhythm-strip__title:focus {
 	color: var(--fcs-text-light);
 }
 
+/* "This Sunday" schedule — a full-width row under the visit details/actions
+   listing that Sunday's spine occurrences. */
+.fcs-visit__date {
+	color: #5a5158;
+	font-weight: 400;
+	white-space: nowrap;
+}
+
+.fcs-visit__date::before {
+	content: "· ";
+}
+
+.fcs-visit__schedule {
+	flex: 1 1 100%;
+	border-top: 1px solid #e8e2e6;
+	padding-top: 20px;
+}
+
+.fcs-visit__schedule-heading {
+	margin: 0 0 10px;
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #5a5158;
+}
+
+.fcs-visit__schedule-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 8px 32px;
+}
+
+.fcs-visit__schedule-item {
+	display: flex;
+	gap: 10px;
+	align-items: baseline;
+}
+
+.fcs-visit__schedule-time {
+	flex: 0 0 4.6em;
+	font-weight: 600;
+	color: var(--fcs-maroon);
+	font-variant-numeric: tabular-nums;
+}
+
+.fcs-visit__schedule-what a {
+	color: inherit;
+	text-decoration-color: #c9b6c1;
+}
+
+.fcs-visit__schedule-loc {
+	color: #5a5158;
+	font-size: 0.92rem;
+}
+
 .fcs-home-happenings {
 	background: #f7f4f6;
 	padding: 48px 24px 40px;
