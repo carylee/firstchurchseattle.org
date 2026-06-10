@@ -63,17 +63,11 @@ add_action(
 			return;
 		}
 		$base = plugin_dir_url( dirname( __FILE__ ) );
-		wp_enqueue_style( 'firstchurch-stock-photos', $base . 'assets/admin.css', array(), FCSP_VERSION );
-		wp_enqueue_script( 'firstchurch-stock-photos', $base . 'assets/admin.js', array(), FCSP_VERSION, true );
-		wp_localize_script(
-			'firstchurch-stock-photos',
-			'fcspData',
-			array(
-				'searchUrl' => esc_url_raw( rest_url( 'firstchurch/v1/stock-photos/search' ) ),
-				'importUrl' => esc_url_raw( rest_url( 'firstchurch/v1/stock-photos/import' ) ),
-				'nonce'     => wp_create_nonce( 'wp_rest' ),
-				'mediaUrl'  => esc_url_raw( admin_url( 'upload.php' ) ),
-			)
-		);
+		// Shared, UI-agnostic search/import core (registered + localized once in
+		// inc/assets.php) — the standalone page layers its grid/lightbox on top.
+		fcsp_register_picker_core();
+		wp_enqueue_script( 'firstchurch-stock-core' );
+		wp_enqueue_style( 'firstchurch-stock-photos' );
+		wp_enqueue_script( 'firstchurch-stock-photos', $base . 'assets/admin.js', array( 'firstchurch-stock-core' ), FCSP_VERSION, true );
 	}
 );
