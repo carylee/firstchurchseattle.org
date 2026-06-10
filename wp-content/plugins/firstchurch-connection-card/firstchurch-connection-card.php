@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Connection Card
  * Description: Server-side bridge that posts the Check-in & Connection Card to Breeze (form 320238).
- * Version:     0.1.0
+ * Version:     0.2.0
  * Author:      First Church Seattle
  */
 
@@ -10,13 +10,47 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+const FCC_VERSION     = '0.2.0';
 const FCC_BREEZE_BASE = 'https://firstchurchseattle.breezechms.com';
 const FCC_FORM_ID     = '320238';
 const FCC_FORM_SLUG   = '603d6c';
 const FCC_USER_AGENT  = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36';
 
+// Cloudflare Turnstile (optional). Define FCC_TURNSTILE_SITEKEY +
+// FCC_TURNSTILE_SECRET in wp-config.php to switch it on; left undefined the
+// widget never renders and verification is skipped, so the form works as-is
+// with no secret in the repo. The site already fronts on Cloudflare.
+const FCC_TURNSTILE_VERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+
 // Pure form contract + mapping/validation (unit-tested outside WordPress).
 require_once __DIR__ . '/inc/form.php';
+
+/**
+ * The configured Turnstile sitekey, or '' when the feature is off.
+ */
+function fcc_turnstile_sitekey(): string {
+    return defined('FCC_TURNSTILE_SITEKEY') ? (string) FCC_TURNSTILE_SITEKEY : '';
+}
+
+function fcc_turnstile_secret(): string {
+    return defined('FCC_TURNSTILE_SECRET') ? (string) FCC_TURNSTILE_SECRET : '';
+}
+
+function fcc_turnstile_enabled(): bool {
+    return fcc_turnstile_sitekey() !== '' && fcc_turnstile_secret() !== '';
+}
+
+/**
+ * Log a Breeze submission failure for ops visibility (the failure paths are
+ * otherwise silent — the visitor just sees a generic error). Fires an action so
+ * a monitor can hook it, and writes to the PHP error log under WP_DEBUG.
+ */
+function fcc_log(string $stage, string $detail): void {
+    do_action('fcc_breeze_failure', $stage, $detail);
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log("[connection-card] {$stage}: {$detail}");
+    }
+}
 
 add_action('rest_api_init', function () {
     register_rest_route('firstchurch/v1', '/connection-card', [
@@ -155,6 +189,10 @@ function fcc_render_shortcode($atts = []): string {
             <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         </div>
 
+        <?php if (fcc_turnstile_enabled()) : ?>
+            <div class="cf-turnstile" data-sitekey="<?php echo esc_attr(fcc_turnstile_sitekey()); ?>"></div>
+        <?php endif; ?>
+
         <div class="fcc-form__status" role="status" aria-live="polite"></div>
 
         <button class="fcc-submit maranatha-button" type="submit">Submit</button>
@@ -169,15 +207,24 @@ function fcc_enqueue_assets(): void {
         'firstchurch-connection-card',
         $base . 'assets/connection-card.css',
         [],
-        '0.1.0'
+        FCC_VERSION
     );
     wp_enqueue_script(
         'firstchurch-connection-card',
         $base . 'assets/connection-card.js',
         [],
-        '0.1.0',
+        FCC_VERSION,
         true
     );
+    if (fcc_turnstile_enabled()) {
+        wp_enqueue_script(
+            'cloudflare-turnstile',
+            'https://challenges.cloudflare.com/turnstile/v0/api.js',
+            [],
+            null,
+            true
+        );
+    }
 }
 
 function fcc_submit(WP_REST_Request $request) {
@@ -200,6 +247,11 @@ function fcc_submit(WP_REST_Request $request) {
     $errors = fcc_validate($params, $opts);
     if ($errors) {
         return new WP_Error('validation', implode(' ', $errors), ['status' => 400]);
+    }
+
+    $verified = fcc_verify_turnstile($params);
+    if (is_wp_error($verified)) {
+        return $verified;
     }
 
     $first    = trim((string) ($params['first_name'] ?? ''));
@@ -242,6 +294,7 @@ function fcc_seed_session() {
         'user-agent' => FCC_USER_AGENT,
     ]);
     if (is_wp_error($resp)) {
+        fcc_log('breeze_unreachable', $resp->get_error_message());
         return new WP_Error('breeze_unreachable', 'Could not reach Breeze.', ['status' => 502]);
     }
     return wp_remote_retrieve_cookies($resp);
@@ -274,10 +327,12 @@ function fcc_mint_entry_id(array $cookies, string $csrf, string $first, string $
         ],
     ]);
     if (is_wp_error($resp)) {
+        fcc_log('breeze_step1', $resp->get_error_message());
         return new WP_Error('breeze_step1', 'Breeze submission failed (step 1).', ['status' => 502]);
     }
     $body = trim(wp_remote_retrieve_body($resp));
     if (!ctype_digit($body)) {
+        fcc_log('breeze_step1_bad', substr($body, 0, 200));
         return new WP_Error('breeze_step1_bad', 'Unexpected Breeze response: ' . substr($body, 0, 200), ['status' => 502]);
     }
     return $body;
@@ -297,10 +352,43 @@ function fcc_save_section(array $cookies, string $csrf, string $entry_id, array 
         ],
     ]);
     if (is_wp_error($resp)) {
+        fcc_log('breeze_step2', $resp->get_error_message());
         return new WP_Error('breeze_step2', 'Breeze submission failed (step 2).', ['status' => 502]);
     }
     if (wp_remote_retrieve_response_code($resp) !== 200) {
+        fcc_log('breeze_step2_bad', 'HTTP ' . wp_remote_retrieve_response_code($resp));
         return new WP_Error('breeze_step2_bad', 'Breeze returned ' . wp_remote_retrieve_response_code($resp), ['status' => 502]);
+    }
+    return true;
+}
+
+/**
+ * Verify the Cloudflare Turnstile token, when the feature is enabled. A no-op
+ * (returns true) when no sitekey/secret is configured.
+ */
+function fcc_verify_turnstile(array $params) {
+    if (!fcc_turnstile_enabled()) {
+        return true;
+    }
+    $token = (string) ($params['cf-turnstile-response'] ?? '');
+    if ($token === '') {
+        return new WP_Error('turnstile', 'Please complete the verification challenge.', ['status' => 400]);
+    }
+    $resp = wp_remote_post(FCC_TURNSTILE_VERIFY, [
+        'timeout' => 15,
+        'body'    => [
+            'secret'   => fcc_turnstile_secret(),
+            'response' => $token,
+            'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
+        ],
+    ]);
+    if (is_wp_error($resp)) {
+        fcc_log('turnstile_unreachable', $resp->get_error_message());
+        return new WP_Error('turnstile', 'Could not verify the challenge. Please try again.', ['status' => 502]);
+    }
+    $body = json_decode((string) wp_remote_retrieve_body($resp), true);
+    if (empty($body['success'])) {
+        return new WP_Error('turnstile', 'Verification failed. Please try again.', ['status' => 400]);
     }
     return true;
 }

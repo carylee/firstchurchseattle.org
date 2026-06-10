@@ -50,6 +50,11 @@
 					if (result.ok && result.body && result.body.ok) {
 						showStatus('success', "Thanks for checking in! We're glad you're here.");
 						form.reset();
+					} else if (result.status === 429) {
+						showStatus(
+							'error',
+							"You've submitted a few times already — please wait a few minutes and try again."
+						);
 					} else {
 						var msg =
 							(result.body && (result.body.message || result.body.code)) ||
@@ -122,6 +127,7 @@
 				learn_more: fd.getAll('learn_more[]'),
 				pastor_contact: fd.getAll('pastor_contact[]'),
 				website: fd.get('website') || '',
+				'cf-turnstile-response': fd.get('cf-turnstile-response') || '',
 			};
 
 			var addr = {
