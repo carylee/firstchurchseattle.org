@@ -26,20 +26,12 @@
 		resultsEl.innerHTML = '';
 		statusEl.textContent = 'Searching…';
 
-		var url = new URL( fcspData.searchUrl );
-		url.searchParams.set( 'q', q );
-		url.searchParams.set( 'count', '24' );
-		if ( orientationEl.value ) {
-			url.searchParams.set( 'orientation', orientationEl.value );
-		}
-		if ( providerEl && providerEl.value ) {
-			url.searchParams.set( 'provider', providerEl.value );
-		}
-
-		fetch( url.toString(), {
-			headers: { 'X-WP-Nonce': fcspData.nonce }
+		window.fcspStock.search( {
+			q: q,
+			count: 24,
+			orientation: orientationEl.value,
+			provider: providerEl ? providerEl.value : ''
 		} )
-			.then( toJson )
 			.then( function ( data ) {
 				var results = ( data && data.results ) || [];
 				if ( ! results.length ) {
@@ -168,28 +160,7 @@
 	}
 
 	function importRequest( item ) {
-		return fetch( fcspData.importUrl, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-WP-Nonce': fcspData.nonce
-			},
-			body: JSON.stringify( {
-				image_url: item.url,
-				title: item.title,
-				alt: item.title,
-				provider: item.provider,
-				openverse_id: item.id,
-				creator: item.creator,
-				creator_url: item.creator_url,
-				license: item.license,
-				license_url: item.license_url,
-				attribution: item.attribution,
-				source: item.source,
-				foreign_url: item.foreign_url,
-				download_location: item.download_location
-			} )
-		} ).then( toJson );
+		return window.fcspStock.importPhoto( item );
 	}
 
 	/* ---- Lightbox ---- */
@@ -307,16 +278,5 @@
 		var span = document.createElement( 'span' );
 		span.textContent = text;
 		return span;
-	}
-
-	/* ---- Utils ---- */
-
-	function toJson( res ) {
-		return res.json().then( function ( body ) {
-			if ( ! res.ok ) {
-				throw new Error( ( body && body.message ) || ( 'HTTP ' + res.status ) );
-			}
-			return body;
-		} );
 	}
 } )();
