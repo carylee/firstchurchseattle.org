@@ -122,6 +122,24 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+  people:
+    name: people PHPUnit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wp-content/plugins/firstchurch-people
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
   happenings:
     name: happenings PHPUnit
     runs-on: ubuntu-latest
@@ -208,6 +226,7 @@ jobs:
           - firstchurch-stock-photos
           - firstchurch-happenings
           - firstchurch-events
+          - firstchurch-people
           - firstchurch-connection-card
     defaults:
       run:
