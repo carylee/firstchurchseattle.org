@@ -1777,6 +1777,22 @@ a.fcs-rhythm-strip__title:focus {
 	text-shadow: none;
 }
 
+/* The first hero CTA (Plan Your Visit) is the page's primary action — fill
+   it so the visitor's next step is decided for them. White on the washed
+   photo reads as primary where another maroon would sink into the wash. */
+#maranatha-home-section-1 .maranatha-circle-buttons-list li:first-child a {
+	background: var(--fcs-text-light);
+	border-color: var(--fcs-text-light);
+	color: var(--fcs-maroon);
+}
+
+#maranatha-home-section-1 .maranatha-circle-buttons-list li:first-child a:hover,
+#maranatha-home-section-1 .maranatha-circle-buttons-list li:first-child a:focus {
+	background: rgba(255, 255, 255, 0.85);
+	border-color: rgba(255, 255, 255, 0.85);
+	color: var(--fcs-maroon-dark);
+}
+
 /* -- Contact-column static map (footer.php) -- */
 
 .fcs-footer__map {
