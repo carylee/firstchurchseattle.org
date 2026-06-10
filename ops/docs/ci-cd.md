@@ -86,9 +86,13 @@ into the checked-out tree that `deploy.sh` then rsyncs.
    add yourself as a *required reviewer*. Each deploy then pauses for one click
    before it touches prod.
 
-3. **Branch protection (recommended)** — Settings → Branches → protect `main` →
-   *require status checks to pass before merging* and select the CI jobs. This
-   makes "merged to main" mean "CI-green," which is what the deploy gate assumes.
+3. **Branch protection (enabled)** — `main` requires the **CI OK** status check
+   before merging. That's the aggregate `ci-ok` job in `ci.yml` — require *only*
+   this one, never the per-plugin matrix jobs (their names change as plugins
+   come and go). This makes "merged to main" mean "CI-green," which is what the
+   deploy gate assumes. `enforce_admins` is off, so an admin can still push
+   directly in an emergency — the protection guards the default path, not the
+   hotfix escape hatch.
 
 ### Notes
 
