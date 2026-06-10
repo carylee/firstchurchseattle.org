@@ -23,6 +23,7 @@ if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
  * Feature modules. Keep functions.php thin — each concern lives in inc/.
  */
 require_once get_stylesheet_directory() . '/inc/announcements-cta.php';
+require_once get_stylesheet_directory() . '/inc/content-patches.php';
 require_once get_stylesheet_directory() . '/inc/single-featured-image.php';
 require_once get_stylesheet_directory() . '/inc/block-editor-fixes.php';
 require_once get_stylesheet_directory() . '/inc/happenings-block.php';
