@@ -18,13 +18,14 @@ helpers it touches).
 
 - **lint** — `php -l` on every tracked `*.php`, on PHP 8.2 and 8.3 (prod runs
   8.2 web / 8.3 CLI).
-- **PHPUnit + composer audit (per plugin)** — the matrices are **discovered,
+- **PHPUnit + composer audit (per suite)** — the matrices are **discovered,
   not hand-listed**: a `discover` job scans tracked files and fans out one
-  PHPUnit job per plugin with a `phpunit.xml.dist` (`composer install` +
-  `vendor/bin/phpunit`) and one `composer audit` per plugin with a
-  `composer.lock`. A new plugin's suite runs the moment those files land — no
-  `ci.yml` edit, so tests can't be silently skipped. A tracked plugin with no
-  suite at all is surfaced as a `::warning::` (lint-only), not a failure.
+  PHPUnit job per suite dir — under `plugins/` *or* `mu-plugins/` — with a
+  `phpunit.xml.dist` (`composer install` + `vendor/bin/phpunit`) and one
+  `composer audit` per dir with a `composer.lock`. A new suite runs the moment
+  those files land — no `ci.yml` edit, so tests can't be silently skipped. A
+  tracked plugin with no suite at all is surfaced as a `::warning::`
+  (lint-only), not a failure.
 - **tailwind builds** — a smoke test: compiles `assets/src/input.css` with the
   pinned toolchain (`build-css.sh`) and fails if the source no longer builds.
   `wp-content/themes/maranatha-child/assets/tailwind.css` is **not committed** (it's

@@ -52,10 +52,12 @@ jobs:
         run: ops/scripts/check-deploy-coverage.sh
 
   # The PHPUnit and composer-audit matrices are DISCOVERED from tracked files,
-  # not hand-listed: a plugin with a phpunit.xml.dist gets a test job, one with
-  # a composer.lock gets a CVE audit. A new plugin's suite runs the moment it
-  # lands — no ci.yml edit, so tests can't be silently skipped the way an
-  # unwired deploy path could (see ops/scripts/check-deploy-coverage.sh).
+  # not hand-listed: a suite dir (under plugins/ OR mu-plugins/) with a
+  # phpunit.xml.dist gets a test job, one with a composer.lock gets a CVE
+  # audit. A new suite runs the moment it lands — no ci.yml edit, so tests
+  # can't be silently skipped the way an unwired deploy path could (see
+  # ops/scripts/check-deploy-coverage.sh). Matrix entries are wp-content-
+  # relative dirs, e.g. "plugins/firstchurch-events", "mu-plugins/firstchurch-mcp".
   discover:
     name: discover plugin suites
     runs-on: ubuntu-latest
@@ -64,11 +66,11 @@ jobs:
       audit: ${{ steps.list.outputs.audit }}
     steps:
       - uses: actions/checkout@v6
-      - name: Build matrices from tracked plugin markers
+      - name: Build matrices from tracked suite markers
         id: list
         run: |
-          phpunit=$(git ls-files | { grep -E '^wp-content/plugins/[^/]+/phpunit\.xml\.dist$' || true; } | cut -d/ -f3 | sort | jq -R . | jq -cs .)
-          audit=$(git ls-files | { grep -E '^wp-content/plugins/[^/]+/composer\.lock$' || true; } | cut -d/ -f3 | sort | jq -R . | jq -cs .)
+          phpunit=$(git ls-files | { grep -E '^wp-content/(plugins|mu-plugins)/[^/]+/phpunit\.xml\.dist$' || true; } | sed -E 's#^wp-content/##; s#/phpunit\.xml\.dist$##' | sort | jq -R . | jq -cs .)
+          audit=$(git ls-files | { grep -E '^wp-content/(plugins|mu-plugins)/[^/]+/composer\.lock$' || true; } | sed -E 's#^wp-content/##; s#/composer\.lock$##' | sort | jq -R . | jq -cs .)
           echo "phpunit=$phpunit" >> "$GITHUB_OUTPUT"
           echo "audit=$audit" >> "$GITHUB_OUTPUT"
           echo "PHPUnit matrix: $phpunit"
@@ -80,17 +82,17 @@ jobs:
           done
 
   phpunit:
-    name: PHPUnit (${{ matrix.plugin }})
+    name: PHPUnit (${{ matrix.suite }})
     needs: discover
     if: needs.discover.outputs.phpunit != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        plugin: ${{ fromJSON(needs.discover.outputs.phpunit) }}
+        suite: ${{ fromJSON(needs.discover.outputs.phpunit) }}
     defaults:
       run:
-        working-directory: wp-content/plugins/${{ matrix.plugin }}
+        working-directory: wp-content/${{ matrix.suite }}
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
@@ -142,17 +144,17 @@ jobs:
         run: npm test
 
   composer-audit:
-    name: composer audit (${{ matrix.plugin }})
+    name: composer audit (${{ matrix.suite }})
     needs: discover
     if: needs.discover.outputs.audit != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        plugin: ${{ fromJSON(needs.discover.outputs.audit) }}
+        suite: ${{ fromJSON(needs.discover.outputs.audit) }}
     defaults:
       run:
-        working-directory: wp-content/plugins/${{ matrix.plugin }}
+        working-directory: wp-content/${{ matrix.suite }}
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
