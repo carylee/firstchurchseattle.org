@@ -1630,11 +1630,16 @@ add_action(
  * Execute callbacks
  * ------------------------------------------------------------------------- */
 
-function fcmcp_search_events( $input = array() ) {
-	$limit = max( 1, min( 100, (int) ( $input['limit'] ?? 20 ) ) );
-	$from  = fcmcp_sanitize_date( $input['from_date'] ?? '' ) ?: current_time( 'Y-m-d' );
-	$to    = fcmcp_sanitize_date( $input['to_date'] ?? '' );
-	$order = ( isset( $input['order'] ) && 'desc' === strtolower( $input['order'] ) ) ? 'DESC' : 'ASC';
+/**
+ * Build the WP_Query args for an event search. Split out from fcmcp_search_events
+ * so the arg-construction (date-range meta_query, status mapping, tax/search
+ * filters, ordering) is unit-testable without a live WP_Query/database.
+ */
+function fcmcp_build_event_query_args( array $input ): array {
+	$limit  = max( 1, min( 100, (int) ( $input['limit'] ?? 20 ) ) );
+	$from   = fcmcp_sanitize_date( $input['from_date'] ?? '' ) ?: current_time( 'Y-m-d' );
+	$to     = fcmcp_sanitize_date( $input['to_date'] ?? '' );
+	$order  = ( isset( $input['order'] ) && 'desc' === strtolower( $input['order'] ) ) ? 'DESC' : 'ASC';
 	$status = $input['status'] ?? 'publish';
 
 	$meta = array(
@@ -1659,8 +1664,11 @@ function fcmcp_search_events( $input = array() ) {
 	if ( ! empty( $input['category'] ) ) {
 		$args['tax_query'] = array( array( 'taxonomy' => 'ctc_event_category', 'field' => 'slug', 'terms' => sanitize_title( $input['category'] ) ) );
 	}
+	return $args;
+}
 
-	$q   = new WP_Query( $args );
+function fcmcp_search_events( $input = array() ) {
+	$q   = new WP_Query( fcmcp_build_event_query_args( (array) $input ) );
 	$out = array_map( 'fcmcp_event_to_array', $q->posts );
 	return array( 'count' => count( $out ), 'events' => $out );
 }
@@ -1777,7 +1785,11 @@ function fcmcp_update_event( $input ) {
 	return $result;
 }
 
-function fcmcp_list_announcements( $input = array() ) {
+/**
+ * Build the WP_Query args for an announcements listing (Announcements category,
+ * status mapping, free-text, since-date lower bound). Split out for testability.
+ */
+function fcmcp_build_announcement_query_args( array $input ): array {
 	$limit  = max( 1, min( 100, (int) ( $input['limit'] ?? 20 ) ) );
 	$status = $input['status'] ?? 'publish';
 	$args   = array(
@@ -1793,7 +1805,11 @@ function fcmcp_list_announcements( $input = array() ) {
 	if ( ! empty( $input['since_date'] ) && fcmcp_sanitize_date( $input['since_date'] ) ) {
 		$args['date_query'] = array( array( 'after' => $input['since_date'], 'inclusive' => true ) );
 	}
-	$q   = new WP_Query( $args );
+	return $args;
+}
+
+function fcmcp_list_announcements( $input = array() ) {
+	$q   = new WP_Query( fcmcp_build_announcement_query_args( (array) $input ) );
 	$out = array_map( static function ( $p ) { return array_merge( fcmcp_post_to_array( $p ), fcmcp_announcement_extra( $p ) ); }, $q->posts );
 	return array( 'count' => count( $out ), 'announcements' => $out );
 }
@@ -2146,7 +2162,11 @@ function fcmcp_apply_sermon_fields( int $post_id, array $input ): void {
 	}
 }
 
-function fcmcp_search_sermons( $input = array() ) {
+/**
+ * Build the WP_Query args for a sermon search (status mapping, free-text, and
+ * the AND-combined taxonomy filters). Split out for unit-testability.
+ */
+function fcmcp_build_sermon_query_args( array $input ): array {
 	$limit  = max( 1, min( 100, (int) ( $input['limit'] ?? 20 ) ) );
 	$status = $input['status'] ?? 'publish';
 	$order  = ( isset( $input['order'] ) && 'asc' === strtolower( $input['order'] ) ) ? 'ASC' : 'DESC';
@@ -2173,8 +2193,11 @@ function fcmcp_search_sermons( $input = array() ) {
 		$tax_query['relation'] = 'AND';
 		$args['tax_query']     = $tax_query;
 	}
+	return $args;
+}
 
-	$q   = new WP_Query( $args );
+function fcmcp_search_sermons( $input = array() ) {
+	$q   = new WP_Query( fcmcp_build_sermon_query_args( (array) $input ) );
 	$out = array_map( 'fcmcp_sermon_to_array', $q->posts );
 	return array( 'count' => count( $out ), 'sermons' => $out );
 }
@@ -2241,7 +2264,11 @@ function fcmcp_update_sermon( $input ) {
  * Posts (general) + Pages
  * ------------------------------------------------------------------------- */
 
-function fcmcp_search_posts( $input = array() ) {
+/**
+ * Build the WP_Query args for a blog-post search (status mapping, free-text,
+ * category slug, since-date lower bound). Split out for unit-testability.
+ */
+function fcmcp_build_post_query_args( array $input ): array {
 	$limit  = max( 1, min( 100, (int) ( $input['limit'] ?? 20 ) ) );
 	$status = $input['status'] ?? 'publish';
 	$args   = array(
@@ -2259,7 +2286,11 @@ function fcmcp_search_posts( $input = array() ) {
 	if ( ! empty( $input['since_date'] ) && fcmcp_sanitize_date( $input['since_date'] ) ) {
 		$args['date_query'] = array( array( 'after' => $input['since_date'], 'inclusive' => true ) );
 	}
-	$q   = new WP_Query( $args );
+	return $args;
+}
+
+function fcmcp_search_posts( $input = array() ) {
+	$q   = new WP_Query( fcmcp_build_post_query_args( (array) $input ) );
 	$out = array_map( 'fcmcp_post_to_array', $q->posts );
 	return array( 'count' => count( $out ), 'posts' => $out );
 }
@@ -2344,7 +2375,11 @@ function fcmcp_page_to_array( WP_Post $post ): array {
 	);
 }
 
-function fcmcp_search_pages( $input = array() ) {
+/**
+ * Build the WP_Query args for a page search (status mapping, free-text, parent
+ * filter, menu-order/title ordering). Split out for unit-testability.
+ */
+function fcmcp_build_page_query_args( array $input ): array {
 	$limit  = max( 1, min( 100, (int) ( $input['limit'] ?? 20 ) ) );
 	$status = $input['status'] ?? 'publish';
 	$args   = array(
@@ -2361,7 +2396,11 @@ function fcmcp_search_pages( $input = array() ) {
 	if ( isset( $input['parent'] ) ) {
 		$args['post_parent'] = (int) $input['parent'];
 	}
-	$q   = new WP_Query( $args );
+	return $args;
+}
+
+function fcmcp_search_pages( $input = array() ) {
+	$q   = new WP_Query( fcmcp_build_page_query_args( (array) $input ) );
 	$out = array_map( 'fcmcp_page_to_array', $q->posts );
 	return array( 'count' => count( $out ), 'pages' => $out );
 }

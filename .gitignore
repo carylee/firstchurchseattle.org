@@ -59,6 +59,11 @@
 !/wp-content/mu-plugins/sso.php
 !/wp-content/mu-plugins/firstchurch-google-register-policy.php
 !/wp-content/mu-plugins/firstchurch-security-headers.php
+# Test harness for the MCP mu-plugin (dev-only; not deployed). Track the source,
+# but not the Composer/PHPUnit build artifacts.
+!/wp-content/mu-plugins/firstchurch-mcp/
+/wp-content/mu-plugins/firstchurch-mcp/vendor/
+/wp-content/mu-plugins/firstchurch-mcp/.phpunit.cache/
 # uploads/ is a prod mirror (gitignored), but we DO ship ONE file: an .htaccess
 # adding CORS headers to upload images so the slides editor can fetch them to bake
 # the announcement carousel GIF (Apache serves uploads statically — can't be a
