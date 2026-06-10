@@ -15,10 +15,6 @@
  *    pages rendering identical content. The published vanity URL (/live) and
  *    the footer "Watch Live" link both point at /worship/live/, so it wins.
  *
- * The "Sermons Archive" entry in the primary nav menu is DB content we can't
- * edit without prod access, so it's hidden with a front-end filter below —
- * delete the menu item (and this filter) the next time someone has MCP access.
- *
  * @package Maranatha_Child
  */
 
@@ -78,29 +74,5 @@ add_action(
 			wp_safe_redirect( home_url( '/worship/live/' ), 301 );
 			exit;
 		}
-	}
-);
-
-/**
- * Hide retired sermon links from nav menus (front end only — they stay
- * visible in wp-admin's menu editor so a future content edit can remove them
- * properly).
- */
-add_filter(
-	'wp_get_nav_menu_items',
-	function ( $items ) {
-		if ( is_admin() || ! is_array( $items ) ) {
-			return $items;
-		}
-
-		return array_values(
-			array_filter(
-				$items,
-				function ( $item ) {
-					$path = wp_parse_url( (string) $item->url, PHP_URL_PATH );
-					return ! fcs_is_retired_sermon_path( (string) $path );
-				}
-			)
-		);
 	}
 );
