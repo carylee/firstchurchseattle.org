@@ -4,23 +4,35 @@ Find free stock photos — from [Openverse](https://openverse.org) and [Pexels](
 and pull them into the WordPress media library, from the admin or from an AI agent, with full
 provenance recorded on every import.
 
-This plugin is **fully ours** and runs in a **dual setup alongside Instant Images**:
+This plugin is **fully ours** and now covers every place an editor inserts media — the
+standalone **Media ▸ Stock Photos** admin screen, a **"Stock Photos" tab in the wp.media
+modal** (so it appears in Add Media, the featured-image picker, galleries, and the core
+Gutenberg image/cover blocks), the **MCP/agent path**, and a plain **REST** API — all across
+Openverse and Pexels, with license/attribution recorded on every import.
 
-- **Instant Images** stays installed as the in-editor picker humans browse (its media-modal
-  tab + block-editor sidebar) — the one piece not worth rebuilding ourselves.
-- **This plugin** owns the gaps II can't reach: the **MCP/agent path** (II has no clean
-  server-side search/import API) and a standalone **Media ▸ Stock Photos** admin screen, both
-  across Openverse and Pexels (no pro upsells; license/attribution recorded on every import).
+It still runs in a **dual setup alongside Instant Images** and ties the two together: a
+`instant_images_after_upload` bridge records the same provenance for II uploads, and
+code-level policy filters lock II's safe-search/attribution config so it can't drift on prod.
+Nothing here deactivates or modifies Instant Images. Now that our own picker reaches the
+in-editor surfaces too, retiring II is a deliberate future step (drop the bridge + policy,
+deactivate II) — tracked, not automatic.
 
-It also **ties the two together**: a `instant_images_after_upload` bridge records the same
-provenance for II uploads, and code-level policy filters lock II's safe-search/attribution
-config so it can't drift on prod. Nothing here deactivates or modifies Instant Images.
+### How "available everywhere" works
+
+Almost every media-insertion UI opens the *same* shared `wp.media` Backbone modal, so instead
+of integrating each surface, `assets/media-tab.js` extends the two frame types
+(`MediaFrame.Post` + `.Select`) once with a state, menu item, and search/grid view. Picking a
+photo sideloads it through the existing REST import (provenance recorded) and selects the new
+attachment in the frame, letting the host's own *Insert* / *Set featured image* button finish
+— so the block editor is covered by the same frame override, no per-block code. `inc/assets.php`
+decides which screens load it (`fcsp_picker_editor_screens`, filterable).
 
 ## What it does
 
 | Surface | How |
 |---|---|
-| **Admin** | *Media ▸ Stock Photos* — search box (+ provider picker when more than one is configured), a results grid with dimensions, and a click-to-enlarge full-size preview; "Add to Library" on any image. No block-editor integration by design. |
+| **Admin** | *Media ▸ Stock Photos* — search box (+ provider picker when more than one is configured), a results grid with dimensions, and a click-to-enlarge full-size preview; "Add to Library" on any image. |
+| **In-editor** | A **"Stock Photos" tab in the wp.media modal** — search, then *Use this photo* sideloads it and hands it back to whatever opened the modal (featured image, classic Add Media, gallery, or the core image/cover block). One frame extension covers all of them. |
 | **AI agent (MCP)** | Abilities `firstchurch/search-stock-photo` and `firstchurch/import-stock-photo` (category `firstchurch`, promoted to first-class MCP tools). |
 | **Programmatic** | REST: `GET firstchurch/v1/stock-photos/search`, `POST firstchurch/v1/stock-photos/import`. Or call `fcsp_search()` / `fcsp_import()` directly. |
 | **Provenance** | Every import — **ours and Instant Images'** — stamps creator/license/attribution/source as `_fcsp_*` attachment meta, surfaced in a "Source" column in the Media library. `fcsp_attachment_credit( $id )` returns a credit line. |
