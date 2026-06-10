@@ -35,6 +35,7 @@ add_action( 'wp_abilities_api_init', static function () {
 		'venue'            => array( 'type' => 'string' ),
 		'registration_url' => array( 'type' => 'string' ),
 		'recurrence'       => $recurrence,
+		'kind'             => array( 'type' => 'string', 'enum' => array( '', 'rhythm', 'group', 'event' ), 'description' => 'Override the derived classification (rhythm = standing weekly pattern, group = ongoing gathering, event = time-bound). Usually omit: it is derived from recurrence. Empty string clears an override.' ),
 		'skip_dates'       => array( 'type' => 'array', 'items' => array( 'type' => 'string' ), 'description' => 'YYYY-MM-DD occurrences to cancel (EXDATE).' ),
 		'status'           => array( 'type' => 'string', 'enum' => array( 'draft', 'publish' ), 'default' => 'publish' ),
 	);
@@ -100,6 +101,7 @@ function fce_mcp_result( int $id ): array {
 		'id'              => $id,
 		'status'          => get_post_status( $id ),
 		'rrule'           => $rrule ?: '(one-off)',
+		'kind'            => fce_kind( $id ),
 		'when'            => fce_when( $id ),
 		'next_occurrence' => $next ? $next->format( 'Y-m-d' ) : null,
 		'cancelled'       => fce_skip_dates( $id ),

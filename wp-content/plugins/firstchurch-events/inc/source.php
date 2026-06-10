@@ -45,6 +45,12 @@ function fce_event_to_item( WP_Post $p, string $id, string $date ): array {
 	if ( $weight > 0 ) {
 		$item['weight'] = $weight;
 	}
+	// Classification (rhythm | group | event) so the lens can filter per surface
+	// (ops/docs/event-kinds.md). '' only when the spine is inactive — omitted then.
+	$kind = fce_kind( $p->ID );
+	if ( '' !== $kind ) {
+		$item['kind'] = $kind;
+	}
 	return $item;
 }
 

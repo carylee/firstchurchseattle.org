@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Events
  * Description: Lean, RRULE-backed events (no recurrence cron). Stores CTC-shaped recurrence meta so RRULE + the human "when" reuse the Happenings spine's tested code, exposes events to the spine (happenings_event_items) and a /events.ics subscription feed, and supports MCP + a light editor for authoring. Transitional: the spine reads this alongside Church Theme Content until events are migrated.
- * Version:     0.6.0
+ * Version:     0.7.0
  * Author:      First Church Seattle
  *
  * @package FirstChurch\Events
@@ -49,6 +49,7 @@ const FCE_WK_DAYS = '_fce_weekly_days';     // CSV: SU,TU
 const FCE_MO_TYPE = '_fce_monthly_type';    // week|day
 const FCE_MO_WEEK = '_fce_monthly_week';    // CSV: 2,4 | last
 const FCE_END     = '_fce_end_date';        // YYYY-MM-DD
+const FCE_KIND    = '_fce_kind';            // ''(derived)|rhythm|group|event — override only; see Kind::derive()
 
 add_action( 'init', static function () {
 	register_post_type( FCE_CPT, array(

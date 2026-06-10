@@ -1038,6 +1038,47 @@ main#maranatha-content {
 	color: var( --fcs-maroon, #70334e );
 }
 
+/* Weekly-rhythm occurrences land on every week of the month grid by design;
+   mute them so the one-offs and special Sundays read as the signal. */
+#maranatha-calendar-table .fcs-cal-event--rhythm a {
+	color: #8a7d86;
+	font-weight: 400;
+	font-size: 0.85em;
+}
+
+/* The "Every week" rhythm strip (the Happenings block's Rhythms section and
+   /upcoming-events): one quiet line per standing rhythm — title + when —
+   instead of cards competing with the promotable one-offs. */
+.fcs-rhythm-strip {
+	list-style: none;
+	margin: 0.5em 0 1.5em;
+	padding: 0;
+}
+
+.fcs-rhythm-strip__item {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.35em 1em;
+	padding: 0.5em 0;
+	border-bottom: 1px solid #f0e8ec;
+}
+
+.fcs-rhythm-strip__title {
+	font-weight: 600;
+	text-decoration: none;
+}
+
+a.fcs-rhythm-strip__title:hover,
+a.fcs-rhythm-strip__title:focus {
+	color: var(--fcs-maroon);
+}
+
+.fcs-rhythm-strip__when {
+	font-size: 0.85rem;
+	color: #8a7d86;
+}
+
 /* The grid's inline per-day event list isn't built for phones; below ~640px the
    card list under the calendar is the primary view. */
 @media (max-width: 640px) {

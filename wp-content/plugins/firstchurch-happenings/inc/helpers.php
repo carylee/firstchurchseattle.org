@@ -11,6 +11,7 @@ use FirstChurch\Happenings\Item;
 use FirstChurch\Happenings\Layout;
 use FirstChurch\Happenings\Text;
 use FirstChurch\Happenings\EventWhen;
+use FirstChurch\Happenings\Kind;
 use FirstChurch\Happenings\CardView;
 
 if (!defined('ABSPATH')) {
@@ -46,6 +47,20 @@ function happenings_detect_layout(string $title, string $body, string $when, str
  * string (e.g. "Sundays at 10:30 am · Sanctuary"). The formatting itself lives
  * in EventWhen (pure, unit-tested); this only extracts the meta.
  */
+/**
+ * Classify a CTC event (rhythm | group | event) from its recurrence meta. The
+ * rule lives in Kind (pure, unit-tested); this only extracts the meta. CTC has
+ * no override field — it's the decommissioning backend (events-migration.md);
+ * the _fce_kind override is the fce side's.
+ */
+function happenings_event_kind(int $post_id): string
+{
+    return Kind::derive([
+        'freq'     => (string) get_post_meta($post_id, '_ctc_event_recurrence', true),
+        'end_date' => (string) get_post_meta($post_id, '_ctc_event_recurrence_end_date', true),
+    ]);
+}
+
 function happenings_event_when(int $post_id): string
 {
     return EventWhen::format([

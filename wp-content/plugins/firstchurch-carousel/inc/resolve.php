@@ -54,9 +54,12 @@ function fccar_resolve( array $args = array() ): array {
 	if ( is_array( $deck ) ) {
 		$items = fccar_resolve_from_deck( $deck );
 	} else {
+		// Auto-assembly skips the weekly rhythms (event-kinds.md): the lobby
+		// screen needn't tell people already in the building that Sunday
+		// Worship exists. A curated deck can still pin one by id.
 		$items = array_merge(
 			fccar_evergreen_items(),
-			happenings_event_items( $weeks ),
+			happenings_event_items( $weeks, array( 'event', 'group' ) ),
 			happenings_news_items( $days )
 		);
 	}
@@ -71,19 +74,23 @@ function fccar_resolve( array $args = array() ): array {
 	return $items;
 }
 
-/** The auto-assembled default deck (evergreen → events → news), default windows. */
+/** The auto-assembled default deck (evergreen → events+groups → news), default windows. */
 function fccar_autodeck_items(): array {
 	if ( ! fccar_spine_active() ) {
 		return array();
 	}
 	return array_merge(
 		fccar_evergreen_items(),
-		happenings_event_items( FCCAR_DEFAULT_WEEKS ),
+		happenings_event_items( FCCAR_DEFAULT_WEEKS, array( 'event', 'group' ) ),
 		happenings_news_items( FCCAR_DEFAULT_DAYS )
 	);
 }
 
-/** A generous candidate pool for the curation screen's "available" list. */
+/**
+ * A generous candidate pool for the curation screen's "available" list.
+ * Deliberately every kind — auto-assembly skips rhythms, but staff curating a
+ * deck may still want to pin one (e.g. a "join us Sundays" slide).
+ */
 function fccar_candidate_pool(): array {
 	if ( ! fccar_spine_active() ) {
 		return array();
