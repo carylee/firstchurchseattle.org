@@ -1346,3 +1346,56 @@ main#maranatha-content {
 .fcs-footer__bottom a {
 	color: rgba(255, 255, 255, 0.55);
 }
+
+/* ============================================================
+   404 page (404.php)
+   Search form + quick-link pills under the parent's banner.
+   ============================================================ */
+
+.fcs-404 {
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 8px 0 24px;
+}
+
+.fcs-404__lead {
+	font-size: 1.05rem;
+}
+
+.fcs-404 .maranatha-search-form {
+	margin: 24px 0 36px;
+}
+
+.fcs-404__heading {
+	font-size: 1.2rem;
+	margin: 0 0 12px;
+}
+
+.fcs-404__links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.fcs-404__links li {
+	margin: 0;
+}
+
+.fcs-404__links a {
+	display: inline-block;
+	padding: 10px 18px;
+	border: 1px solid var(--fcs-maroon);
+	border-radius: 999px;
+	color: var(--fcs-maroon);
+	text-decoration: none;
+	min-height: var(--fcs-tap-min);
+}
+
+.fcs-404__links a:hover,
+.fcs-404__links a:focus {
+	background: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
