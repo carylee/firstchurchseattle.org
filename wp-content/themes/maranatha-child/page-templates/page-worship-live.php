@@ -27,7 +27,7 @@ $primary_actions = array(
 	),
 	array(
 		'label' => __( 'Communication Card', 'maranatha-child' ),
-		'url'   => 'https://firstchurchseattle.breezechms.com/form/603d6c',
+		'url'   => '/connection-card',
 		'desc'  => __( 'Let us know you were with us.', 'maranatha-child' ),
 	),
 	array(
@@ -51,7 +51,7 @@ $secondary_tiles = array(
 		'image' => $uploads . '/2025/07/Untitled-11-768x192.png',
 		'body'  => __( 'Let us know you were with us today by filling out our Check-in &amp; Connection Card.', 'maranatha-child' ),
 		'cta'   => __( 'Check in',           'maranatha-child' ),
-		'url'   => 'https://firstchurchseattle.breezechms.com/form/603d6c',
+		'url'   => '/connection-card',
 	),
 	array(
 		'title' => __( 'Give to First Church', 'maranatha-child' ),
