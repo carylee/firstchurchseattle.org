@@ -149,7 +149,10 @@ function fcs_events_calendar_after_content() {
 			if ( $has_events && $ymd >= $today ) {
 				echo '<ul class="maranatha-calendar-table-day-events">';
 				foreach ( $by_date[ $ymd ] as $ev ) {
-					echo '<li><a href="' . esc_url( $ev['url'] ) . '">' . esc_html( $ev['title'] ) . '</a></li>';
+					// Weekly rhythms land on every week of the grid by design; mute
+					// them so the special Sundays read as the signal (event-kinds.md).
+					$li_class = 'rhythm' === ( $ev['kind'] ?? '' ) ? ' class="fcs-cal-event--rhythm"' : '';
+					echo '<li' . $li_class . '><a href="' . esc_url( $ev['url'] ) . '">' . esc_html( $ev['title'] ) . '</a></li>';
 				}
 				echo '</ul>';
 			}

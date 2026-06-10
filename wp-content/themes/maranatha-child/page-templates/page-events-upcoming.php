@@ -34,15 +34,35 @@ function fcs_events_upcoming_after_content() {
 		return;
 	}
 
-	$items = happenings_event_items( FCS_EVENTS_LIST_WEEKS );
+	// Three groups by kind (ops/docs/event-kinds.md): the time-bound one-offs
+	// lead — before kinds, the permanent weekly fixtures sat pinned above them
+	// every single week. The standing rhythms and ongoing groups follow as
+	// context, not competition.
+	$events  = happenings_event_items( FCS_EVENTS_LIST_WEEKS, array( 'event' ) );
+	$rhythms = function_exists( 'happenings_rhythm_items' ) ? happenings_rhythm_items( FCS_EVENTS_LIST_WEEKS ) : array();
+	$groups  = happenings_event_items( FCS_EVENTS_LIST_WEEKS, array( 'group' ) );
 
 	echo '<section class="fcs-events fcs-events--list" aria-label="' . esc_attr__( 'Upcoming events', 'maranatha-child' ) . '">';
 
-	if ( empty( $items ) ) {
+	if ( empty( $events ) ) {
 		echo '<p class="fcs-events__empty">' . esc_html__( 'No upcoming events are scheduled right now — please check back soon.', 'maranatha-child' ) . '</p>';
 	} else {
 		echo '<div class="fcs-card-grid">';
-		foreach ( $items as $item ) {
+		foreach ( $events as $item ) {
+			echo fcs_render_happening_card( happenings_card_view( $item ), true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes internally.
+		}
+		echo '</div>';
+	}
+
+	if ( ! empty( $rhythms ) ) {
+		echo '<h2 class="fcs-happenings__heading">' . esc_html__( 'Every week', 'maranatha-child' ) . '</h2>';
+		echo fcs_render_rhythm_strip( $rhythms ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes internally.
+	}
+
+	if ( ! empty( $groups ) ) {
+		echo '<h2 class="fcs-happenings__heading">' . esc_html__( 'Groups & gatherings', 'maranatha-child' ) . '</h2>';
+		echo '<div class="fcs-card-grid">';
+		foreach ( $groups as $item ) {
 			echo fcs_render_happening_card( happenings_card_view( $item ), true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes internally.
 		}
 		echo '</div>';
