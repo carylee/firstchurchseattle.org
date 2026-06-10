@@ -146,3 +146,14 @@ stay published. The Breeze-hosted form URL keeps working regardless.
 POST without `X-WP-Nonce` → 401; POST with a fresh anonymous nonce + empty payload → 400 with the
 validation messages (auth gate passes, no Breeze write). Page cache is `cache-control: max-age=300`,
 well inside the ~12 h nonce lifetime, so a cached page can't serve a stale nonce.
+
+**Link sweep (same day):** beyond the theme CTAs (fixed in code in this PR), the old form URL also
+lived in prod *content*. `wp search-replace` of the full
+`…breezechms.com/form/603d6c` URL → `/connection-card/` across `wpqg_posts.post_content`
+(473 replacements — the count includes revisions). Verified no collateral damage to the
+**Emergency Contact form** (`firstchurch/breeze-form` block slug `603d6c5674` shares the prefix
+but appears only as a block attr, never as a URL — `connection-card/[0-9a-z]` regex scan came back
+empty). Also retired the COVID-era `/check-in/` page (2835, JS-embedded the same Breeze form):
+set to draft, replaced by **Redirection rule 26**, regex `^/check-in/?$` → `/connection-card`
+(301). Regex because `flag_trailing` is off in Redirection — an exact `/check-in` source does
+**not** match `/check-in/`.
