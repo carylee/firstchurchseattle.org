@@ -28,6 +28,9 @@
 /wp-content/plugins/firstchurch-breeze-forms/
 /wp-content/mu-plugins/firstchurch-mcp-abilities.php
 /wp-content/mu-plugins/sso.php
+# Dev-only test harness for the mu-plugin above — never on prod (not in deploy.sh),
+# so without this line the pull's --delete would wipe it locally.
+/wp-content/mu-plugins/firstchurch-mcp/
 /bulletin/index.php
 /ops/
 /CLAUDE.md
