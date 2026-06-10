@@ -40,14 +40,14 @@
 	--fcs-surface: #ffffff;        /* page / card background            */
 	--fcs-surface-2: #faf6f8;      /* subtly raised panel (brand soft)  */
 	--fcs-surface-3: #f7f4f6;      /* section band (happenings)         */
-	--fcs-text: var(--fcs-text);           /* primary text on a surface         */
-	--fcs-text-soft: var(--fcs-text-soft);      /* secondary body text               */
-	--fcs-text-muted: var(--fcs-text-muted);     /* meta / muted                      */
+	--fcs-text: #3a2a33;           /* primary text on a surface         */
+	--fcs-text-soft: #4a414c;      /* secondary body text               */
+	--fcs-text-muted: #8a7d86;     /* meta / muted                      */
 	--fcs-border: #ebe1e5;         /* hairline border                   */
-	--fcs-border-soft: var(--fcs-border-soft);    /* very light divider                */
+	--fcs-border-soft: #f0e8ec;    /* very light divider                */
 	--fcs-accent: var(--fcs-maroon);        /* brand as link / accent text   */
 	--fcs-accent-strong: var(--fcs-maroon-dark); /* its hover/active state   */
-	--fcs-accent-muted: var(--fcs-accent-muted);   /* quieter brand (fallback CTAs)     */
+	--fcs-accent-muted: #8a5a72;   /* quieter brand (fallback CTAs)     */
 	--fcs-live: #2e7d32;           /* "live now" status green           */
 }
 
