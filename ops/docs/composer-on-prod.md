@@ -76,7 +76,21 @@ and **no** global `GuzzleHttp\Client` / `MailchimpMarketing\ApiClient`, while ou
    autoloads (present in the shipped `dist/`, and in a dev `composer install`).
 5. **deploy.sh** — rsync the plugin's `dist/` instead of its source.
 6. **deploy.yml** — a build step before the rsync (download php-scoper, run `build.sh`),
-   mirroring the Tailwind step.
+   mirroring the Tailwind step. Add it right after the Tailwind compile:
+   ```yaml
+         - name: Set up PHP + Composer
+           uses: shivammathur/setup-php@v2
+           with:
+             php-version: '8.2'
+             tools: composer
+         - name: Build PHP-scoped plugin deps (prod serves this build)
+           run: |
+             curl -fsSL -o /tmp/php-scoper.phar \
+               https://github.com/humbug/php-scoper/releases/download/0.18.18/php-scoper.phar
+             PHP_SCOPER=/tmp/php-scoper.phar wp-content/plugins/firstchurch-enews/build.sh
+   ```
+   > This snippet is **not committed by the spike** — the CI bot lacks GitHub's `workflows`
+   > permission, so a human applies this one edit to `.github/workflows/deploy.yml`.
 7. **.gitignore** — ignore `dist/` (and any local phar).
 
 ## 5. What this is NOT
