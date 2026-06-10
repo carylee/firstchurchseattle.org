@@ -13,6 +13,10 @@ cannot run from a Claude Code web session. Part of Phase 5 in [`happenings.md`](
 
 ## 1. Retire the `featured` category (taxonomy collapse, part 1)
 
+> **✅ Done 2026-06-09.** Both remaining posts (7426, 7275) already carried `fcs_weight=10`, so no
+> promotion was needed — term removed from both, term 231 deleted. `/engage` Featured row verified
+> unchanged.
+
 **Why:** the audit found "announcement" modeled three ways and "featured" promotion done by a
 legacy `featured` **category**. Phase 4 replaced that with the `fcs_weight` meta (Normal /
 Featured / Pinned), which now works across both posts and events and drives the spine's Featured
@@ -45,6 +49,15 @@ e-news digest are unchanged (they were never driven by the term).
 ---
 
 ## 2. Finish the `ctc_event` → `fce_event` decommission (taxonomy collapse, part 2)
+
+> **⏸ Deferred 2026-06-09 — gated on a sermon retirement plan.** Pre-checks passed (zero upcoming
+> published `ctc_event`; spine serving 14 events), but `church-theme-content` also registers
+> **`ctc_sermon`, and prod has 150 published sermons** (`/sermons/<slug>/` + archive, newest
+> 2025-07-14). Deactivating it would 404 all of them and break the MCP sermon abilities. The nav-fix
+> in `events-migration.md` step 6 also points *at* `/sermons/`, which only exists while CTC is
+> active. Decision: leave **both** plugins active until sermons get a real retirement story
+> (e.g. redirects to YouTube), then decommission in one pass. The `ctc_event` code-branch removal
+> PR stays gated on this.
 
 Collapsing two event post types into one. Per [`events-migration.md`](./events-migration.md) the
 live set is already on `fce_event`, the CTC originals are unpublished, and the public pages are
@@ -80,6 +93,13 @@ Gated on step 3 so the spine never loses a source while CTC still holds live dat
 ---
 
 ## 3. Purge the review queue
+
+> **✅ Done 2026-06-09.** 17 stale drafts removed: 2 regular posts trashed; 15 `ctc_event`/`ctc_sermon`
+> drafts force-deleted (CTC registers its CPTs **without trash support** — `wp post delete` on them
+> requires `--force`; UpdraftPlus backups are the only recovery). The 14 `ctc_event` drafts stamped
+> `2026-06-08 14:20` were **kept on purpose** — they're the migration-unpublished CTC originals
+> (rollback insurance per `events-migration.md`), not abandoned work. Don't purge them until §2
+> completes.
 
 **What it is:** draft/pending posts awaiting human review in the draft-first workflow — surfaced
 by the existing MCP ability `firstchurch/review-queue`
