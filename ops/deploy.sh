@@ -87,14 +87,19 @@ rsync -av $DRY --delete \
   -e "$RSH" wp-content/plugins/firstchurch-happenings/ \
   "$REMOTE/plugins/firstchurch-happenings/"
 
-# e-news (the weekly newsletter as a spine surface — enews_issue CPT + email
-# render). TDD'd like happenings, so the same dev-only artifacts are excluded.
+# e-news (enews_issue CPT + email render + Mailchimp push). UNLIKE the other
+# plugins, this one has a runtime Composer dep (the Mailchimp SDK), PHP-Scoped into
+# a private namespace, so we ship its BUILT artifact (dist/) rather than source —
+# the same "build in CD, rsync the result" pattern as tailwind.css. CD runs
+# build.sh before this; a manual deploy must too. See ops/docs/composer-on-prod.md.
 # NOTE: after the first deploy, activate it and flush rewrites for the /enews/ slug:
 #   ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-enews && wp rewrite flush'
+if [ ! -d wp-content/plugins/firstchurch-enews/dist ]; then
+  echo "ERROR: wp-content/plugins/firstchurch-enews/dist/ is missing — run its build.sh first (CD does this automatically)." >&2
+  exit 1
+fi
 rsync -av $DRY --delete \
-  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
-  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
-  -e "$RSH" wp-content/plugins/firstchurch-enews/ \
+  -e "$RSH" wp-content/plugins/firstchurch-enews/dist/ \
   "$REMOTE/plugins/firstchurch-enews/"
 
 # mu-plugins/ ALSO holds host must-use plugins (endurance-page-cache) we do NOT track,
