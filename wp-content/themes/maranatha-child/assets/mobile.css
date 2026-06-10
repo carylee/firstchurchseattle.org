@@ -1399,3 +1399,24 @@ main#maranatha-content {
 	background: var(--fcs-maroon);
 	color: var(--fcs-text-light);
 }
+
+/* ============================================================
+   News-card fallback banner (partials/content-header-short.php)
+   Posts without a featured image get a branded gradient in the
+   same 800x200 (4:1) slot the real thumbnails occupy.
+   ============================================================ */
+
+.fcs-card-placeholder {
+	display: block;
+	aspect-ratio: 4 / 1;
+	background: linear-gradient(135deg, var(--fcs-maroon) 0%, var(--fcs-maroon-dark) 100%);
+	position: relative;
+	overflow: hidden;
+}
+
+.fcs-card-placeholder::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: radial-gradient(circle at 85% -30%, rgba(255, 255, 255, 0.16), transparent 55%);
+}
