@@ -94,7 +94,7 @@
 
 .fcc-field,
 .fcc-fieldset {
-	margin: 16px 0;
+	margin: 12px 0;
 }
 
 .fcc-field > label,
@@ -184,10 +184,18 @@
 	padding: 0;
 }
 
+/* Inline options (attendance, pastor contact) sit side-by-side from mobile up —
+   the labels are short, so stacking them only wasted vertical space. */
 .fcc-fieldset--inline {
 	display: flex;
-	flex-direction: column;
-	gap: 4px;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4px 24px;
+	align-items: center;
+}
+
+.fcc-fieldset--inline > legend {
+	width: 100%;
 }
 
 .fcc-fieldset--inline > legend + .fcc-radio,
@@ -195,17 +203,16 @@
 	margin-top: 0;
 }
 
-/* Inline radios fit on a single row on wider screens. */
-@media (min-width: 540px) {
-	.fcc-fieldset--inline {
-		flex-direction: row;
-		flex-wrap: wrap;
-		gap: 8px 24px;
-		align-items: center;
-	}
-	.fcc-fieldset--inline > legend {
-		width: 100%;
-	}
+/* The four "I am a" options as a two-column grid rather than a tall stack —
+   the labels still pair up cleanly on a narrow phone. */
+.fcc-fieldset--options {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 0 16px;
+}
+
+.fcc-fieldset--options > legend {
+	grid-column: 1 / -1;
 }
 
 /* -- Radio / checkbox row ------------------------------------------- */
