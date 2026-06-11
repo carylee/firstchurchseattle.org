@@ -18,6 +18,7 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/firstchurch-mcp-abilities/bootstrap.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/helpers.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/safety.php';
+require_once __DIR__ . '/firstchurch-mcp-abilities/health.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/shared-writes.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/events.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/announcements.php';
