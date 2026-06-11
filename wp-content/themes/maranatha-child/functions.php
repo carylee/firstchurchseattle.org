@@ -13,29 +13,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Version string for cache-busting child assets. Bump when the CSS/JS changes.
+ * Cache-busting version for a child-theme asset: the file's mtime.
+ *
+ * Replaces the hand-bumped FCS_CHILD_VERSION constant — every theme PR had to
+ * edit the same line, making functions.php a standing merge conflict. mtimes
+ * need no bumping and stay correct on their own: deploys rsync with -t from a
+ * fresh CI checkout, so a shipped file's mtime changes and browsers/Cloudflare
+ * refetch; local edits do the same under DDEV. The child theme is exempted
+ * from ops/scripts/check-asset-version-bump.sh for the same reason.
+ *
+ * @param string $relative Asset path relative to the child theme root,
+ *                         e.g. 'assets/mobile.css'.
+ * @return string Version string for wp_enqueue_*; '0' if the file is missing.
  */
-if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.22.0' );
+function fcs_asset_version( $relative ) {
+	$mtime = (int) @filemtime( get_stylesheet_directory() . '/' . ltrim( $relative, '/' ) );
+	return $mtime ? (string) $mtime : '0';
 }
 
 /**
- * Feature modules. Keep functions.php thin — each concern lives in inc/.
+ * Feature modules. Keep functions.php thin — each concern lives in inc/, and
+ * every inc/*.php loads automatically (alphabetical; order must not matter:
+ * modules only define things and register hooks, never call each other at
+ * load time). Adding a module = adding a file — nothing to edit here, so
+ * concurrent theme PRs no longer collide on a shared require list.
  */
-require_once get_stylesheet_directory() . '/inc/announcements-cta.php';
-require_once get_stylesheet_directory() . '/inc/single-featured-image.php';
-require_once get_stylesheet_directory() . '/inc/block-editor-fixes.php';
-require_once get_stylesheet_directory() . '/inc/happenings-block.php';
-require_once get_stylesheet_directory() . '/inc/font-optimization.php';
-require_once get_stylesheet_directory() . '/inc/sermon-structured-data.php';
-require_once get_stylesheet_directory() . '/inc/event-structured-data.php';
-require_once get_stylesheet_directory() . '/inc/church-schema.php';
-require_once get_stylesheet_directory() . '/inc/footer.php';
-require_once get_stylesheet_directory() . '/inc/history-timeline.php';
-require_once get_stylesheet_directory() . '/inc/static-map.php';
-require_once get_stylesheet_directory() . '/inc/redirects.php';
-require_once get_stylesheet_directory() . '/inc/people-display.php';
-require_once get_stylesheet_directory() . '/inc/scripts.php';
+foreach ( glob( get_stylesheet_directory() . '/inc/*.php' ) ?: array() as $fcs_module ) {
+	require_once $fcs_module;
+}
+unset( $fcs_module );
 
 /**
  * Enqueue parent + child stylesheets.
@@ -68,7 +74,7 @@ add_action( 'wp_enqueue_scripts', function () {
 		'maranatha-child-mobile',
 		get_stylesheet_directory_uri() . '/assets/mobile.css',
 		array( $parent_handle ),
-		FCS_CHILD_VERSION
+		fcs_asset_version( 'assets/mobile.css' )
 	);
 
 	// Tailwind v4 compiled output. Used by custom templates (header-banner,
@@ -79,7 +85,7 @@ add_action( 'wp_enqueue_scripts', function () {
 			'maranatha-child-tailwind',
 			get_stylesheet_directory_uri() . '/assets/tailwind.css',
 			array( 'maranatha-child-mobile' ),
-			FCS_CHILD_VERSION
+			fcs_asset_version( 'assets/tailwind.css' )
 		);
 	}
 
@@ -94,7 +100,7 @@ add_action( 'wp_enqueue_scripts', function () {
 		'maranatha-child-polish',
 		get_stylesheet_directory_uri() . '/assets/polish.css',
 		$polish_deps,
-		FCS_CHILD_VERSION
+		fcs_asset_version( 'assets/polish.css' )
 	);
 
 	// System-preference dark mode. A single @media (prefers-color-scheme: dark)
@@ -106,7 +112,7 @@ add_action( 'wp_enqueue_scripts', function () {
 		'maranatha-child-dark-mode',
 		get_stylesheet_directory_uri() . '/assets/dark-mode.css',
 		array( 'maranatha-child-polish' ),
-		FCS_CHILD_VERSION
+		fcs_asset_version( 'assets/dark-mode.css' )
 	);
 }, 20 );
 

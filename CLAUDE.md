@@ -106,7 +106,8 @@ a change, add a hook/override rather than patching the parent.
 **Commits:** prefer small, self-contained commits, one per milestone. The test is
 cherry-pickability — could someone lift this commit onto another branch on its own and have
 it make sense? If so, it's the right size. Commit each distinct fix/feature separately rather
-than batching unrelated changes; keep theme version bumps with the change that needs them.
+than batching unrelated changes; keep plugin version bumps with the change that needs them.
+(The child theme has no version to bump — its assets cache-bust by file mtime.)
 
 ## What's tracked vs. mirrored
 

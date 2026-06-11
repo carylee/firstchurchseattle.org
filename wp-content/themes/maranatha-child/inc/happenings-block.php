@@ -27,7 +27,7 @@ function fcs_happenings_block_register() {
 		'fcs-happenings-block',
 		get_stylesheet_directory_uri() . '/assets/happenings-block.js',
 		array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-server-side-render', 'wp-i18n' ),
-		FCS_CHILD_VERSION,
+		fcs_asset_version( 'assets/happenings-block.js' ),
 		true
 	);
 

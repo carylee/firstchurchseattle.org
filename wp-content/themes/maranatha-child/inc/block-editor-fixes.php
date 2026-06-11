@@ -26,6 +26,6 @@ add_action( 'enqueue_block_editor_assets', function () {
 		'maranatha-child-block-editor-fixes',
 		get_stylesheet_directory_uri() . '/assets/block-editor-fixes.css',
 		array( 'ctfw-block-editor' ), // Parent's editor CSS; load after it so we win.
-		FCS_CHILD_VERSION
+		fcs_asset_version( 'assets/block-editor-fixes.css' )
 	);
 }, 20 );
