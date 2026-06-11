@@ -1,7 +1,7 @@
 <?php
 /**
  * The two spine sources, projected to the Happening contract:
- *   1. upcoming events     (ctc_event)
+ *   1. upcoming events     (fce_event)
  *   2. recent announcements (posts in the Announcements category)
  *
  * Field order in each item is deliberate — it is the JSON key order the carousel
@@ -36,11 +36,9 @@ function happenings_unexpired_clause(): array
 /* ---- Source 1: upcoming events ---- */
 
 /**
- * Upcoming events, merged from Church Theme Content (ctc_event) and the lean
- * firstchurch-events backend (fce_event), date-sorted. This is the read-both
- * transition: until events are migrated off CTC, both surface. fce_event_items()
- * is guarded — when that plugin is inactive the spine reads CTC only. No dedup
- * needed: migration unpublishes the CTC original when it moves an event.
+ * Upcoming events from the fce_event backend, date-sorted. This is the
+ * post-CTC single-backend reader: the live event set was migrated to
+ * fce_event and CTC originals were unpublished (ops/docs/events-migration.md).
  *
  * $kinds optionally narrows to specific Kind values (rhythm | group | event) —
  * how a date-sorted rail keeps the always-imminent weekly rhythms from
@@ -50,32 +48,13 @@ function happenings_unexpired_clause(): array
  */
 function happenings_event_items(int $weeks, ?array $kinds = null): array
 {
-    $from = current_time('Y-m-d');
-    $to   = gmdate('Y-m-d', strtotime("+{$weeks} weeks", strtotime($from)));
-
-    $q = new WP_Query([
-        'post_type'      => 'ctc_event',
-        'post_status'    => 'publish',
-        'posts_per_page' => 50,
-        'no_found_rows'  => true,
-        'meta_query'     => [
-            'start' => ['key' => '_ctc_event_start_date'],
-            ['key' => '_ctc_event_start_date', 'value' => $from, 'compare' => '>=', 'type' => 'DATE'],
-            ['key' => '_ctc_event_start_date', 'value' => $to, 'compare' => '<=', 'type' => 'DATE'],
-        ],
-        'orderby'        => ['start' => 'ASC'],
-    ]);
-
-    $items = array_map('happenings_event_to_item', $q->posts);
-
-    if (function_exists('fce_event_items')) {
-        $items = array_merge($items, fce_event_items($weeks));
-        usort($items, static fn ($a, $b) => strcmp($a['date'] ?? '', $b['date'] ?? ''));
+    if (!function_exists('fce_event_items')) {
+        return [];
     }
 
+    $items = fce_event_items($weeks);
+
     if ($kinds !== null) {
-        // An item without kind (spine projected it before classification, or a
-        // foreign source) reads as a plain event — the pre-kinds behavior.
         $items = array_values(array_filter(
             $items,
             static fn (array $it): bool => in_array($it['kind'] ?? \FirstChurch\Happenings\Kind::EVENT, $kinds, true)
@@ -91,59 +70,19 @@ function happenings_event_items(int $weeks, ?array $kinds = null): array
  * occurrence-expanded counterpart to happenings_event_items() (which collapses
  * each event to its next date for a list).
  *
- * fce_event occurrences are fully recurrence-expanded (firstchurch-events owns the
- * RRULE). CTC events are placed on their single start_date only — CTC recurrence
- * is NOT expanded here: the live recurring set was migrated to fce_event and CTC
- * is being decommissioned (ops/docs/events-migration.md). When that plugin is
- * inactive the spine returns the CTC-on-start-date set alone.
+ * fce_event occurrences are fully recurrence-expanded via firstchurch-events.
+ * CTC events are retired (the live recurring set was migrated and the public
+ * surfaces are spine-backed); when firstchurch-events is inactive the spine
+ * returns an empty array (the calendar goes blank, not a fatal).
  *
  * @return array<int,array<string,mixed>>
  */
 function happenings_event_occurrences(string $from, string $to): array
 {
-    $q = new WP_Query([
-        'post_type'      => 'ctc_event',
-        'post_status'    => 'publish',
-        'posts_per_page' => 100,
-        'no_found_rows'  => true,
-        'meta_query'     => [
-            'start' => ['key' => '_ctc_event_start_date'],
-            ['key' => '_ctc_event_start_date', 'value' => $from, 'compare' => '>=', 'type' => 'DATE'],
-            ['key' => '_ctc_event_start_date', 'value' => $to, 'compare' => '<=', 'type' => 'DATE'],
-        ],
-        'orderby'        => ['start' => 'ASC'],
-    ]);
-
-    $items = array_map('happenings_event_to_item', $q->posts);
-
     if (function_exists('fce_event_occurrences')) {
-        $items = array_merge($items, fce_event_occurrences(new DateTimeImmutable($from), new DateTimeImmutable($to)));
-        usort($items, static fn ($a, $b) => strcmp($a['date'] ?? '', $b['date'] ?? ''));
+        return fce_event_occurrences(new DateTimeImmutable($from), new DateTimeImmutable($to));
     }
-
-    return $items;
-}
-
-function happenings_event_to_item(WP_Post $post): array
-{
-    $reg    = (string) get_post_meta($post->ID, '_ctc_event_registration_url', true);
-    $weight = (int) get_post_meta($post->ID, 'fcs_weight', true);
-
-    return happenings_item([
-        'id'     => 'event-' . $post->ID,
-        'source' => 'event',
-        'layout' => 'event',
-        'kind'   => happenings_event_kind($post->ID),
-        'title'  => happenings_text(get_the_title($post)),
-        'date'   => (string) get_post_meta($post->ID, '_ctc_event_start_date', true),
-        'when'   => happenings_event_when($post->ID),
-        'ctaUrl' => $reg ?: (string) get_permalink($post),
-        'image'  => (string) get_the_post_thumbnail_url($post, 'full'),
-        // Prominence, so a weighted event can join the Featured row (Phase 4).
-        // Present only when > 0 (Item drops 0), matching the announcement source.
-        'weight' => $weight > 0 ? $weight : '',
-        'url'    => (string) get_permalink($post),
-    ]);
+    return [];
 }
 
 /* ---- Source 2: recent announcements (Announcements-category posts) ---- */

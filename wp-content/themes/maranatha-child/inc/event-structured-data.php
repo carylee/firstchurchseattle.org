@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'wp_head',
 	static function () {
-		if ( ! is_singular( array( 'fce_event', 'ctc_event' ) ) || ! function_exists( 'happenings_item_by_id' ) ) {
+		if ( ! is_singular( 'fce_event' ) || ! function_exists( 'happenings_item_by_id' ) ) {
 			return;
 		}
 

@@ -1,7 +1,7 @@
 # The e-news as a Happenings surface — compose on the website, render to email
 
-**Status:** Design (Phase 6 of the Happenings roadmap). Nothing built yet.
-**Date:** 2026-06-09
+**Status:** Built — steps 6.0–6.5 and addendum phases A/B/C shipped (#39, #49, #53, #63).
+**Date:** 2026-06-09 (design), 2026-06-11 (last edit)
 **Scope:** the weekly e-news ("First Church Weekly News") — its content model and authoring
 workflow, not its visual design.
 **Generalizes / depends on:** [`happenings.md`](./happenings.md) (the spine; this is its
@@ -184,8 +184,8 @@ Incremental, each step shippable and useful on its own:
 
 ## 9. Addendum — adopting the `../mailchimp` template as the e-news *theme*
 
-**Status:** Design → in progress (2026-06-10). Phases A–C below are being implemented in
-`firstchurch-enews`; this section is the rationale and the decisions taken.
+**Status:** Shipped (2026-06-10, #63). Phases A–C are implemented in `firstchurch-enews`;
+this section is the rationale and the decisions taken.
 
 Phases 6.3–6.5 gave the issue a *content model* and a render, but the render is plain: a white
 card-box, Georgia throughout, an off-brand maroon, no masthead, no dark-mode/Outlook handling.
@@ -267,9 +267,9 @@ new markup instead of the old.
 
 | Phase | What | Tests |
 |---|---|---|
-| **A** | Reconcile brand tokens into public `Email` constants (`#800000`/`#e9dbb7`/`#202020`/`#656565` + `SANS`/`SERIF`); point `fcen_email_footer()` at them | card carries brand maroon, not `#7a1f2b` |
-| **B** | Port the masthead + footer chrome + `<style>`/MSO/dark-mode into `Email::document()`; trim the now-duplicate social text links from `fcen_email_footer()` | chrome present (doctype/PixelsPerInch/dark-mode media, topbar `*|ARCHIVE|*`, logo, worship URLs, tan rule, social); `$inner` still verbatim; footer still after body |
-| **C** | Re-skin `Email::card()` to the announcement design; render the CardView `image` | image present/absent; existing title/meta/blurb/CTA/escaping asserts still pass |
+| **A** | ✅ Reconcile brand tokens into public `Email` constants (`#800000`/`#e9dbb7`/`#202020`/`#656565` + `SANS`/`SERIF`); point `fcen_email_footer()` at them | card carries brand maroon, not `#7a1f2b` |
+| **B** | ✅ Port the masthead + footer chrome + `<style>`/MSO/dark-mode into `Email::document()`; trim the now-duplicate social text links from `fcen_email_footer()` | chrome present (doctype/PixelsPerInch/dark-mode media, topbar `*|ARCHIVE|*`, logo, worship URLs, tan rule, social); `$inner` still verbatim; footer still after body |
+| **C** | ✅ Re-skin `Email::card()` to the announcement design; render the CardView `image` | image present/absent; existing title/meta/blurb/CTA/escaping asserts still pass |
 
 > **Deploy note:** this is all inside the already-deployed `firstchurch-enews` plugin — no
 > `ops/deploy.sh` allowlist change and no prod re-activation needed; merging to `main` ships it

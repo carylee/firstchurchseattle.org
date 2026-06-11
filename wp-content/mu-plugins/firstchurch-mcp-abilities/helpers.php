@@ -70,14 +70,12 @@ function fcmcp_event_to_array( WP_Post $post ): array {
 		'id'               => $post->ID,
 		'title'            => get_the_title( $post ),
 		'status'           => $post->post_status,
-		'start_date'       => (string) get_post_meta( $post->ID, '_ctc_event_start_date', true ),
-		'end_date'         => (string) get_post_meta( $post->ID, '_ctc_event_end_date', true ),
-		'start_time'       => (string) get_post_meta( $post->ID, '_ctc_event_start_time', true ),
-		'end_time'         => (string) get_post_meta( $post->ID, '_ctc_event_end_time', true ),
-		'time'             => (string) get_post_meta( $post->ID, '_ctc_event_time', true ),
-		'venue'            => (string) get_post_meta( $post->ID, '_ctc_event_venue', true ),
-		'address'          => (string) get_post_meta( $post->ID, '_ctc_event_address', true ),
-		'registration_url' => (string) get_post_meta( $post->ID, '_ctc_event_registration_url', true ),
+		'start_date'       => (string) get_post_meta( $post->ID, '_fce_dtstart', true ),
+		'time'             => (string) get_post_meta( $post->ID, '_fce_time', true ),
+		'venue'            => (string) get_post_meta( $post->ID, '_fce_venue', true ),
+		'registration_url' => (string) get_post_meta( $post->ID, '_fce_registration_url', true ),
+		'kind'             => (string) get_post_meta( $post->ID, '_fce_kind', true ),
+		'skip_dates'       => array_values( array_filter( array_map( 'trim', explode( ',', (string) get_post_meta( $post->ID, '_fce_skip_dates', true ) ) ) ) ),
 		'categories'       => wp_get_post_terms( $post->ID, 'ctc_event_category', array( 'fields' => 'slugs' ) ),
 		'recurrence'       => fcmcp_recurrence_to_array( $post->ID ),
 		'featured_image'   => (string) get_the_post_thumbnail_url( $post, 'full' ),
@@ -100,12 +98,8 @@ function fcmcp_post_to_array( WP_Post $post ): array {
 	);
 }
 
-/** Apply CTC's combined date/time fields after writing base meta. */
-function fcmcp_refresh_event_dates( int $post_id ): void {
-	if ( function_exists( 'ctc_update_event_date_time' ) ) {
-		ctc_update_event_date_time( $post_id );
-	}
-}
+/** No-op: fce_event does not need CTC's combined date/time meta. Kept for backward compat with callers that still invoke it. */
+function fcmcp_refresh_event_dates( int $post_id ): void {}
 
 /** Is this post in scope for the writer role? */
 function fcmcp_is_managed_post( $post ): bool {
@@ -120,7 +114,7 @@ function fcmcp_is_managed_post( $post ): bool {
 	// (firstchurch-carousel). Other CPTs (nav menus, blocks, etc.) remain out of
 	// scope. (ctc_sermon was retired in favor of the YouTube service history —
 	// see the theme's inc/redirects.php — so sermons are no longer managed.)
-	return in_array( $post->post_type, array( 'ctc_event', 'post', 'page', 'enews_issue', 'carousel_card' ), true );
+	return in_array( $post->post_type, array( 'fce_event', 'post', 'page', 'enews_issue', 'carousel_card' ), true );
 }
 
 /** JSON Schema fragment for image input (shared by create/update abilities). */
@@ -189,82 +183,75 @@ function fcmcp_set_featured_image( int $post_id, array $input ) {
 	return null;
 }
 
-/** Write CTC recurrence meta for an event from a recurrence rule array. */
+/** Write recurrence meta for an fce_event from a friendly recurrence rule object. */
 function fcmcp_apply_recurrence( int $post_id, $rec ): void {
 	if ( ! is_array( $rec ) ) {
 		return;
 	}
-	$freq = isset( $rec['frequency'] ) ? strtolower( (string) $rec['frequency'] ) : 'none';
-	if ( ! in_array( $freq, array( 'none', 'weekly', 'monthly', 'yearly' ), true ) ) {
-		$freq = 'none';
+	$freq = isset( $rec['frequency'] ) ? strtolower( (string) $rec['frequency'] ) : '';
+	if ( ! in_array( $freq, array( 'weekly', 'monthly', 'yearly' ), true ) ) {
+		$freq = '';
 	}
-	update_post_meta( $post_id, '_ctc_event_recurrence', $freq );
-	update_post_meta( $post_id, '_ctc_event_recurrence_end_date', fcmcp_sanitize_date( $rec['end_date'] ?? '' ) );
+	update_post_meta( $post_id, '_fce_recurrence', $freq );
+	update_post_meta( $post_id, '_fce_end_date', fcmcp_sanitize_date( $rec['end_date'] ?? $rec['until'] ?? '' ) );
 
-	if ( 'none' === $freq ) {
+	if ( '' === $freq ) {
 		return;
 	}
 
-	// Baseline defaults (mirrors Church Content Pro's save-time normalization).
 	$interval = max( 1, (int) ( $rec['interval'] ?? 1 ) );
-	update_post_meta( $post_id, '_ctc_event_recurrence_weekly_interval', '1' );
-	update_post_meta( $post_id, '_ctc_event_recurrence_monthly_interval', '1' );
-	update_post_meta( $post_id, '_ctc_event_recurrence_monthly_type', 'day' );
+	update_post_meta( $post_id, '_fce_weekly_interval', '1' );
+	update_post_meta( $post_id, '_fce_monthly_type', 'day' );
 
 	if ( 'weekly' === $freq ) {
-		update_post_meta( $post_id, '_ctc_event_recurrence_weekly_interval', (string) $interval );
+		update_post_meta( $post_id, '_fce_weekly_interval', (string) $interval );
 		$days = array();
-		foreach ( (array) ( $rec['weekly_days'] ?? array() ) as $d ) {
+		$src  = $rec['weekly_days'] ?? $rec['weekdays'] ?? array();
+		foreach ( (array) $src as $d ) {
 			$d = strtoupper( substr( trim( (string) $d ), 0, 2 ) );
 			if ( in_array( $d, array( 'SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA' ), true ) ) {
 				$days[] = $d;
 			}
 		}
-		if ( $days ) {
-			update_post_meta( $post_id, '_ctc_event_recurrence_weekly_type', 'day' );
-			update_post_meta( $post_id, '_ctc_event_recurrence_weekly_day', implode( ',', array_values( array_unique( $days ) ) ) );
-		} else {
-			update_post_meta( $post_id, '_ctc_event_recurrence_weekly_type', '' );
-			update_post_meta( $post_id, '_ctc_event_recurrence_weekly_day', '' );
-		}
+		update_post_meta( $post_id, '_fce_weekly_days', implode( ',', array_values( array_unique( $days ) ) ) );
 	}
 
 	if ( 'monthly' === $freq ) {
-		update_post_meta( $post_id, '_ctc_event_recurrence_monthly_interval', (string) $interval );
+		update_post_meta( $post_id, '_fce_weekly_interval', (string) $interval );
 		$mtype = ( isset( $rec['monthly_type'] ) && 'week' === $rec['monthly_type'] ) ? 'week' : 'day';
-		update_post_meta( $post_id, '_ctc_event_recurrence_monthly_type', $mtype );
-		if ( 'week' === $mtype ) {
-			$weeks = array();
-			foreach ( (array) ( $rec['monthly_weeks'] ?? array() ) as $w ) {
-				$w = strtolower( trim( (string) $w ) );
-				if ( in_array( $w, array( '1', '2', '3', '4', '5', 'last' ), true ) ) {
-					$weeks[] = $w;
-				}
+		$weeks = array();
+		$src   = $rec['monthly_weeks'] ?? array();
+		foreach ( (array) $src as $w ) {
+			$w = strtolower( trim( (string) $w ) );
+			if ( in_array( $w, array( '1', '2', '3', '4', '5', 'last' ), true ) ) {
+				$weeks[] = $w;
 			}
-			update_post_meta( $post_id, '_ctc_event_recurrence_monthly_week', implode( ',', array_values( array_unique( $weeks ) ) ) );
-		} else {
-			update_post_meta( $post_id, '_ctc_event_recurrence_monthly_week', '' );
 		}
+		if ( $weeks ) {
+			$mtype = 'week';
+		}
+		update_post_meta( $post_id, '_fce_monthly_type', $mtype );
+		update_post_meta( $post_id, '_fce_monthly_week', implode( ',', array_values( array_unique( $weeks ) ) ) );
 	}
 }
 
-/** Read CTC recurrence meta into a rule array for output. */
+/** Read recurrence meta into a friendly rule array for output. */
 function fcmcp_recurrence_to_array( int $post_id ): array {
-	$freq = (string) get_post_meta( $post_id, '_ctc_event_recurrence', true );
+	$freq = (string) get_post_meta( $post_id, '_fce_recurrence', true );
 	$out  = array( 'frequency' => $freq ?: 'none' );
 	if ( 'none' === $out['frequency'] || '' === $out['frequency'] ) {
 		$out['frequency'] = 'none';
 		return $out;
 	}
-	$out['end_date'] = (string) get_post_meta( $post_id, '_ctc_event_recurrence_end_date', true );
+	$out['end_date'] = (string) get_post_meta( $post_id, '_fce_end_date', true );
 	if ( 'weekly' === $freq ) {
-		$out['interval'] = (int) get_post_meta( $post_id, '_ctc_event_recurrence_weekly_interval', true );
-		$d               = (string) get_post_meta( $post_id, '_ctc_event_recurrence_weekly_day', true );
+		$out['interval'] = (int) get_post_meta( $post_id, '_fce_weekly_interval', true );
+		$d               = (string) get_post_meta( $post_id, '_fce_weekly_days', true );
 		$out['weekly_days'] = '' !== $d ? explode( ',', $d ) : array();
 	} elseif ( 'monthly' === $freq ) {
-		$out['interval']     = (int) get_post_meta( $post_id, '_ctc_event_recurrence_monthly_interval', true );
-		$out['monthly_type'] = (string) get_post_meta( $post_id, '_ctc_event_recurrence_monthly_type', true );
-		$w                   = (string) get_post_meta( $post_id, '_ctc_event_recurrence_monthly_week', true );
+		$out['interval']     = (int) get_post_meta( $post_id, '_fce_weekly_interval', true );
+		$out['monthly_type'] = (string) get_post_meta( $post_id, '_fce_monthly_type', true );
+		$w                   = (string) get_post_meta( $post_id, '_fce_monthly_week', true );
 		$out['monthly_weeks'] = '' !== $w ? explode( ',', $w ) : array();
 	}
 	return $out;

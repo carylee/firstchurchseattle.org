@@ -199,7 +199,7 @@ function fcmcp_review_queue( $input = array() ) {
 	$types = ( ! empty( $input['types'] ) && is_array( $input['types'] ) ) ? $input['types'] : array( 'events', 'announcements' );
 
 	$sources = array(
-		'events'        => array( 'post_type' => 'ctc_event', 'label' => 'event' ),
+		'events'        => array( 'post_type' => 'fce_event', 'label' => 'event' ),
 		'announcements' => array( 'post_type' => 'post', 'label' => 'announcement', 'cat' => fcmcp_announce_cat_id() ),
 	);
 
@@ -231,8 +231,8 @@ function fcmcp_review_queue( $input = array() ) {
 				'modified' => get_post_modified_time( 'Y-m-d H:i', false, $p ),
 				'edit_url' => admin_url( 'post.php?post=' . $p->ID . '&action=edit' ),
 			);
-			if ( 'ctc_event' === $src['post_type'] ) {
-				$item['start_date'] = (string) get_post_meta( $p->ID, '_ctc_event_start_date', true );
+			if ( 'fce_event' === $src['post_type'] ) {
+				$item['start_date'] = (string) get_post_meta( $p->ID, '_fce_dtstart', true );
 			}
 			$items[] = $item;
 		}

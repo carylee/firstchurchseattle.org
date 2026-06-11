@@ -26,11 +26,11 @@ final class QueryArgsTest extends TestCase
     public function testEventDefaultsToPublishedFromToday(): void
     {
         $args = fcmcp_build_event_query_args(array());
-        $this->assertSame('ctc_event', $args['post_type']);
+        $this->assertSame('fce_event', $args['post_type']);
         $this->assertSame('publish', $args['post_status']);
         $this->assertSame(20, $args['posts_per_page']);
         $this->assertSame(array('start' => 'ASC'), $args['orderby']);
-        $this->assertSame('_ctc_event_start_date', $args['meta_query'][0]['key']);
+        $this->assertSame('_fce_dtstart', $args['meta_query'][0]['key']);
         $this->assertSame('>=', $args['meta_query'][0]['compare']);
         $this->assertSame(gmdate('Y-m-d'), $args['meta_query'][0]['value']);
         $this->assertArrayNotHasKey('s', $args);
@@ -58,7 +58,7 @@ final class QueryArgsTest extends TestCase
         $this->assertSame('2026-01-01', $args['meta_query'][0]['value']);
         $this->assertSame('<=', $args['meta_query'][1]['compare']);
         $this->assertSame('2026-03-31', $args['meta_query'][1]['value']);
-        $this->assertSame('_ctc_event_start_date', $args['meta_query']['start']['key']);
+        $this->assertSame('_fce_dtstart', $args['meta_query']['start']['key']);
     }
 
     public function testEventLimitIsClamped(): void

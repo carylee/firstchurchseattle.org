@@ -50,14 +50,14 @@ e-news digest are unchanged (they were never driven by the term).
 
 ## 2. Finish the `ctc_event` → `fce_event` decommission (taxonomy collapse, part 2)
 
-> **⏸ Deferred 2026-06-09 — gated on a sermon retirement plan.** Pre-checks passed (zero upcoming
-> published `ctc_event`; spine serving 14 events), but `church-theme-content` also registers
-> **`ctc_sermon`, and prod has 150 published sermons** (`/sermons/<slug>/` + archive, newest
-> 2025-07-14). Deactivating it would 404 all of them and break the MCP sermon abilities. The nav-fix
-> in `events-migration.md` step 6 also points *at* `/sermons/`, which only exists while CTC is
-> active. Decision: leave **both** plugins active until sermons get a real retirement story
-> (e.g. redirects to YouTube), then decommission in one pass. The `ctc_event` code-branch removal
-> PR stays gated on this.
+> **✅ Sermons retired via redirects (2026-06-10) — CTC still active.** All sermon URLs now 301 to
+> `/worship/live/` (#61, #62); the MCP sermon abilities are removed (#94). Both CTC plugins remain
+> active because `church-theme-content` still registers `ctc_sermon` (150 published sermons exist in
+> the DB but are unreachable through the front-end) and `ctc_event` holds the unpublished CTC
+> originals (rollback insurance per `events-migration.md`). The `ctc_event` code-branch removal PR
+> is no longer gated — the original concern ("150 sermons would 404") is satisfied by the redirects.
+> We can decommission CTC in a single pass when ready, or leave it active indefinitely now that the
+> public surface is clean.
 
 Collapsing two event post types into one. Per [`events-migration.md`](./events-migration.md) the
 live set is already on `fce_event`, the CTC originals are unpublished, and the public pages are
