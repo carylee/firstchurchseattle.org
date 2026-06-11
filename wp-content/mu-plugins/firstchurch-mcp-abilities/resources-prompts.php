@@ -215,7 +215,7 @@ function fcmcp_prompt_add_event( $input = array() ) {
 	$details = trim( (string) ( $input['details'] ?? '' ) );
 	$text = "Add a First Church Seattle event from these details:\n\n{$details}\n\n"
 		. "Steps:\n"
-		. "1. Extract the title, start_date (YYYY-MM-DD), start_time/end_time, venue, address, and registration_url if present.\n"
+		. "1. Extract the title, start_date (YYYY-MM-DD), time (HH:MM, 24h), venue, and registration_url if present. For timing a single start can't capture (\"doors 6, show 7\"; \"9:30 & 11:00 services\"; \"after worship\"), put it in time_text — set time too when there's a clear primary start.\n"
 		. "2. If it repeats, set a recurrence rule (weekly/monthly/yearly with interval, weekly_days, or nth-week-of-month) — see firstchurch/set-event-recurrence.\n"
 		. "3. Check firstchurch/list-event-categories (or the firstchurch://vocabulary/taxonomies resource) and assign the best-fitting category.\n"
 		. "4. Pick or set a featured image (search-media, or a stock-photo import if needed).\n"
