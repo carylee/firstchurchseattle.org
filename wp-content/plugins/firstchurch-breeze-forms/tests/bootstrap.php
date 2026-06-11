@@ -60,6 +60,44 @@ if (!function_exists('absint')) {
     }
 }
 
+if (!function_exists('sanitize_text_field')) {
+    function sanitize_text_field(string $str): string
+    {
+        // Strip tags, collapse runs of whitespace, trim — WP's behavior for the
+        // single-line text the native forms handle (names, phone, address parts).
+        return trim((string) preg_replace('/\s+/', ' ', strip_tags($str)));
+    }
+}
+
+if (!function_exists('sanitize_textarea_field')) {
+    function sanitize_textarea_field(string $str): string
+    {
+        // Like sanitize_text_field but newlines survive (multi-line requests).
+        return trim(strip_tags($str));
+    }
+}
+
+if (!function_exists('sanitize_email')) {
+    function sanitize_email(string $email): string
+    {
+        return trim((string) preg_replace('/[^a-zA-Z0-9.@_+\-]/', '', $email));
+    }
+}
+
+if (!function_exists('is_email')) {
+    function is_email(string $email)
+    {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) ?: false;
+    }
+}
+
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($data, int $options = 0, int $depth = 512): string
+    {
+        return (string) json_encode($data, $options, $depth);
+    }
+}
+
 if (!function_exists('shortcode_atts')) {
     /**
      * Mirror of WP core: return only the keys declared in $pairs, overriding

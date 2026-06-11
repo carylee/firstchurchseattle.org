@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: First Church Breeze Forms
- * Description: Surface any Breeze form as a themed button (Mode 1) or a responsive embed (Mode 2) via the [breeze_form] shortcode. No Breeze credentials required — both modes are pure markup pointing at the public form URL.
- * Version:     0.1.0
+ * Description: Surface any Breeze form via the [breeze_form] shortcode — as a themed button (Mode 1), a responsive embed (Mode 2), or a native in-theme form that posts straight to Breeze (Mode 3). Modes 1 & 2 need no Breeze credentials; Mode 3 renders forms with a baked field contract (currently the Prayer Requests form).
+ * Version:     0.2.0
  * Author:      First Church Seattle
  *
  * @package FirstChurch\BreezeForms
@@ -23,11 +23,15 @@ require_once __DIR__ . '/src/Sync.php';
 require_once __DIR__ . '/src/Store.php';
 require_once __DIR__ . '/src/Block.php';
 require_once __DIR__ . '/src/Entries.php';
+require_once __DIR__ . '/src/Native.php';
 
 // Intake queue: capture Breeze form submissions on-site (CPT + reader + MCP).
 require_once __DIR__ . '/inc/intake-cpt.php';
 require_once __DIR__ . '/inc/intake-reader.php';
 require_once __DIR__ . '/inc/intake-mcp.php';
+
+// Mode 3: native in-theme rendering + server-side submission to Breeze.
+require_once __DIR__ . '/inc/native-submit.php';
 
 use FirstChurch\BreezeForms\Shortcode;
 use FirstChurch\BreezeForms\Store;
@@ -35,7 +39,7 @@ use FirstChurch\BreezeForms\Catalog;
 use FirstChurch\BreezeForms\Sync;
 use FirstChurch\BreezeForms\Block;
 
-const FCBF_VERSION = '0.1.0';
+const FCBF_VERSION = '0.2.0';
 
 /** Option holding the last successful Breeze sync (a list of form records). */
 const FCBF_FORMS_OPTION = 'fcbf_synced_forms';
@@ -150,12 +154,16 @@ function fcbf_register_assets(): void
             true
         );
 
-        $forms = array_map(
+        $native = fcbf_native_forms();
+        $forms  = array_map(
             static fn ($r) => [
                 'id'          => $r['id'],
                 'slug'        => $r['slug'],
                 'name'        => $r['name'],
                 'description' => $r['description'] ?? '',
+                // Whether this form has a baked native contract (Mode 3): the
+                // editor only offers "Native" for forms it can actually render.
+                'native'      => isset($native[$r['id']]),
             ],
             fcbf_records()
         );
@@ -175,6 +183,7 @@ function fcbf_register_assets(): void
             'slug'            => ['type' => 'string',  'default' => ''],
             'id'              => ['type' => 'string',  'default' => ''],
             'mode'            => ['type' => 'string',  'default' => 'button'],
+            'title'           => ['type' => 'string',  'default' => ''],
             'label'           => ['type' => 'string',  'default' => 'Open form'],
             'newTab'          => ['type' => 'boolean', 'default' => true],
             'height'          => ['type' => 'number',  'default' => 0],
@@ -188,22 +197,41 @@ function fcbf_register_assets(): void
 }
 add_action('init', 'fcbf_register_assets');
 
-/** Block front-end render — delegate to the tested shortcode path. */
-function fcbf_render_block($attributes): string
+/**
+ * Render [breeze_form]/the block from shortcode-style atts.
+ *
+ * mode="native" (Mode 3) renders our in-theme form and posts server-side to
+ * Breeze — but only for forms with a baked native contract; any other form
+ * falls through to the standard button/embed path so a bad/unmapped id still
+ * produces something usable rather than nothing. Modes 1 & 2 go straight to the
+ * tested Shortcode::render.
+ *
+ * @param array<string,mixed> $atts Shortcode-style attributes.
+ */
+function fcbf_dispatch(array $atts): string
 {
-    $html = Shortcode::render(Block::to_shortcode_atts((array) $attributes), fcbf_id_slug_map());
+    if (strtolower((string) ($atts['mode'] ?? '')) === 'native') {
+        $native = fcbf_render_native($atts);
+        if ($native !== '') {
+            return $native;
+        }
+    }
+
+    $html = Shortcode::render($atts, fcbf_id_slug_map());
     if ($html !== '') {
         fcbf_enqueue_assets($html);
     }
     return $html;
 }
 
+/** Block front-end render — delegate to the shared dispatch path. */
+function fcbf_render_block($attributes): string
+{
+    return fcbf_dispatch(Block::to_shortcode_atts((array) $attributes));
+}
+
 add_shortcode('breeze_form', function ($atts): string {
-    $html = Shortcode::render(is_array($atts) ? $atts : [], fcbf_id_slug_map());
-    if ($html !== '') {
-        fcbf_enqueue_assets($html);
-    }
-    return $html;
+    return fcbf_dispatch(is_array($atts) ? $atts : []);
 });
 
 /* -------------------------------------------------------------------------

@@ -1,6 +1,8 @@
 /**
- * First Church Breeze Forms — Mode 1 (button) + Mode 2 (embed).
- * Intentionally minimal: Mode 1 leans on the theme's .maranatha-button.
+ * First Church Breeze Forms — Mode 1 (button) + Mode 2 (embed) + Mode 3 (native).
+ * Modes 1/2 are intentionally minimal (Mode 1 leans on the theme's
+ * .maranatha-button); Mode 3 carries a fuller form style, scoped under
+ * .fcbf-native, sharing the connection-card's visual language.
  */
 
 .fcbf-button {
@@ -17,4 +19,239 @@
     display: block;
     width: 100%;
     border: 0;
+}
+
+/* -------------------------------------------------------------------------
+ * Mode 3 — native in-theme form. Scoped entirely under .fcbf-native so it
+ * can drop onto any page without bleeding into the theme. Shares the
+ * Maranatha child theme's visual language (brand maroon, soft card, pill
+ * button, ≥44px tap targets) with the connection-card form.
+ * ---------------------------------------------------------------------- */
+
+.fcbf-native {
+    --fcbf-maroon: #70334e;
+    --fcbf-maroon-dark: #5a2940;
+    --fcbf-surface: #faf6f8;
+    --fcbf-border: #ebe1e5;
+    --fcbf-text: #1f1f1f;
+    --fcbf-text-muted: #5f5560;
+    --fcbf-danger: #b3261e;
+    --fcbf-success: #2f6f3f;
+    --fcbf-radius: 12px;
+    --fcbf-tap-min: 44px;
+
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px;
+    background: var(--fcbf-surface);
+    border: 1px solid var(--fcbf-border);
+    border-radius: var(--fcbf-radius);
+    color: var(--fcbf-text);
+    font-size: 16px;
+    line-height: 1.45;
+    box-sizing: border-box;
+}
+
+.fcbf-native__heading {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--fcbf-maroon);
+    letter-spacing: 0.01em;
+}
+
+.fcbf-native__intro {
+    margin: 0 0 20px;
+    color: var(--fcbf-text-muted);
+}
+
+.fcbf-native__field,
+.fcbf-native__fieldset {
+    margin: 14px 0;
+}
+
+.fcbf-native__field > label,
+.fcbf-native__label,
+.fcbf-native__fieldset > legend {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--fcbf-text);
+}
+
+.fcbf-required {
+    color: var(--fcbf-maroon);
+    margin-left: 2px;
+}
+
+.fcbf-optional {
+    font-weight: 400;
+    color: var(--fcbf-text-muted);
+    font-size: 0.9em;
+    margin-left: 4px;
+}
+
+.fcbf-native__help {
+    display: block;
+    margin-top: 4px;
+    color: var(--fcbf-text-muted);
+    font-size: 0.85em;
+}
+
+.fcbf-native__instruction {
+    margin: 0 0 8px;
+    color: var(--fcbf-text-muted);
+    font-size: 0.9em;
+    font-style: italic;
+}
+
+.fcbf-native input[type="text"],
+.fcbf-native input[type="email"],
+.fcbf-native input[type="tel"],
+.fcbf-native textarea {
+    width: 100%;
+    min-height: var(--fcbf-tap-min);
+    padding: 10px 12px;
+    font: inherit;
+    color: var(--fcbf-text);
+    background: #fff;
+    border: 1px solid var(--fcbf-border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.fcbf-native textarea {
+    min-height: auto;
+    resize: vertical;
+}
+
+.fcbf-native input:focus,
+.fcbf-native textarea:focus {
+    outline: none;
+    border-color: var(--fcbf-maroon);
+    box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.18);
+}
+
+.fcbf-native input[aria-invalid="true"],
+.fcbf-native textarea[aria-invalid="true"],
+.fcbf-native__fieldset[aria-invalid="true"] {
+    border-color: var(--fcbf-danger);
+}
+
+.fcbf-native__row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.fcbf-native__row > input {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+.fcbf-native__fieldset {
+    border: 0;
+    padding: 0;
+}
+
+.fcbf-native__choice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--fcbf-tap-min);
+    padding: 4px 0;
+    font-weight: 400;
+    color: var(--fcbf-text);
+    cursor: pointer;
+}
+
+.fcbf-native__choice input {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--fcbf-maroon);
+    cursor: pointer;
+}
+
+/* Honeypot — visually removed from humans, still in the DOM for bots. */
+.fcbf-native__honeypot {
+    position: absolute;
+    left: -10000px;
+    top: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.fcbf-native__status {
+    margin: 16px 0 0;
+    font-weight: 500;
+}
+
+.fcbf-native__status:not(:empty) {
+    padding: 12px 14px;
+    border-radius: 8px;
+}
+
+.fcbf-native__status[data-state="error"] {
+    background: rgba(179, 38, 30, 0.08);
+    border: 1px solid rgba(179, 38, 30, 0.4);
+    color: var(--fcbf-danger);
+}
+
+.fcbf-native__status[data-state="success"] {
+    background: rgba(47, 111, 63, 0.08);
+    border: 1px solid rgba(47, 111, 63, 0.4);
+    color: var(--fcbf-success);
+}
+
+.fcbf-native__submit {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 28px;
+    min-height: var(--fcbf-tap-min);
+    background: var(--fcbf-maroon);
+    color: #fff;
+    border: 1px solid var(--fcbf-maroon);
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(112, 51, 78, 0.18);
+    transition: background-color 0.12s ease-out, transform 0.12s ease-out;
+}
+
+.fcbf-native__submit:hover,
+.fcbf-native__submit:focus {
+    background: var(--fcbf-maroon-dark);
+    border-color: var(--fcbf-maroon-dark);
+    color: #fff;
+    outline: none;
+}
+
+.fcbf-native__submit:focus-visible {
+    box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.35);
+}
+
+.fcbf-native__submit[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+@media (max-width: 700px) {
+    .fcbf-native {
+        padding: 20px 18px;
+        border-radius: 10px;
+    }
+
+    .fcbf-native__heading {
+        font-size: 22px;
+    }
+
+    .fcbf-native__row {
+        flex-direction: column;
+    }
 }

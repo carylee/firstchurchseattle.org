@@ -1,0 +1,53 @@
+{
+  "213392": {
+    "slug": "38f910",
+    "name": "Prayer Requests",
+    "intro": "Please let us know how we can be praying for you. If you have a confidential prayer request that you would like shared only with the Pastoral Team, check the “My request is confidential” box below.",
+    "submit_label": "Send prayer request",
+    "success": "Thank you — your prayer request has been received. Our Pastoral Team holds these in care.",
+    "fields": [
+      {
+        "key": "name",
+        "field_id": "2147340348",
+        "type": "name",
+        "label": "Name",
+        "required": true
+      },
+      {
+        "key": "email",
+        "field_id": "2147340349",
+        "type": "email",
+        "label": "Email",
+        "required": true,
+        "help": "This address will receive a confirmation email."
+      },
+      {
+        "key": "phone",
+        "field_id": "2147340350",
+        "type": "phone",
+        "label": "Phone",
+        "required": false
+      },
+      {
+        "key": "prayer_request",
+        "field_id": "2147340351",
+        "type": "textarea",
+        "label": "Prayer Request",
+        "required": true,
+        "rows": 5
+      },
+      {
+        "key": "confidential",
+        "field_id": "2147340352",
+        "type": "checkbox",
+        "label": "My request is confidential",
+        "instruction": "Please select all that apply.",
+        "required": true,
+        "options": [
+          { "value": "196", "label": "Yes" },
+          { "value": "197", "label": "No" }
+        ]
+      }
+    ]
+  }
+}
