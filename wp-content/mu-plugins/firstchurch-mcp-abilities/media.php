@@ -75,13 +75,13 @@ add_action(
 			'firstchurch/review-queue',
 			array(
 				'label'               => 'Review queue',
-				'description'         => 'List all draft/pending events, announcements, and sermons awaiting human review and publishing — the publish queue for the draft-first workflow. Each item includes an edit URL. Read-only.',
+				'description'         => 'List all draft/pending events and announcements awaiting human review and publishing — the publish queue for the draft-first workflow. Each item includes an edit URL. Read-only.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
 						'status' => array( 'type' => 'string', 'enum' => array( 'draft', 'pending', 'both' ), 'default' => 'both' ),
-						'types'  => array( 'type' => 'array', 'items' => array( 'type' => 'string', 'enum' => array( 'events', 'announcements', 'sermons' ) ), 'description' => 'Which content types to include (default: all three).' ),
+						'types'  => array( 'type' => 'array', 'items' => array( 'type' => 'string', 'enum' => array( 'events', 'announcements' ) ), 'description' => 'Which content types to include (default: both).' ),
 						'limit'  => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 25, 'description' => 'Max items per type.' ),
 					),
 					'additionalProperties' => false,
@@ -196,12 +196,11 @@ function fcmcp_review_queue( $input = array() ) {
 		$statuses = array( 'draft', 'pending' );
 	}
 	$limit = max( 1, min( 100, (int) ( $input['limit'] ?? 25 ) ) );
-	$types = ( ! empty( $input['types'] ) && is_array( $input['types'] ) ) ? $input['types'] : array( 'events', 'announcements', 'sermons' );
+	$types = ( ! empty( $input['types'] ) && is_array( $input['types'] ) ) ? $input['types'] : array( 'events', 'announcements' );
 
 	$sources = array(
 		'events'        => array( 'post_type' => 'ctc_event', 'label' => 'event' ),
 		'announcements' => array( 'post_type' => 'post', 'label' => 'announcement', 'cat' => fcmcp_announce_cat_id() ),
-		'sermons'       => array( 'post_type' => 'ctc_sermon', 'label' => 'sermon' ),
 	);
 
 	$items  = array();

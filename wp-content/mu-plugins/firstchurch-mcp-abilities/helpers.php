@@ -107,7 +107,7 @@ function fcmcp_refresh_event_dates( int $post_id ): void {
 	}
 }
 
-/** Is this post in scope for the writer role (events + announcements only)? */
+/** Is this post in scope for the writer role? */
 function fcmcp_is_managed_post( $post ): bool {
 	$post = get_post( $post );
 	if ( ! $post ) {
@@ -116,8 +116,11 @@ function fcmcp_is_managed_post( $post ): bool {
 	// Managed types the mcp_editor role may edit/delete. Posts and pages are
 	// included intentionally (full content management); enews_issue is managed so
 	// the writer can draft/curate weekly e-news (firstchurch-enews). Attachments
-	// and other CPTs (nav menus, blocks, etc.) remain out of scope.
-	return in_array( $post->post_type, array( 'ctc_event', 'ctc_sermon', 'post', 'page', 'enews_issue' ), true );
+	// carousel_card is managed so the writer can author evergreen standing cards
+	// (firstchurch-carousel). Other CPTs (nav menus, blocks, etc.) remain out of
+	// scope. (ctc_sermon was retired in favor of the YouTube service history —
+	// see the theme's inc/redirects.php — so sermons are no longer managed.)
+	return in_array( $post->post_type, array( 'ctc_event', 'post', 'page', 'enews_issue', 'carousel_card' ), true );
 }
 
 /** JSON Schema fragment for image input (shared by create/update abilities). */
@@ -302,4 +305,31 @@ function fcmcp_trash( int $id, string $expected_type ) {
 		return new WP_Error( 'trash_failed', 'Could not trash the item.' );
 	}
 	return array( 'id' => $id, 'status' => 'trash' );
+}
+
+/**
+ * Resolve human-supplied term names/slugs to term ids, creating any that don't
+ * exist. Shared by the post/category + tag writers (and historically sermons).
+ */
+function fcmcp_resolve_terms( string $taxonomy, $values ): array {
+	$ids = array();
+	foreach ( (array) $values as $v ) {
+		$v = trim( (string) $v );
+		if ( '' === $v ) {
+			continue;
+		}
+		$term = get_term_by( 'slug', sanitize_title( $v ), $taxonomy );
+		if ( ! $term ) {
+			$term = get_term_by( 'name', $v, $taxonomy );
+		}
+		if ( $term ) {
+			$ids[] = (int) $term->term_id;
+		} else {
+			$new = wp_insert_term( $v, $taxonomy );
+			if ( ! is_wp_error( $new ) ) {
+				$ids[] = (int) $new['term_id'];
+			}
+		}
+	}
+	return $ids;
 }

@@ -145,7 +145,7 @@ function fcmcp_health_check( string $check, array $ctx ): array {
 
 		case 'stale_drafts':
 			$q = new WP_Query( $base + array(
-				'post_type'   => array( 'ctc_event', 'ctc_sermon', 'post', 'page', 'enews_issue' ),
+				'post_type'   => array( 'ctc_event', 'post', 'page', 'enews_issue' ),
 				'post_status' => array( 'draft', 'pending' ),
 				'orderby'     => 'modified',
 				'order'       => 'ASC',

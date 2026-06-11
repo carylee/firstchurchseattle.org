@@ -139,11 +139,11 @@ function fcmcp_untrash( int $id ) {
 function fcmcp_list_trash( $input = array() ) {
 	$limit = max( 1, min( 100, (int) ( $input['limit'] ?? 25 ) ) );
 	$types = array(
-		'ctc_event'   => 'event',
-		'ctc_sermon'  => 'sermon',
-		'post'        => 'post',
-		'page'        => 'page',
-		'enews_issue' => 'enews',
+		'ctc_event'    => 'event',
+		'post'         => 'post',
+		'page'         => 'page',
+		'enews_issue'  => 'enews',
+		'carousel_card' => 'carousel-card',
 	);
 	$q = new WP_Query(
 		array(
@@ -199,7 +199,7 @@ add_action(
 			'firstchurch/restore',
 			array(
 				'label'               => 'Restore from trash',
-				'description'         => 'Restore a trashed managed item (event, sermon, post, page, e-news) to its previous status — the one-call inverse of the trash abilities.',
+				'description'         => 'Restore a trashed managed item (event, post, page, e-news, carousel card) to its previous status — the one-call inverse of the trash abilities.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',
@@ -221,7 +221,7 @@ add_action(
 			'firstchurch/list-trash',
 			array(
 				'label'               => 'List trash',
-				'description'         => 'List trashed managed items (event, sermon, post, page, e-news), most recently trashed first, with their previous status — find candidates to restore. Read-only.',
+				'description'         => 'List trashed managed items (event, post, page, e-news, carousel card), most recently trashed first, with their previous status — find candidates to restore. Read-only.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',

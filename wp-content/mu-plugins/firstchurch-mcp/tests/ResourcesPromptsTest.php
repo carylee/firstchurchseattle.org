@@ -77,16 +77,14 @@ final class ResourcesPromptsTest extends TestCase
     public function testTaxonomyVocabularyResourceReflectsLiveTerms(): void
     {
         fcmcp_test_add_term('ctc_event_category', 'youth', 'Youth', 4);
-        fcmcp_test_add_term('ctc_sermon_series', 'advent', 'Advent', 3);
 
         $data = fcmcp_resource_taxonomies_data();
         $this->assertArrayHasKey('event_categories', $data);
-        $this->assertArrayHasKey('sermon_series', $data);
+        $this->assertArrayHasKey('post_categories', $data);
         $this->assertSame(
             array('slug' => 'youth', 'name' => 'Youth', 'count' => 4),
             $data['event_categories'][0]
         );
-        $this->assertSame('advent', $data['sermon_series'][0]['slug']);
         // Empty taxonomies are present but empty (stable JSON shape).
         $this->assertSame(array(), $data['post_categories']);
     }
