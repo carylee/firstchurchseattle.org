@@ -136,6 +136,12 @@ rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-google-register-polic
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-google-login-callback.php  "$REMOTE/mu-plugins/"
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-security-headers.php       "$REMOTE/mu-plugins/"
 
+# firstchurch-mcp-abilities.php is a thin loader; its ability modules live in the
+# subdir below (WordPress doesn't auto-load mu-plugin subdirs — the loader requires
+# them). The subdir is wholly ours, so mirror it WITH --delete (the --delete ban is
+# on the mu-plugins ROOT, which mixes in host plugins; this subdir does not).
+rsync -av $DRY --delete -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities/ "$REMOTE/mu-plugins/firstchurch-mcp-abilities/"
+
 # Uploads CORS: one .htaccess that lets the slides editor fetch upload images
 # cross-origin to bake the announcement carousel GIF (Apache serves uploads
 # statically, so this can't be a PHP/mu-plugin hook). Sync ONLY this file —
@@ -149,5 +155,5 @@ rsync -av $DRY -e "$RSH" ops/bin/ firstchurch:bin/
 rsync -av $DRY -e "$RSH" bulletin/index.php firstchurch:public_html/bulletin/
 
 echo
-echo "Deployed. Recommended post-deploy lint:"
-echo "  ssh firstchurch 'php -l ~/public_html/wp-content/mu-plugins/firstchurch-mcp-abilities.php'"
+echo "Deployed. Recommended post-deploy lint (php -l does not follow require, so lint the modules too):"
+echo "  ssh firstchurch 'cd ~/public_html/wp-content/mu-plugins && php -l firstchurch-mcp-abilities.php && for f in firstchurch-mcp-abilities/*.php; do php -l \"\$f\"; done'"
