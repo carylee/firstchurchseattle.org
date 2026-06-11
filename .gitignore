@@ -56,6 +56,9 @@
 !/wp-content/mu-plugins/
 /wp-content/mu-plugins/*
 !/wp-content/mu-plugins/firstchurch-mcp-abilities.php
+# Ability modules required by the loader above (WP doesn't auto-load mu-plugin
+# subdirs). The whole subdir is ours and ships to prod — track all of it.
+!/wp-content/mu-plugins/firstchurch-mcp-abilities/
 !/wp-content/mu-plugins/sso.php
 !/wp-content/mu-plugins/firstchurch-google-register-policy.php
 !/wp-content/mu-plugins/firstchurch-google-login-callback.php
