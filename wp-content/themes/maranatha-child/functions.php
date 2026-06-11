@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Version string for cache-busting child assets. Bump when the CSS/JS changes.
  */
 if ( ! defined( 'FCS_CHILD_VERSION' ) ) {
-	define( 'FCS_CHILD_VERSION', '0.20.0' );
+	define( 'FCS_CHILD_VERSION', '0.21.0' );
 }
 
 /**
@@ -31,6 +31,7 @@ require_once get_stylesheet_directory() . '/inc/sermon-structured-data.php';
 require_once get_stylesheet_directory() . '/inc/event-structured-data.php';
 require_once get_stylesheet_directory() . '/inc/church-schema.php';
 require_once get_stylesheet_directory() . '/inc/footer.php';
+require_once get_stylesheet_directory() . '/inc/history-timeline.php';
 require_once get_stylesheet_directory() . '/inc/redirects.php';
 require_once get_stylesheet_directory() . '/inc/people-display.php';
 require_once get_stylesheet_directory() . '/inc/scripts.php';
