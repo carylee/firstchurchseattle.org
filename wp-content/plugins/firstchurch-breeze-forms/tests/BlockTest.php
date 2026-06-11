@@ -26,8 +26,15 @@ final class BlockTest extends TestCase
     public function test_valid_mode_passes_through_invalid_falls_back(): void
     {
         $this->assertSame('embed', Block::to_shortcode_atts(['mode' => 'embed'])['mode']);
+        $this->assertSame('native', Block::to_shortcode_atts(['mode' => 'native'])['mode']);
         $this->assertSame('button', Block::to_shortcode_atts(['mode' => 'wat'])['mode']);
         $this->assertSame('button', Block::to_shortcode_atts([])['mode']);
+    }
+
+    public function test_title_passes_through_for_native_heading_override(): void
+    {
+        $this->assertSame('Submit a Prayer', Block::to_shortcode_atts(['title' => 'Submit a Prayer'])['title']);
+        $this->assertSame('', Block::to_shortcode_atts([])['title']);
     }
 
     public function test_new_tab_boolean_becomes_string(): void

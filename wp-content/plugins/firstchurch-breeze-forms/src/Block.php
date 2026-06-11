@@ -22,7 +22,7 @@ final class Block
     public static function to_shortcode_atts(array $a): array
     {
         $rawMode  = (string) ($a['mode'] ?? 'button');
-        $mode     = in_array($rawMode, ['button', 'embed'], true) ? $rawMode : 'button';
+        $mode     = in_array($rawMode, ['button', 'embed', 'native'], true) ? $rawMode : 'button';
         $height   = (int) ($a['height'] ?? 0);
         $maxWidth = (int) ($a['maxWidth'] ?? 0);
 
@@ -30,6 +30,7 @@ final class Block
             'slug'             => (string) ($a['slug'] ?? ''),
             'id'               => (string) ($a['id'] ?? ''),
             'mode'             => $mode,
+            'title'            => (string) ($a['title'] ?? ''),
             'label'            => (string) ($a['label'] ?? 'Open form'),
             'new_tab'          => !empty($a['newTab']) ? 'true' : 'false',
             'height'           => $height > 0 ? (string) $height : '',

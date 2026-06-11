@@ -43,6 +43,7 @@
 			slug: { type: 'string', default: '' },
 			id: { type: 'string', default: '' },
 			mode: { type: 'string', default: 'button' },
+			title: { type: 'string', default: '' },
 			label: { type: 'string', default: 'Open form' },
 			newTab: { type: 'boolean', default: true },
 			height: { type: 'number', default: 0 },
@@ -63,6 +64,16 @@
 			var desc = selected && selected.description ? selected.description : '';
 			var hint = desc.length > 160 ? desc.slice( 0, 160 ) + '…' : desc;
 
+			// "Native" (Mode 3 — our in-theme form posting straight to Breeze) is
+			// only offered for forms with a baked field contract on the server.
+			var modeOptions = [
+				{ label: __( 'Button (links out)', 'firstchurch-breeze-forms' ), value: 'button' },
+				{ label: __( 'Embed (in-page iframe)', 'firstchurch-breeze-forms' ), value: 'embed' }
+			];
+			if ( selected && selected.native ) {
+				modeOptions.push( { label: __( 'Native (in-page form)', 'firstchurch-breeze-forms' ), value: 'native' } );
+			}
+
 			var settings = el(
 				InspectorControls,
 				{},
@@ -81,16 +92,29 @@
 					el( c.SelectControl, {
 						label: __( 'Display as', 'firstchurch-breeze-forms' ),
 						value: a.mode,
-						options: [
-							{ label: __( 'Button (links out)', 'firstchurch-breeze-forms' ), value: 'button' },
-							{ label: __( 'Embed (in-page iframe)', 'firstchurch-breeze-forms' ), value: 'embed' }
-						],
+						options: modeOptions,
 						onChange: function ( mode ) {
 							set( { mode: mode } );
 						}
 					} )
 				),
-				a.mode === 'button'
+				a.mode === 'native'
+					? el(
+							c.PanelBody,
+							{ title: __( 'Native form', 'firstchurch-breeze-forms' ), initialOpen: false },
+							el( 'p', { style: { color: '#757575', marginTop: 0 } },
+								__( 'Renders in-page and posts directly to Breeze — no iframe. Fields come from the form\'s saved layout.', 'firstchurch-breeze-forms' )
+							),
+							el( c.TextControl, {
+								label: __( 'Heading (optional)', 'firstchurch-breeze-forms' ),
+								value: a.title,
+								help: __( 'Overrides the form\'s own title above the fields.', 'firstchurch-breeze-forms' ),
+								onChange: function ( v ) {
+									set( { title: v } );
+								}
+							} )
+					  )
+					: a.mode === 'button'
 					? el(
 							c.PanelBody,
 							{ title: __( 'Button', 'firstchurch-breeze-forms' ), initialOpen: false },
@@ -181,6 +205,17 @@
 						icon: 'feedback',
 						label: ( selected ? selected.name : __( 'Breeze form', 'firstchurch-breeze-forms' ) ),
 						instructions: __( 'Embedded form — it appears and auto-sizes on the published page.', 'firstchurch-breeze-forms' )
+					}
+				);
+			} else if ( a.mode === 'native' ) {
+				// The native form carries a live nonce and submit handler — those
+				// belong on the published page, not the editor preview.
+				body = el(
+					c.Placeholder,
+					{
+						icon: 'feedback',
+						label: ( a.title || ( selected ? selected.name : __( 'Breeze form', 'firstchurch-breeze-forms' ) ) ),
+						instructions: __( 'Native in-page form — it renders in the site theme and posts to Breeze on the published page.', 'firstchurch-breeze-forms' )
 					}
 				);
 			} else {
