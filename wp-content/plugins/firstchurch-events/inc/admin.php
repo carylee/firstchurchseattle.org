@@ -34,6 +34,8 @@ function fce_metabox_render( WP_Post $post ): void {
 		<input type="date" name="fce_dtstart" value="<?php echo esc_attr( $f['start'] ); ?>"></label>
 		&nbsp;&nbsp;<label><strong><?php esc_html_e( 'Time', 'firstchurch-events' ); ?></strong><br>
 		<input type="time" name="fce_time" value="<?php echo esc_attr( $f['start_time'] ); ?>"></label></p>
+	<p <?php echo $row; ?>><label><strong><?php esc_html_e( 'Timing note', 'firstchurch-events' ); ?></strong> <span style="color:#666">(<?php esc_html_e( 'optional — for timing a single start can\'t express, e.g. "doors 6, show 7" or "9:30 & 11:00 services"', 'firstchurch-events' ); ?>)</span><br>
+		<input type="text" name="fce_time_text" class="widefat" value="<?php echo esc_attr( $f['time_text'] ); ?>"></label></p>
 	<p <?php echo $row; ?>><label><strong><?php esc_html_e( 'Venue', 'firstchurch-events' ); ?></strong><br>
 		<input type="text" name="fce_venue" class="widefat" value="<?php echo esc_attr( $f['venue'] ); ?>"></label></p>
 	<p <?php echo $row; ?>><label><strong><?php esc_html_e( 'Registration URL', 'firstchurch-events' ); ?></strong><br>
@@ -116,6 +118,7 @@ add_action( 'save_post_' . FCE_CPT, static function ( $post_id ) {
 	fce_write_event( (int) $post_id, array(
 		'date'             => isset( $_POST['fce_dtstart'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_dtstart'] ) ) : '',
 		'time'             => isset( $_POST['fce_time'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_time'] ) ) : '',
+		'time_text'        => isset( $_POST['fce_time_text'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_time_text'] ) ) : '',
 		'venue'            => isset( $_POST['fce_venue'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_venue'] ) ) : '',
 		'registration_url' => isset( $_POST['fce_regurl'] ) ? esc_url_raw( wp_unslash( $_POST['fce_regurl'] ) ) : '',
 		'kind'             => isset( $_POST['fce_kind'] ) ? sanitize_text_field( wp_unslash( $_POST['fce_kind'] ) ) : '',

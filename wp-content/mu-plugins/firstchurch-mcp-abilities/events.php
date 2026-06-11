@@ -34,6 +34,9 @@ if ( ! defined( 'FCMCP_META_DTSTART' ) ) {
 if ( ! defined( 'FCMCP_META_TIME' ) ) {
 	define( 'FCMCP_META_TIME', '_fce_time' );
 }
+if ( ! defined( 'FCMCP_META_TIME_TEXT' ) ) {
+	define( 'FCMCP_META_TIME_TEXT', '_fce_time_text' );
+}
 if ( ! defined( 'FCMCP_META_VENUE' ) ) {
 	define( 'FCMCP_META_VENUE', '_fce_venue' );
 }
@@ -191,6 +194,7 @@ add_action(
 						'description'      => array( 'type' => 'string' ),
 						'start_date'       => array( 'type' => 'string', 'description' => 'First occurrence, YYYY-MM-DD.' ),
 						'time'             => array( 'type' => 'string', 'description' => 'HH:MM (24h); omit for all-day.' ),
+						'time_text'        => array( 'type' => 'string', 'description' => 'Free-text timing a single HH:MM start can\'t express (e.g. "doors 6, show 7", "9:30 & 11:00 services", "After the worship service"). Shown in the human "when". Set `time` too when there is a clear primary start.' ),
 						'venue'            => array( 'type' => 'string' ),
 						'registration_url' => array( 'type' => 'string' ),
 						'category'         => array( 'type' => 'string', 'description' => 'Event category slug.' ),
@@ -225,6 +229,7 @@ add_action(
 						'description'      => array( 'type' => 'string' ),
 						'start_date'       => array( 'type' => 'string' ),
 						'time'             => array( 'type' => 'string' ),
+						'time_text'        => array( 'type' => 'string', 'description' => 'Free-text timing a single HH:MM start can\'t express (e.g. "doors 6, show 7"). Pass "" to clear.' ),
 						'venue'            => array( 'type' => 'string' ),
 						'registration_url' => array( 'type' => 'string' ),
 						'category'         => array( 'type' => 'string' ),
@@ -342,12 +347,14 @@ function fcmcp_apply_event_fields( int $post_id, array $input ): void {
 	$map = array(
 		'start_date'       => fn( $v ) => fcmcp_sanitize_date( $v ),
 		'time'             => fn( $v ) => sanitize_text_field( $v ),
+		'time_text'        => fn( $v ) => sanitize_text_field( $v ),
 		'venue'            => fn( $v ) => sanitize_text_field( $v ),
 		'registration_url' => fn( $v ) => esc_url_raw( $v ),
 	);
 	$keys = array(
 		'start_date'       => FCMCP_META_DTSTART,
 		'time'             => FCMCP_META_TIME,
+		'time_text'        => FCMCP_META_TIME_TEXT,
 		'venue'            => FCMCP_META_VENUE,
 		'registration_url' => FCMCP_META_REGURL,
 	);

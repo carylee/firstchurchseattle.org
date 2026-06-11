@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Events
  * Description: Lean, RRULE-backed events (no recurrence cron). Stores CTC-shaped recurrence meta so RRULE + the human "when" reuse the Happenings spine's tested code, exposes events to the spine (happenings_event_items) and a /events.ics subscription feed, and supports MCP + a light editor for authoring. Transitional: the spine reads this alongside Church Theme Content until events are migrated.
- * Version:     0.7.0
+ * Version:     0.8.0
  * Author:      First Church Seattle
  *
  * @package FirstChurch\Events
@@ -38,8 +38,13 @@ const FCE_CPT = 'fce_event';
 // for .ics/occurrences) and the spine's EventWhen::format() (→ "Sundays at
 // 10:30 am · Sanctuary") both consume it directly. RRULE is derived at read
 // time, never stored. _fce_skip_dates (EXDATE) is ours, not a CTC field.
-const FCE_DTSTART = '_fce_dtstart';
-const FCE_TIME    = '_fce_time';
+const FCE_DTSTART   = '_fce_dtstart';
+const FCE_TIME      = '_fce_time';
+// Free-text timing for cases a single HH:MM start can't express ("doors 6, show
+// 7", "9:30 & 11:00 services", "After the worship service"). EventWhen::format()
+// already consumes this (clock-like → the "at" slot; otherwise a "·" descriptor);
+// stored here so the fce read path can feed it. _fce_time stays the machine clock.
+const FCE_TIME_TEXT = '_fce_time_text';
 const FCE_VENUE   = '_fce_venue';
 const FCE_REGURL  = '_fce_registration_url';
 const FCE_SKIP    = '_fce_skip_dates';

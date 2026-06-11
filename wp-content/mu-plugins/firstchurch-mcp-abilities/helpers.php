@@ -72,6 +72,7 @@ function fcmcp_event_to_array( WP_Post $post ): array {
 		'status'           => $post->post_status,
 		'start_date'       => (string) get_post_meta( $post->ID, '_fce_dtstart', true ),
 		'time'             => (string) get_post_meta( $post->ID, '_fce_time', true ),
+		'time_text'        => (string) get_post_meta( $post->ID, '_fce_time_text', true ),
 		'venue'            => (string) get_post_meta( $post->ID, '_fce_venue', true ),
 		'registration_url' => (string) get_post_meta( $post->ID, '_fce_registration_url', true ),
 		'kind'             => (string) get_post_meta( $post->ID, '_fce_kind', true ),

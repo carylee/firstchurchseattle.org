@@ -34,6 +34,9 @@ function fce_recurrence_fields( int $post_id ): array {
 		'monthly_week'    => (string) get_post_meta( $post_id, FCE_MO_WEEK, true ),
 		'end_date'        => (string) get_post_meta( $post_id, FCE_END, true ),
 		'start_time'      => (string) get_post_meta( $post_id, FCE_TIME, true ),
+		// Free-text timing; EventWhen::format() folds it into the "when" alongside
+		// (or instead of) the machine clock. See FCE_TIME_TEXT.
+		'time_text'       => (string) get_post_meta( $post_id, FCE_TIME_TEXT, true ),
 		'venue'           => (string) get_post_meta( $post_id, FCE_VENUE, true ),
 	);
 }
@@ -113,6 +116,9 @@ function fce_write_event( int $post_id, array $in ): void {
 	}
 	if ( array_key_exists( 'time', $in ) ) {
 		update_post_meta( $post_id, FCE_TIME, sanitize_text_field( (string) $in['time'] ) );
+	}
+	if ( array_key_exists( 'time_text', $in ) ) {
+		update_post_meta( $post_id, FCE_TIME_TEXT, sanitize_text_field( (string) $in['time_text'] ) );
 	}
 	if ( array_key_exists( 'venue', $in ) ) {
 		update_post_meta( $post_id, FCE_VENUE, sanitize_text_field( (string) $in['venue'] ) );
