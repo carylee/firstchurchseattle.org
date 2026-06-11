@@ -35,20 +35,19 @@ add_action(
 		}
 
 		$base = get_stylesheet_directory_uri() . '/assets/js';
-		$ver  = FCS_CHILD_VERSION;
 
 		// Islands (leaves of the graph).
 		wp_register_script_module(
 			'@firstchurch/skip-link',
 			$base . '/islands/skip-link.js',
 			array(),
-			$ver
+			fcs_asset_version( 'assets/js/islands/skip-link.js' )
 		);
 		wp_register_script_module(
 			'@firstchurch/worship-live',
 			$base . '/islands/worship-live.js',
 			array(),
-			$ver
+			fcs_asset_version( 'assets/js/islands/worship-live.js' )
 		);
 
 		// Entry module — depends on every island it imports so they land in the
@@ -57,7 +56,7 @@ add_action(
 			'@firstchurch/boot',
 			$base . '/boot.js',
 			array( '@firstchurch/skip-link', '@firstchurch/worship-live' ),
-			$ver
+			fcs_asset_version( 'assets/js/boot.js' )
 		);
 
 		wp_enqueue_script_module( '@firstchurch/boot' );

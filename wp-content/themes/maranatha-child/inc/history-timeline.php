@@ -27,6 +27,6 @@ add_action( 'wp_enqueue_scripts', function () {
 		'maranatha-child-timeline',
 		get_stylesheet_directory_uri() . '/assets/timeline.css',
 		array( 'maranatha-child-mobile' ),
-		FCS_CHILD_VERSION
+		fcs_asset_version( 'assets/timeline.css' )
 	);
 }, 20 );

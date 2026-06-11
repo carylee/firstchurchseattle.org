@@ -90,7 +90,8 @@ pages that don't use it. Markup ships working without JS; islands enhance it.
    with a versioned URL — keep imports inside `assets/js/` going through the
    registered specifier, not relative paths, so nothing ships unversioned).
 3. Import + call it in `assets/js/boot.js`.
-4. Bump `FCS_CHILD_VERSION`.
+
+No version bump needed — `?ver=` comes from the file's mtime (`fcs_asset_version()`).
 
 **Dev toolchain** (one-time `npm install`; dev-only, never shipped):
 
@@ -131,8 +132,8 @@ First-time-only wp-admin steps:
 - For `/worship/live/`: Pages → Worship Live → Page Attributes → Template →
   "Worship Live (Custom)".
 
-Subsequent edits just need a version bump in `functions.php` (`FCS_CHILD_VERSION`);
-hard-refresh once to bust any CDN/page-cache.
+Subsequent edits need no version bump — assets cache-bust by file mtime (see
+Versioning below); hard-refresh once to bust any CDN/page-cache.
 
 ## Important non-obvious things
 
@@ -159,9 +160,11 @@ hard-refresh once to bust any CDN/page-cache.
 
 ## Versioning
 
-`FCS_CHILD_VERSION` in `functions.php` is the asset cache-bust string.
-Bump it whenever you change `mobile.css`, `assets/src/input.css` (which rebuilds
-`tailwind.css`), or any enqueued asset, so visitors don't see stale CSS. Because
-`tailwind.css` is no longer tracked, the CI `asset version bump` guard can't see a
-markup-only change that adds a new utility class — bump the version yourself when
-that happens.
+Asset `?ver=` strings come from each file's mtime via `fcs_asset_version()` in
+`functions.php` — there is no version constant to bump. Deploys rsync with
+timestamps from a fresh CI checkout, so every shipped file gets a new `?ver=`
+and browsers/Cloudflare refetch; local edits under DDEV bust the same way. This
+also closes the old `tailwind.css` gap: a markup-only change that adds a new
+utility class still gets a fresh `?ver=`, because CI rebuilds `tailwind.css`
+(new mtime) on every deploy. The `asset version bump` CI guard exempts this
+theme accordingly (`ops/scripts/check-asset-version-bump.sh`).
