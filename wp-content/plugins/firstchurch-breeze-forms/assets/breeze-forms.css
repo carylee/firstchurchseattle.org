@@ -29,14 +29,23 @@
  * ---------------------------------------------------------------------- */
 
 .fcbf-native {
+    /* Maroon splits into FILL (button background — keeps its brand color in
+     * dark mode, white-on-maroon reads fine on a dark canvas) and ACCENT
+     * (maroon-as-text: heading, required asterisk, focus border — must
+     * lighten on dark or it fails contrast). Same split the child theme's
+     * dark-mode.css makes with --fcs-maroon vs --fcs-accent. */
     --fcbf-maroon: #70334e;
     --fcbf-maroon-dark: #5a2940;
+    --fcbf-accent: var(--fcbf-maroon);
     --fcbf-surface: #faf6f8;
+    --fcbf-field-bg: #fff;
     --fcbf-border: #ebe1e5;
     --fcbf-text: #1f1f1f;
     --fcbf-text-muted: #5f5560;
     --fcbf-danger: #b3261e;
     --fcbf-success: #2f6f3f;
+    --fcbf-ring: rgba(112, 51, 78, 0.18);
+    --fcbf-ring-strong: rgba(112, 51, 78, 0.35);
     --fcbf-radius: 12px;
     --fcbf-tap-min: 44px;
 
@@ -52,11 +61,30 @@
     box-sizing: border-box;
 }
 
+/* Dark palette — mirrors the child theme's dark-mode.css tokens (surface-2
+ * #1e2127 card on #16181c page, rose accent) so the card matches the rest of
+ * the dark site. Values are duplicated rather than var(--fcs-*) references so
+ * the plugin stays self-contained on pages outside the child theme. */
+@media (prefers-color-scheme: dark) {
+    .fcbf-native {
+        --fcbf-accent: #e295b6;
+        --fcbf-surface: #1e2127;
+        --fcbf-field-bg: #16181c;
+        --fcbf-border: #34373d;
+        --fcbf-text: #e9e7e4;
+        --fcbf-text-muted: #9b949c;
+        --fcbf-danger: #f0a9a4;
+        --fcbf-success: #5cc46a;
+        --fcbf-ring: rgba(226, 149, 182, 0.28);
+        --fcbf-ring-strong: rgba(226, 149, 182, 0.45);
+    }
+}
+
 .fcbf-native__heading {
     margin: 0 0 8px;
     font-size: 24px;
     font-weight: 600;
-    color: var(--fcbf-maroon);
+    color: var(--fcbf-accent);
     letter-spacing: 0.01em;
 }
 
@@ -80,7 +108,7 @@
 }
 
 .fcbf-required {
-    color: var(--fcbf-maroon);
+    color: var(--fcbf-accent);
     margin-left: 2px;
 }
 
@@ -114,7 +142,7 @@
     padding: 10px 12px;
     font: inherit;
     color: var(--fcbf-text);
-    background: #fff;
+    background: var(--fcbf-field-bg);
     border: 1px solid var(--fcbf-border);
     border-radius: 8px;
     box-sizing: border-box;
@@ -129,8 +157,8 @@
 .fcbf-native input:focus,
 .fcbf-native textarea:focus {
     outline: none;
-    border-color: var(--fcbf-maroon);
-    box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.18);
+    border-color: var(--fcbf-accent);
+    box-shadow: 0 0 0 3px var(--fcbf-ring);
 }
 
 .fcbf-native input[aria-invalid="true"],
@@ -207,7 +235,12 @@
     color: var(--fcbf-success);
 }
 
-.fcbf-native__submit {
+/* Scoped under .fcbf-native (specificity 0,2,0): the button also carries the
+ * theme's .maranatha-button class, and the Customizer-generated stylesheet
+ * styles .maranatha-button as an OUTLINE button (maroon text) — it prints
+ * after this sheet, so a bare .fcbf-native__submit loses `color` by source
+ * order and the white label goes maroon-on-maroon (invisible). */
+.fcbf-native .fcbf-native__submit {
     display: inline-block;
     margin-top: 20px;
     padding: 12px 28px;
@@ -224,19 +257,19 @@
     transition: background-color 0.12s ease-out, transform 0.12s ease-out;
 }
 
-.fcbf-native__submit:hover,
-.fcbf-native__submit:focus {
+.fcbf-native .fcbf-native__submit:hover,
+.fcbf-native .fcbf-native__submit:focus {
     background: var(--fcbf-maroon-dark);
     border-color: var(--fcbf-maroon-dark);
     color: #fff;
     outline: none;
 }
 
-.fcbf-native__submit:focus-visible {
-    box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.35);
+.fcbf-native .fcbf-native__submit:focus-visible {
+    box-shadow: 0 0 0 3px var(--fcbf-ring-strong);
 }
 
-.fcbf-native__submit[disabled] {
+.fcbf-native .fcbf-native__submit[disabled] {
     opacity: 0.6;
     cursor: progress;
 }
