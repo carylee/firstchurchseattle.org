@@ -1843,3 +1843,25 @@ a.fcs-rhythm-strip__title:focus {
 .fcs-footer__map:focus img {
 	opacity: 1;
 }
+
+/* -- In-content static map (inc/static-map.php fills the placeholder) -- */
+
+a.fcs-content-map {
+	display: block;
+	border-radius: 10px;
+	overflow: hidden;
+	line-height: 0;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+a.fcs-content-map img {
+	width: 100%;
+	height: auto;
+	display: block;
+	transition: opacity 0.12s ease-out;
+}
+
+a.fcs-content-map:hover img,
+a.fcs-content-map:focus img {
+	opacity: 0.92;
+}
