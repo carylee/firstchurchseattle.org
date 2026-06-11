@@ -32,6 +32,7 @@
 /wp-content/plugins/firstchurch-happenings/
 /wp-content/plugins/firstchurch-people/
 /wp-content/plugins/firstchurch-stock-photos/
+/wp-content/mu-plugins/firstchurch-google-login-callback.php
 /wp-content/mu-plugins/firstchurch-google-register-policy.php
 /wp-content/mu-plugins/firstchurch-mcp-abilities.php
 /wp-content/mu-plugins/firstchurch-security-headers.php

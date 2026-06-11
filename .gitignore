@@ -58,6 +58,7 @@
 !/wp-content/mu-plugins/firstchurch-mcp-abilities.php
 !/wp-content/mu-plugins/sso.php
 !/wp-content/mu-plugins/firstchurch-google-register-policy.php
+!/wp-content/mu-plugins/firstchurch-google-login-callback.php
 !/wp-content/mu-plugins/firstchurch-security-headers.php
 # Test harness for the MCP mu-plugin (dev-only; not deployed). Track the source,
 # but not the Composer/PHPUnit build artifacts.
