@@ -47,13 +47,9 @@ $quick_links = array(
 );
 
 // Small static map under the Contact column — shared builder in
-// inc/static-map.php (Google Static Maps via the parent framework helper,
-// fails soft to nothing).
-$fcs_footer_map = fcs_static_map_image();
-if ( $fcs_footer_map ) {
-	// The helper has no lazy-load option; the footer is always below the fold.
-	$fcs_footer_map = str_replace( '<img ', '<img loading="lazy" ', $fcs_footer_map );
-}
+// inc/static-map.php (committed assets/map.webp, no runtime third-party calls).
+// The helper emits no loading attr; the footer is always below the fold.
+$fcs_footer_map = str_replace( '<img ', '<img loading="lazy" ', fcs_static_map_image() );
 ?>
 
 <footer id="maranatha-footer" class="fcs-footer">
@@ -79,11 +75,9 @@ if ( $fcs_footer_map ) {
 				<a href="mailto:office@firstchurchseattle.org">office@firstchurchseattle.org</a>
 				<span class="fcs-footer__mailing"><?php esc_html_e( 'Mail: PO Box 19596, Seattle, WA 98109', 'maranatha-child' ); ?></span>
 			</address>
-			<?php if ( $fcs_footer_map ) : ?>
-				<a class="fcs-footer__map" href="https://www.google.com/maps/dir/?api=1&amp;destination=180+Denny+Way%2C+Seattle%2C+WA+98109" target="_blank" rel="noopener noreferrer" title="<?php esc_attr_e( 'Get directions to First Church', 'maranatha-child' ); ?>">
-					<?php echo $fcs_footer_map; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- parent helper builds + escapes this markup. ?>
-				</a>
-			<?php endif; ?>
+			<a class="fcs-footer__map" href="https://www.google.com/maps/dir/?api=1&amp;destination=180+Denny+Way%2C+Seattle%2C+WA+98109" target="_blank" rel="noopener noreferrer" title="<?php esc_attr_e( 'Get directions to First Church', 'maranatha-child' ); ?>">
+				<?php echo $fcs_footer_map; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper builds + escapes this markup. ?>
+			</a>
 		</div>
 
 		<div class="fcs-footer__col">
