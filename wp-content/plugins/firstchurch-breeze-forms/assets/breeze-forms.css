@@ -207,7 +207,12 @@
     color: var(--fcbf-success);
 }
 
-.fcbf-native__submit {
+/* Scoped under .fcbf-native (specificity 0,2,0): the button also carries the
+ * theme's .maranatha-button class, and the Customizer-generated stylesheet
+ * styles .maranatha-button as an OUTLINE button (maroon text) — it prints
+ * after this sheet, so a bare .fcbf-native__submit loses `color` by source
+ * order and the white label goes maroon-on-maroon (invisible). */
+.fcbf-native .fcbf-native__submit {
     display: inline-block;
     margin-top: 20px;
     padding: 12px 28px;
@@ -224,19 +229,19 @@
     transition: background-color 0.12s ease-out, transform 0.12s ease-out;
 }
 
-.fcbf-native__submit:hover,
-.fcbf-native__submit:focus {
+.fcbf-native .fcbf-native__submit:hover,
+.fcbf-native .fcbf-native__submit:focus {
     background: var(--fcbf-maroon-dark);
     border-color: var(--fcbf-maroon-dark);
     color: #fff;
     outline: none;
 }
 
-.fcbf-native__submit:focus-visible {
+.fcbf-native .fcbf-native__submit:focus-visible {
     box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.35);
 }
 
-.fcbf-native__submit[disabled] {
+.fcbf-native .fcbf-native__submit[disabled] {
     opacity: 0.6;
     cursor: progress;
 }
