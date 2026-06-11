@@ -116,15 +116,16 @@ if [ "$DO_DB" = 1 ] && [ -z "$DRY" ]; then
   for scheme in https http; do
     # --skip-columns=guid: GUIDs are identifiers, not links — leave them be.
     ddev wp search-replace "${scheme}://firstchurchseattle.org" "" \
-      --all-tables --skip-columns=guid --report-changed-only || true
+      --all-tables --skip-columns=guid --report-changed-only
+    # The https pass also empties home/siteurl — right after a fresh import they
+    # hold the prod URL like everything else. WordPress refuses to boot with an
+    # empty siteurl ("Error establishing a database connection", deceptively),
+    # and that breaks wp-cli itself — including the NEXT pass of this loop — so
+    # restore them inside the loop, with a raw query rather than `wp option
+    # update`. (WP_HOME/WP_SITEURL constants from wp-config-ddev.php normally
+    # mask these options, but core's is-installed check reads them raw.)
+    ddev mysql -e "UPDATE db.wpqg_options SET option_value='${DDEV_PRIMARY_URL:-https://firstchurchseattle.ddev.site}' WHERE option_name IN ('home','siteurl');"
   done
-  # The strip above also empties home/siteurl — right after a fresh import they
-  # hold the prod URL like everything else. WordPress refuses to boot with an
-  # empty siteurl ("Error establishing a database connection", deceptively), and
-  # that breaks wp-cli itself, so restore them with a raw query rather than
-  # `wp option update`. (WP_HOME/WP_SITEURL constants from wp-config-ddev.php
-  # normally mask these options, but core's is-installed check reads them raw.)
-  ddev mysql -e "UPDATE db.wpqg_options SET option_value='${DDEV_PRIMARY_URL:-https://firstchurchseattle.ddev.site}' WHERE option_name IN ('home','siteurl');"
   ddev wp cache flush >/dev/null 2>&1 || true
 fi
 
