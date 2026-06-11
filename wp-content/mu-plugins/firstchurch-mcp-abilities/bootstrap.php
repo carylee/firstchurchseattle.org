@@ -50,6 +50,10 @@ const FCMCP_DIRECT_TOOLS = array(
 	'firstchurch/list-menus', 'firstchurch/get-menu', 'firstchurch/add-menu-item', 'firstchurch/update-menu-item', 'firstchurch/remove-menu-item', 'firstchurch/reorder-menu',
 	// E-News (firstchurch-enews plugin — registered there, promoted here)
 	'firstchurch/list-enews', 'firstchurch/get-enews', 'firstchurch/create-enews', 'firstchurch/update-enews', 'firstchurch/set-enews-status', 'firstchurch/preview-enews',
+	// Safety rails
+	'firstchurch/restore', 'firstchurch/list-trash', 'firstchurch/audit-log',
+	// Maintenance reads
+	'firstchurch/content-health', 'firstchurch/resolve-url',
 	// Dashboard
 	'firstchurch/review-queue',
 );
