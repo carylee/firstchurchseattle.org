@@ -29,6 +29,8 @@ fake Abilities API.
 | 2 — logic | `RecurrenceTest`, `DateTest`, `TermResolveTest` | The recurrence engine round-trip, date/status sanitizers + publication-date handling, term name/slug resolution with create-on-miss. |
 | 2 — security | `PermissionTest` | Status-gated read `permission_callback`s, write capability gates, and the `map_meta_cap` closure that scopes the `mcp_editor` role to managed post types. |
 | 3 — query | `QueryArgsTest` | The `fcmcp_build_*_query_args()` seams extracted from the search abilities. |
+| feature | `MenuTest` | Navigation-menu seams: `fcmcp_build_menu_item_args` (link-target XOR validation), field mapping, and the item serializer. |
+| feature | `ResourcesPromptsTest` | MCP resources/prompts are public + correctly typed; the content-guide/taxonomy resources and the prompt workflow builders return well-formed output. |
 
 ## Not covered (by design)
 
