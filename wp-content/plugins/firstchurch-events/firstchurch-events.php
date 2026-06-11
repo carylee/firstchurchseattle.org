@@ -71,6 +71,14 @@ add_action( 'init', static function () {
 		// rewrite flush — the activation hook does it; on deploy run `wp rewrite flush`.
 		'rewrite'            => array( 'slug' => 'event', 'with_front' => false ),
 	) );
+
+	register_taxonomy( 'ctc_event_category', FCE_CPT, array(
+		'label'        => 'Event Categories',
+		'public'       => false,
+		'show_ui'      => true,
+		'hierarchical' => false,
+		'rewrite'      => false,
+	) );
 } );
 
 require_once __DIR__ . '/inc/event.php';

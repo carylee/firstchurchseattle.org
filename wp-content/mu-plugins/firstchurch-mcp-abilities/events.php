@@ -2,7 +2,8 @@
 /**
  * First Church MCP Abilities — events.
  *
- * Read + draft-first write abilities for ctc_event, plus search/query helpers.
+ * Read + draft-first write abilities for fce_event (the lean RRULE backend,
+ * replacing the legacy ctc_event).
  *
  * Loaded by ../firstchurch-mcp-abilities.php (WordPress does not auto-load
  * mu-plugin subdirectories). Procedural, global namespace, no autoloader —
@@ -12,6 +13,57 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+/**
+ * Fallback constants when firstchurch-events is not active — these mirror
+ * the plugin's constants so the MCP surface stays self-contained. Tests
+ * override via bootstrap shims; prod always has the plugin active.
+ */
+if ( ! defined( 'FCMCP_EVENT_CPT' ) ) {
+	define( 'FCMCP_EVENT_CPT', 'fce_event' );
+}
+if ( ! defined( 'FCMCP_EVENT_CAT' ) ) {
+	define( 'FCMCP_EVENT_CAT', 'ctc_event_category' );
+}
+
+// --------------- META KEYS (mirror firstchurch-events constants) ---------------
+
+if ( ! defined( 'FCMCP_META_DTSTART' ) ) {
+	define( 'FCMCP_META_DTSTART', '_fce_dtstart' );
+}
+if ( ! defined( 'FCMCP_META_TIME' ) ) {
+	define( 'FCMCP_META_TIME', '_fce_time' );
+}
+if ( ! defined( 'FCMCP_META_VENUE' ) ) {
+	define( 'FCMCP_META_VENUE', '_fce_venue' );
+}
+if ( ! defined( 'FCMCP_META_REGURL' ) ) {
+	define( 'FCMCP_META_REGURL', '_fce_registration_url' );
+}
+if ( ! defined( 'FCMCP_META_SKIP' ) ) {
+	define( 'FCMCP_META_SKIP', '_fce_skip_dates' );
+}
+if ( ! defined( 'FCMCP_META_KIND' ) ) {
+	define( 'FCMCP_META_KIND', '_fce_kind' );
+}
+if ( ! defined( 'FCMCP_META_RECUR' ) ) {
+	define( 'FCMCP_META_RECUR', '_fce_recurrence' );
+}
+if ( ! defined( 'FCMCP_META_WK_INT' ) ) {
+	define( 'FCMCP_META_WK_INT', '_fce_weekly_interval' );
+}
+if ( ! defined( 'FCMCP_META_WK_DAYS' ) ) {
+	define( 'FCMCP_META_WK_DAYS', '_fce_weekly_days' );
+}
+if ( ! defined( 'FCMCP_META_MO_TYPE' ) ) {
+	define( 'FCMCP_META_MO_TYPE', '_fce_monthly_type' );
+}
+if ( ! defined( 'FCMCP_META_MO_WEEK' ) ) {
+	define( 'FCMCP_META_MO_WEEK', '_fce_monthly_week' );
+}
+if ( ! defined( 'FCMCP_META_END' ) ) {
+	define( 'FCMCP_META_END', '_fce_end_date' );
+}
 
 add_action(
 	'wp_abilities_api_init',
@@ -59,7 +111,7 @@ add_action(
 						'limit'     => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ),
 						'from_date' => array( 'type' => 'string', 'description' => 'YYYY-MM-DD; defaults to today' ),
 						'to_date'   => array( 'type' => 'string', 'description' => 'YYYY-MM-DD; optional upper bound' ),
-						'category'  => array( 'type' => 'string', 'description' => 'ctc_event_category slug' ),
+						'category'  => array( 'type' => 'string', 'description' => 'Event category slug' ),
 						'search'    => array( 'type' => 'string' ),
 						'status'    => array( 'type' => 'string', 'enum' => array( 'publish', 'draft', 'pending', 'any' ), 'default' => 'publish' ),
 						'order'     => array( 'type' => 'string', 'enum' => array( 'asc', 'desc' ), 'default' => 'asc' ),
@@ -92,7 +144,7 @@ add_action(
 				),
 				'execute_callback'    => static function ( $input ) {
 					$post = get_post( (int) $input['id'] );
-					if ( ! $post || 'ctc_event' !== $post->post_type ) {
+					if ( ! $post || FCMCP_EVENT_CPT !== $post->post_type ) {
 						return new WP_Error( 'not_found', 'Event not found.' );
 					}
 					if ( 'publish' !== $post->post_status && ! current_user_can( 'edit_post', $post->ID ) ) {
@@ -109,10 +161,10 @@ add_action(
 			'firstchurch/list-event-categories',
 			array(
 				'label'               => 'List event categories',
-				'description'         => 'List ctc_event_category terms (slug, name, count). Read-only.',
+				'description'         => 'List event category terms (slug, name, count). Read-only.',
 				'category'            => 'firstchurch',
 				'execute_callback'    => static function () {
-					$terms = get_terms( array( 'taxonomy' => 'ctc_event_category', 'hide_empty' => false ) );
+					$terms = get_terms( array( 'taxonomy' => FCMCP_EVENT_CAT, 'hide_empty' => false ) );
 					$out   = array();
 					foreach ( $terms as $t ) {
 						$out[] = array( 'slug' => $t->slug, 'name' => $t->name, 'count' => (int) $t->count );
@@ -137,15 +189,13 @@ add_action(
 					'properties'           => array(
 						'title'            => array( 'type' => 'string' ),
 						'description'      => array( 'type' => 'string' ),
-						'start_date'       => array( 'type' => 'string', 'description' => 'YYYY-MM-DD' ),
-						'end_date'         => array( 'type' => 'string', 'description' => 'YYYY-MM-DD; defaults to start_date' ),
-						'start_time'       => array( 'type' => 'string', 'description' => 'HH:MM (24h)' ),
-						'end_time'         => array( 'type' => 'string', 'description' => 'HH:MM (24h)' ),
-						'time_text'        => array( 'type' => 'string', 'description' => 'Human-readable time, e.g. "10:30 am"' ),
+						'start_date'       => array( 'type' => 'string', 'description' => 'First occurrence, YYYY-MM-DD.' ),
+						'time'             => array( 'type' => 'string', 'description' => 'HH:MM (24h); omit for all-day.' ),
 						'venue'            => array( 'type' => 'string' ),
-						'address'          => array( 'type' => 'string' ),
 						'registration_url' => array( 'type' => 'string' ),
-						'category'         => array( 'type' => 'string', 'description' => 'ctc_event_category slug' ),
+						'category'         => array( 'type' => 'string', 'description' => 'Event category slug.' ),
+						'kind'             => array( 'type' => 'string', 'enum' => array( '', 'rhythm', 'group', 'event' ), 'description' => 'Override the derived kind. Usually omit — it is derived from recurrence.' ),
+						'skip_dates'       => array( 'type' => 'array', 'items' => array( 'type' => 'string' ), 'description' => 'YYYY-MM-DD dates to cancel (EXDATE).' ),
 						'recurrence'       => fcmcp_recurrence_schema(),
 						'image_id'         => array( 'type' => 'integer', 'description' => 'Existing media library attachment ID to use as the featured image.' ),
 						'image_url'        => array( 'type' => 'string', 'description' => 'URL of an image to download and set as the featured image.' ),
@@ -165,7 +215,7 @@ add_action(
 			'firstchurch/update-event',
 			array(
 				'label'               => 'Update event',
-				'description'         => 'Update fields of an existing event by ID. Does not change publish status (use set-event-status). Only title/description/date/time/venue/address/registration_url/category may be set.',
+				'description'         => 'Update fields of an existing event by ID. Does not change publish status (use set-event-status).',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',
@@ -174,18 +224,16 @@ add_action(
 						'title'            => array( 'type' => 'string' ),
 						'description'      => array( 'type' => 'string' ),
 						'start_date'       => array( 'type' => 'string' ),
-						'end_date'         => array( 'type' => 'string' ),
-						'start_time'       => array( 'type' => 'string' ),
-						'end_time'         => array( 'type' => 'string' ),
-						'time_text'        => array( 'type' => 'string' ),
+						'time'             => array( 'type' => 'string' ),
 						'venue'            => array( 'type' => 'string' ),
-						'address'          => array( 'type' => 'string' ),
 						'registration_url' => array( 'type' => 'string' ),
 						'category'         => array( 'type' => 'string' ),
+						'kind'             => array( 'type' => 'string', 'enum' => array( '', 'rhythm', 'group', 'event' ) ),
+						'skip_dates'       => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
 						'recurrence'       => fcmcp_recurrence_schema(),
-						'image_id'         => array( 'type' => 'integer', 'description' => 'Existing media library attachment ID to use as the featured image.' ),
-						'image_url'        => array( 'type' => 'string', 'description' => 'URL of an image to download and set as the featured image.' ),
-						'date'             => array( 'type' => 'string', 'description' => 'WordPress publication date/time (YYYY-MM-DD or YYYY-MM-DD HH:MM, site local), separate from start_date. Past backdates; future schedules the post to auto-publish then.' ),
+						'image_id'         => array( 'type' => 'integer' ),
+						'image_url'        => array( 'type' => 'string' ),
+						'date'             => array( 'type' => 'string', 'description' => 'WordPress publication date/time.' ),
 					),
 					'required'             => array( 'id' ),
 					'additionalProperties' => false,
@@ -214,7 +262,7 @@ add_action(
 					'additionalProperties' => false,
 				),
 				'execute_callback'    => static function ( $input ) {
-					return fcmcp_set_status( (int) $input['id'], (string) $input['status'], 'ctc_event' );
+					return fcmcp_set_status( (int) $input['id'], (string) $input['status'], FCMCP_EVENT_CPT );
 				},
 				'permission_callback' => static function ( $input = array() ) {
 					return isset( $input['id'] ) && current_user_can( 'edit_post', (int) $input['id'] );
@@ -236,7 +284,7 @@ add_action(
 					'additionalProperties' => false,
 				),
 				'execute_callback'    => static function ( $input ) {
-					return fcmcp_trash( (int) $input['id'], 'ctc_event' );
+					return fcmcp_trash( (int) $input['id'], FCMCP_EVENT_CPT );
 				},
 				'permission_callback' => static function ( $input = array() ) {
 					return isset( $input['id'] ) && current_user_can( 'delete_post', (int) $input['id'] );
@@ -260,15 +308,15 @@ function fcmcp_build_event_query_args( array $input ): array {
 	$status = $input['status'] ?? 'publish';
 
 	$meta = array(
-		array( 'key' => '_ctc_event_start_date', 'value' => $from, 'compare' => '>=', 'type' => 'DATE' ),
+		array( 'key' => FCMCP_META_DTSTART, 'value' => $from, 'compare' => '>=', 'type' => 'DATE' ),
 	);
 	if ( $to ) {
-		$meta[] = array( 'key' => '_ctc_event_start_date', 'value' => $to, 'compare' => '<=', 'type' => 'DATE' );
+		$meta[] = array( 'key' => FCMCP_META_DTSTART, 'value' => $to, 'compare' => '<=', 'type' => 'DATE' );
 	}
-	$meta['start'] = array( 'key' => '_ctc_event_start_date' );
+	$meta['start'] = array( 'key' => FCMCP_META_DTSTART );
 
 	$args = array(
-		'post_type'      => 'ctc_event',
+		'post_type'      => FCMCP_EVENT_CPT,
 		'post_status'    => 'any' === $status ? array( 'publish', 'draft', 'pending', 'future' ) : $status,
 		'posts_per_page' => $limit,
 		'no_found_rows'  => true,
@@ -279,7 +327,7 @@ function fcmcp_build_event_query_args( array $input ): array {
 		$args['s'] = sanitize_text_field( $input['search'] );
 	}
 	if ( ! empty( $input['category'] ) ) {
-		$args['tax_query'] = array( array( 'taxonomy' => 'ctc_event_category', 'field' => 'slug', 'terms' => sanitize_title( $input['category'] ) ) );
+		$args['tax_query'] = array( array( 'taxonomy' => FCMCP_EVENT_CAT, 'field' => 'slug', 'terms' => sanitize_title( $input['category'] ) ) );
 	}
 	return $args;
 }
@@ -293,23 +341,15 @@ function fcmcp_search_events( $input = array() ) {
 function fcmcp_apply_event_fields( int $post_id, array $input ): void {
 	$map = array(
 		'start_date'       => fn( $v ) => fcmcp_sanitize_date( $v ),
-		'end_date'         => fn( $v ) => fcmcp_sanitize_date( $v ),
-		'start_time'       => fn( $v ) => fcmcp_sanitize_time( $v ),
-		'end_time'         => fn( $v ) => fcmcp_sanitize_time( $v ),
-		'time_text'        => fn( $v ) => sanitize_text_field( $v ),
+		'time'             => fn( $v ) => sanitize_text_field( $v ),
 		'venue'            => fn( $v ) => sanitize_text_field( $v ),
-		'address'          => fn( $v ) => sanitize_textarea_field( $v ),
 		'registration_url' => fn( $v ) => esc_url_raw( $v ),
 	);
 	$keys = array(
-		'start_date'       => '_ctc_event_start_date',
-		'end_date'         => '_ctc_event_end_date',
-		'start_time'       => '_ctc_event_start_time',
-		'end_time'         => '_ctc_event_end_time',
-		'time_text'        => '_ctc_event_time',
-		'venue'            => '_ctc_event_venue',
-		'address'          => '_ctc_event_address',
-		'registration_url' => '_ctc_event_registration_url',
+		'start_date'       => FCMCP_META_DTSTART,
+		'time'             => FCMCP_META_TIME,
+		'venue'            => FCMCP_META_VENUE,
+		'registration_url' => FCMCP_META_REGURL,
 	);
 	foreach ( $keys as $field => $meta_key ) {
 		if ( array_key_exists( $field, $input ) ) {
@@ -317,9 +357,16 @@ function fcmcp_apply_event_fields( int $post_id, array $input ): void {
 		}
 	}
 	if ( ! empty( $input['category'] ) ) {
-		wp_set_object_terms( $post_id, sanitize_title( $input['category'] ), 'ctc_event_category', false );
+		wp_set_object_terms( $post_id, sanitize_title( $input['category'] ), FCMCP_EVENT_CAT, false );
 	}
-	fcmcp_refresh_event_dates( $post_id );
+	if ( array_key_exists( 'kind', $input ) ) {
+		$kind = strtolower( sanitize_text_field( (string) $input['kind'] ) );
+		update_post_meta( $post_id, FCMCP_META_KIND, in_array( $kind, array( 'rhythm', 'group', 'event' ), true ) ? $kind : '' );
+	}
+	if ( array_key_exists( 'skip_dates', $input ) ) {
+		$dates = array_filter( array_map( 'sanitize_text_field', (array) $input['skip_dates'] ) );
+		update_post_meta( $post_id, FCMCP_META_SKIP, implode( ',', $dates ) );
+	}
 }
 
 function fcmcp_create_event( $input ) {
@@ -327,15 +374,11 @@ function fcmcp_create_event( $input ) {
 	if ( '' === $start ) {
 		return new WP_Error( 'invalid_date', 'start_date must be YYYY-MM-DD.' );
 	}
-	$end = fcmcp_sanitize_date( $input['end_date'] ?? '' ) ?: $start;
-	if ( $end < $start ) {
-		return new WP_Error( 'invalid_range', 'end_date cannot be before start_date.' );
-	}
 
 	$post_id = wp_insert_post(
 		fcmcp_apply_post_date(
 			array(
-				'post_type'    => 'ctc_event',
+				'post_type'    => FCMCP_EVENT_CPT,
 				'post_status'  => fcmcp_new_status( $input ),
 				'post_title'   => sanitize_text_field( $input['title'] ),
 				'post_content' => wp_kses_post( $input['description'] ?? '' ),
@@ -347,14 +390,12 @@ function fcmcp_create_event( $input ) {
 	if ( is_wp_error( $post_id ) ) {
 		return $post_id;
 	}
-	$input['end_date'] = $end;
 	fcmcp_apply_event_fields( (int) $post_id, $input );
 
 	if ( isset( $input['recurrence'] ) ) {
 		fcmcp_apply_recurrence( (int) $post_id, $input['recurrence'] );
-		fcmcp_refresh_event_dates( (int) $post_id );
 	} else {
-		update_post_meta( $post_id, '_ctc_event_recurrence', 'none' );
+		update_post_meta( $post_id, FCMCP_META_RECUR, '' );
 	}
 
 	$result = array( 'id' => (int) $post_id, 'status' => get_post_status( $post_id ), 'edit_url' => get_edit_post_link( $post_id, 'raw' ) );
@@ -369,7 +410,7 @@ function fcmcp_create_event( $input ) {
 function fcmcp_update_event( $input ) {
 	$id   = (int) ( $input['id'] ?? 0 );
 	$post = get_post( $id );
-	if ( ! $post || 'ctc_event' !== $post->post_type ) {
+	if ( ! $post || FCMCP_EVENT_CPT !== $post->post_type ) {
 		return new WP_Error( 'not_found', 'Event not found.' );
 	}
 	$core = array( 'ID' => $id );
@@ -390,7 +431,6 @@ function fcmcp_update_event( $input ) {
 
 	if ( isset( $input['recurrence'] ) ) {
 		fcmcp_apply_recurrence( $id, $input['recurrence'] );
-		fcmcp_refresh_event_dates( $id );
 	}
 
 	$result = array( 'id' => $id, 'status' => get_post_status( $id ) );
@@ -401,4 +441,3 @@ function fcmcp_update_event( $input ) {
 	$result['event'] = fcmcp_event_to_array( get_post( $id ) );
 	return $result;
 }
-

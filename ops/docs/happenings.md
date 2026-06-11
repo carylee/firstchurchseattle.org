@@ -199,11 +199,11 @@ extensions now that the spine is its own home.
 
 | Phase | What | Anchor |
 |---|---|---|
-| 0 | This contract | — |
-| 1 | Announcement `weight` + `expires` (meta, staff UI, MCP, resolver) | self-maintaining feed |
+| 0 | ✅ This contract | — |
+| 1 | ✅ Announcement `weight` + `expires` (meta, staff UI, MCP, resolver) | self-maintaining feed |
 | 2 | ✅ Extract `firstchurch-happenings`; carousel consumes it | the spine |
-| 3 | `/engage` becomes spine-driven (block); nav link; retire `featured` category | **v1 public hub** |
+| 3 | ✅ **`/engage` spine-driven** — block, event kinds (rhythm/group/one-off), lens filters by kind, Featured row driven by `Featured::rank()`, deduplication, styled CTAs; "featured" category retired (#17, #19–#21, event-kinds series) | **v1 public hub** |
 | 4a | ✅ **Featured spans events** — weighted events join the Featured row with a real when-line + CTA; date-suppression scoped to announcements; staff Prominence control on event editors | dated happenings render true |
 | 4b | `/live` + carousel share a worship-now set (the `/live` renderer is the slides app, a separate repo — deferred) | unify the two renderings |
-| 5 | Taxonomy collapse; finish native connection-card; purge review queue ([`phase-5-cleanup.md`](./phase-5-cleanup.md)) | structural cleanup |
-| 6 | e-news digest + bulletin announcement block from the spine ([`enews-spine.md`](./enews-spine.md)) | new surfaces |
+| 5 | ✅ **Taxonomy collapse, connection-card cutover, review-queue purge** (#36, #56, #58). CTC not decommissioned — sermons were retired via 301 redirects instead (#61, #62, #94), so both CTC plugins remain active. See [`phase-5-cleanup.md`](./phase-5-cleanup.md). | structural cleanup |
+| 6 | ✅ **E-news** — CPT, spine-driven composition, email render, Mailchimp push, branded template adopted (addendum A/B/C). **Bulletin** ⏳ not started. See [`enews-spine.md`](./enews-spine.md). | new surfaces |

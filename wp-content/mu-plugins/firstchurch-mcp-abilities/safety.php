@@ -139,7 +139,7 @@ function fcmcp_untrash( int $id ) {
 function fcmcp_list_trash( $input = array() ) {
 	$limit = max( 1, min( 100, (int) ( $input['limit'] ?? 25 ) ) );
 	$types = array(
-		'ctc_event'    => 'event',
+		'fce_event'    => 'event',
 		'post'         => 'post',
 		'page'         => 'page',
 		'enews_issue'  => 'enews',

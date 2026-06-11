@@ -92,19 +92,19 @@ function fcmcp_health_check( string $check, array $ctx ): array {
 	switch ( $check ) {
 		case 'events_missing_image':
 			$q = new WP_Query( $base + array(
-				'post_type'   => 'ctc_event',
+				'post_type'   => 'fce_event',
 				'post_status' => 'publish',
 				'orderby'     => 'meta_value',
-				'meta_key'    => '_ctc_event_start_date',
+				'meta_key'    => '_fce_dtstart',
 				'order'       => 'ASC',
 				'meta_query'  => array(
 					'relation' => 'AND',
-					array( 'key' => '_ctc_event_start_date', 'value' => $today, 'compare' => '>=', 'type' => 'DATE' ),
+					array( 'key' => '_fce_dtstart', 'value' => $today, 'compare' => '>=', 'type' => 'DATE' ),
 					array( 'key' => '_thumbnail_id', 'compare' => 'NOT EXISTS' ),
 				),
 			) );
 			return array_map(
-				static fn ( $p ) => fcmcp_health_item( $p, array( 'start_date' => (string) get_post_meta( $p->ID, '_ctc_event_start_date', true ) ) ),
+				static fn ( $p ) => fcmcp_health_item( $p, array( 'start_date' => (string) get_post_meta( $p->ID, '_fce_dtstart', true ) ) ),
 				$q->posts
 			);
 
@@ -145,7 +145,7 @@ function fcmcp_health_check( string $check, array $ctx ): array {
 
 		case 'stale_drafts':
 			$q = new WP_Query( $base + array(
-				'post_type'   => array( 'ctc_event', 'post', 'page', 'enews_issue' ),
+				'post_type'   => array( 'fce_event', 'post', 'page', 'enews_issue' ),
 				'post_status' => array( 'draft', 'pending' ),
 				'orderby'     => 'modified',
 				'order'       => 'ASC',

@@ -157,7 +157,7 @@ final class PermissionTest extends TestCase
     {
         $cb = $this->mapMetaCap();
         fcmcp_test_set_user(1, array('mcp_editor'));
-        fcmcp_test_add_post(array('ID' => 5, 'post_type' => 'ctc_event'));
+        fcmcp_test_add_post(array('ID' => 5, 'post_type' => 'fce_event'));
         $this->assertSame(array('edit_post'), $cb(array('edit_post'), 'edit_post', 1, array(5)));
     }
 

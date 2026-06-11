@@ -10,8 +10,6 @@
 use FirstChurch\Happenings\Item;
 use FirstChurch\Happenings\Layout;
 use FirstChurch\Happenings\Text;
-use FirstChurch\Happenings\EventWhen;
-use FirstChurch\Happenings\Kind;
 use FirstChurch\Happenings\CardView;
 
 if (!defined('ABSPATH')) {
@@ -40,38 +38,4 @@ function happenings_text($value): string
 function happenings_detect_layout(string $title, string $body, string $when, string $cta): string
 {
     return Layout::detect($title, $body, $when, $cta);
-}
-
-/**
- * Read a CTC event's date/recurrence/time meta and format the human "when"
- * string (e.g. "Sundays at 10:30 am · Sanctuary"). The formatting itself lives
- * in EventWhen (pure, unit-tested); this only extracts the meta.
- */
-/**
- * Classify a CTC event (rhythm | group | event) from its recurrence meta. The
- * rule lives in Kind (pure, unit-tested); this only extracts the meta. CTC has
- * no override field — it's the decommissioning backend (events-migration.md);
- * the _fce_kind override is the fce side's.
- */
-function happenings_event_kind(int $post_id): string
-{
-    return Kind::derive([
-        'freq'     => (string) get_post_meta($post_id, '_ctc_event_recurrence', true),
-        'end_date' => (string) get_post_meta($post_id, '_ctc_event_recurrence_end_date', true),
-    ]);
-}
-
-function happenings_event_when(int $post_id): string
-{
-    return EventWhen::format([
-        'start'           => (string) get_post_meta($post_id, '_ctc_event_start_date', true),
-        'freq'            => (string) get_post_meta($post_id, '_ctc_event_recurrence', true),
-        'venue'           => happenings_text(get_post_meta($post_id, '_ctc_event_venue', true)),
-        'start_time'      => (string) get_post_meta($post_id, '_ctc_event_start_time', true),
-        'time_text'       => happenings_text(get_post_meta($post_id, '_ctc_event_time', true)),
-        'weekly_interval' => (int) get_post_meta($post_id, '_ctc_event_recurrence_weekly_interval', true),
-        'weekly_days'     => (string) get_post_meta($post_id, '_ctc_event_recurrence_weekly_day', true),
-        'monthly_type'    => (string) get_post_meta($post_id, '_ctc_event_recurrence_monthly_type', true),
-        'monthly_week'    => (string) get_post_meta($post_id, '_ctc_event_recurrence_monthly_week', true),
-    ]);
 }

@@ -78,11 +78,10 @@ add_action(
 				'execute_callback'    => static function ( $input ) {
 					$id   = (int) ( $input['id'] ?? 0 );
 					$post = get_post( $id );
-					if ( ! $post || 'ctc_event' !== $post->post_type ) {
+					if ( ! $post || ! in_array( $post->post_type, array( 'ctc_event', 'fce_event' ), true ) ) {
 						return new WP_Error( 'not_found', 'Event not found.' );
 					}
 					fcmcp_apply_recurrence( $id, $input['recurrence'] ?? array() );
-					fcmcp_refresh_event_dates( $id );
 					return array( 'id' => $id, 'recurrence' => fcmcp_recurrence_to_array( $id ) );
 				},
 				'permission_callback' => static function ( $input = array() ) {

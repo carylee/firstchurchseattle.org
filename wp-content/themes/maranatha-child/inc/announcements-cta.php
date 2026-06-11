@@ -53,7 +53,7 @@ function fcs_weight_choices() {
  * @return array<int,string>
  */
 function fcs_promo_post_types() {
-	return array( 'post', 'ctc_event', 'fce_event' );
+	return array( 'post', 'fce_event' );
 }
 
 /** Sanitize an expiry value: a YYYY-MM-DD date, or '' to clear. */
