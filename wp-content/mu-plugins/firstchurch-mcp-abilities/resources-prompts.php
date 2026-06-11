@@ -28,7 +28,7 @@ add_action(
 			'firstchurch/guide-content',
 			array(
 				'label'               => 'Content & style guide',
-				'description'         => 'First Church Seattle editorial guide: when to use an event vs announcement vs post vs sermon, the house voice, CTA/weight/expires conventions, images/alt-text, recurrence, and the draft-first workflow. Exposed as an MCP resource.',
+				'description'         => 'First Church Seattle editorial guide: when to use an event vs announcement vs post, the house voice, CTA/weight/expires conventions, images/alt-text, recurrence, and the draft-first workflow. Exposed as an MCP resource.',
 				'category'            => 'firstchurch',
 				'execute_callback'    => static function () {
 					return fcmcp_resource_content_guide();
@@ -42,7 +42,7 @@ add_action(
 			'firstchurch/vocabulary',
 			array(
 				'label'               => 'Taxonomy vocabulary',
-				'description'         => 'The site\'s current, valid taxonomy terms (event categories, post categories, and sermon series/speakers/topics/books/tags) with slugs and counts, so content is filed under terms that already exist. Exposed as an MCP resource (JSON).',
+				'description'         => 'The site\'s current, valid taxonomy terms (event categories and post categories) with slugs and counts, so content is filed under terms that already exist. Exposed as an MCP resource (JSON).',
 				'category'            => 'firstchurch',
 				'execute_callback'    => static function () {
 					return wp_json_encode( fcmcp_resource_taxonomies_data() );
@@ -63,7 +63,7 @@ add_action(
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'types' => array( 'type' => 'array', 'items' => array( 'type' => 'string', 'enum' => array( 'events', 'announcements', 'sermons' ) ), 'description' => 'Limit to these content types (default: all).' ),
+						'types' => array( 'type' => 'array', 'items' => array( 'type' => 'string', 'enum' => array( 'events', 'announcements' ) ), 'description' => 'Limit to these content types (default: all).' ),
 					),
 					'additionalProperties' => false,
 				),
@@ -134,8 +134,6 @@ why someone would care; keep sentences short; avoid churchy jargon and hype.
   `expires` date (drops off the surfaces but stays in the news archive).
 - **Post** (`create-post`) — a general blog/news article that isn't an
   Announcement.
-- **Sermon** (`create-sermon`) — a message, with video/audio/PDF and
-  series/speaker/topic/book/tag taxonomies.
 
 ## Draft-first
 Everything an agent creates defaults to **draft** for a human to publish. Use
@@ -170,11 +168,6 @@ function fcmcp_resource_taxonomies_data(): array {
 	return array(
 		'event_categories' => $grab( 'ctc_event_category' ),
 		'post_categories'  => $grab( 'category' ),
-		'sermon_series'    => $grab( 'ctc_sermon_series' ),
-		'sermon_speakers'  => $grab( 'ctc_sermon_speaker' ),
-		'sermon_topics'    => $grab( 'ctc_sermon_topic' ),
-		'sermon_books'     => $grab( 'ctc_sermon_book' ),
-		'sermon_tags'      => $grab( 'ctc_sermon_tag' ),
 	);
 }
 
@@ -191,10 +184,10 @@ function fcmcp_prompt_result( string $description, string $text ): array {
 function fcmcp_prompt_review_queue( $input = array() ) {
 	$types = ( ! empty( $input['types'] ) && is_array( $input['types'] ) )
 		? implode( ', ', array_map( 'sanitize_key', $input['types'] ) )
-		: 'events, announcements, and sermons';
+		: 'events and announcements';
 	$text = "You are helping First Church Seattle staff clear the content review queue.\n\n"
 		. "1. Call the `firstchurch/review-queue` tool (types: {$types}) to list every draft and pending item.\n"
-		. "2. For each item, open it (get-event / get-announcement / get-sermon) and check: a clear title, correct date/time, an appropriate featured image, and on-brand copy (see the firstchurch://guide/content resource).\n"
+		. "2. For each item, open it (get-event / get-announcement) and check: a clear title, correct date/time, an appropriate featured image, and on-brand copy (see the firstchurch://guide/content resource).\n"
 		. "3. If it's ready, publish it with the matching set-*-status tool (status=publish). If it needs work, leave it as a draft and note what to fix.\n"
 		. "4. Finish with a short summary: what you published, what you left for a human, and why.";
 	return fcmcp_prompt_result( 'Triage the draft/pending review queue and publish or flag each item.', $text );

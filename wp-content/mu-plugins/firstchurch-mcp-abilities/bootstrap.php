@@ -36,8 +36,6 @@ const FCMCP_WRITER_ROLE   = 'mcp_editor';
 const FCMCP_DIRECT_TOOLS = array(
 	// Events
 	'firstchurch/search-events', 'firstchurch/create-event', 'firstchurch/update-event', 'firstchurch/set-event-status',
-	// Sermons
-	'firstchurch/search-sermons', 'firstchurch/create-sermon', 'firstchurch/update-sermon', 'firstchurch/set-sermon-status',
 	// Announcements
 	'firstchurch/list-announcements', 'firstchurch/get-announcement', 'firstchurch/create-announcement', 'firstchurch/update-announcement', 'firstchurch/set-announcement-status',
 	// Posts
@@ -72,7 +70,7 @@ add_filter(
 
 /* ----------------------------------------------------------------------------
  * Capability scoping: the mcp_editor role may only edit/delete/PUBLISH the
- * managed types (events, sermons, posts, pages — see fcmcp_is_managed_post).
+ * managed types (events, posts, pages — see fcmcp_is_managed_post).
  * Defense in depth for the app-password credential: even with publish_posts/
  * publish_pages granted, this keeps it away from attachments, users, settings,
  * and other CPTs.

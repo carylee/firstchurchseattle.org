@@ -67,28 +67,6 @@ final class QueryArgsTest extends TestCase
         $this->assertSame(1, fcmcp_build_event_query_args(array('limit' => 0))['posts_per_page']);
     }
 
-    /* ------------------------------ sermons ------------------------------ */
-
-    public function testSermonDefaultsNewestFirst(): void
-    {
-        $args = fcmcp_build_sermon_query_args(array());
-        $this->assertSame('ctc_sermon', $args['post_type']);
-        $this->assertSame('date', $args['orderby']);
-        $this->assertSame('DESC', $args['order']);
-        $this->assertArrayNotHasKey('tax_query', $args);
-    }
-
-    public function testSermonTaxonomyFiltersAreAndCombined(): void
-    {
-        $args = fcmcp_build_sermon_query_args(array('series' => 'Advent', 'speaker' => 'jane-doe', 'order' => 'asc'));
-        $this->assertSame('ASC', $args['order']);
-        $this->assertSame('AND', $args['tax_query']['relation']);
-        $this->assertSame('ctc_sermon_series', $args['tax_query'][0]['taxonomy']);
-        $this->assertSame('advent', $args['tax_query'][0]['terms']);
-        $this->assertSame('ctc_sermon_speaker', $args['tax_query'][1]['taxonomy']);
-        $this->assertSame('jane-doe', $args['tax_query'][1]['terms']);
-    }
-
     /* ------------------------------- posts ------------------------------- */
 
     public function testPostCategoryAndSinceDate(): void

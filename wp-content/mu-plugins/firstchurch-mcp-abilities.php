@@ -23,7 +23,6 @@ require_once __DIR__ . '/firstchurch-mcp-abilities/shared-writes.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/events.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/announcements.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/media.php';
-require_once __DIR__ . '/firstchurch-mcp-abilities/sermons.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/posts.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/pages.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/redirects.php';
