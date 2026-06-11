@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Breeze Forms
  * Description: Surface any Breeze form via the [breeze_form] shortcode — as a themed button (Mode 1), a responsive embed (Mode 2), or a native in-theme form that posts straight to Breeze (Mode 3). Modes 1 & 2 need no Breeze credentials; Mode 3 renders forms with a baked field contract (currently the Prayer Requests form).
- * Version:     0.2.0
+ * Version:     0.2.1
  * Author:      First Church Seattle
  *
  * @package FirstChurch\BreezeForms
@@ -39,7 +39,7 @@ use FirstChurch\BreezeForms\Catalog;
 use FirstChurch\BreezeForms\Sync;
 use FirstChurch\BreezeForms\Block;
 
-const FCBF_VERSION = '0.2.0';
+const FCBF_VERSION = '0.2.1';
 
 /** Option holding the last successful Breeze sync (a list of form records). */
 const FCBF_FORMS_OPTION = 'fcbf_synced_forms';
