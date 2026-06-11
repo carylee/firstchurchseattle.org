@@ -25,6 +25,8 @@ final class DirectToolsTest extends TestCase
     private const EXTERNAL_TOOLS = array(
         'firstchurch/list-enews', 'firstchurch/get-enews', 'firstchurch/create-enews',
         'firstchurch/update-enews', 'firstchurch/set-enews-status', 'firstchurch/preview-enews',
+        'firstchurch/list-carousel-cards', 'firstchurch/create-carousel-card', 'firstchurch/update-carousel-card',
+        'firstchurch/set-carousel-card-status', 'firstchurch/reorder-carousel-cards',
     );
 
     public function testEveryDirectToolIsARegisteredAbility(): void

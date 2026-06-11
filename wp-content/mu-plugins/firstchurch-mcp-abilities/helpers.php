@@ -116,10 +116,11 @@ function fcmcp_is_managed_post( $post ): bool {
 	// Managed types the mcp_editor role may edit/delete. Posts and pages are
 	// included intentionally (full content management); enews_issue is managed so
 	// the writer can draft/curate weekly e-news (firstchurch-enews). Attachments
-	// and other CPTs (nav menus, blocks, etc.) remain out of scope. (ctc_sermon
-	// was retired in favor of the YouTube service history — see the theme's
-	// inc/redirects.php — so sermons are no longer an MCP-managed type.)
-	return in_array( $post->post_type, array( 'ctc_event', 'post', 'page', 'enews_issue' ), true );
+	// carousel_card is managed so the writer can author evergreen standing cards
+	// (firstchurch-carousel). Other CPTs (nav menus, blocks, etc.) remain out of
+	// scope. (ctc_sermon was retired in favor of the YouTube service history —
+	// see the theme's inc/redirects.php — so sermons are no longer managed.)
+	return in_array( $post->post_type, array( 'ctc_event', 'post', 'page', 'enews_issue', 'carousel_card' ), true );
 }
 
 /** JSON Schema fragment for image input (shared by create/update abilities). */
