@@ -114,9 +114,10 @@ function fcmcp_is_managed_post( $post ): bool {
 		return false;
 	}
 	// Managed types the mcp_editor role may edit/delete. Posts and pages are
-	// included intentionally (full content management); attachments and other
-	// CPTs (nav menus, blocks, etc.) remain out of scope.
-	return in_array( $post->post_type, array( 'ctc_event', 'ctc_sermon', 'post', 'page' ), true );
+	// included intentionally (full content management); enews_issue is managed so
+	// the writer can draft/curate weekly e-news (firstchurch-enews). Attachments
+	// and other CPTs (nav menus, blocks, etc.) remain out of scope.
+	return in_array( $post->post_type, array( 'ctc_event', 'ctc_sermon', 'post', 'page', 'enews_issue' ), true );
 }
 
 /** JSON Schema fragment for image input (shared by create/update abilities). */

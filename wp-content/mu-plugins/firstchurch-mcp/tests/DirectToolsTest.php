@@ -17,15 +17,37 @@ use PHPUnit\Framework\TestCase;
 
 final class DirectToolsTest extends TestCase
 {
+    /**
+     * Promoted tools registered by SIBLING plugins (not this mu-plugin), so they
+     * aren't in this harness's ability set. Guarded by their own plugin's tests;
+     * listed here so a typo in a mu-plugin-local promotion still fails below.
+     */
+    private const EXTERNAL_TOOLS = array(
+        'firstchurch/list-enews', 'firstchurch/get-enews', 'firstchurch/create-enews',
+        'firstchurch/update-enews', 'firstchurch/set-enews-status', 'firstchurch/preview-enews',
+    );
+
     public function testEveryDirectToolIsARegisteredAbility(): void
     {
         $abilities = fcmcp_test_boot_abilities();
         foreach (FCMCP_DIRECT_TOOLS as $tool) {
+            if (in_array($tool, self::EXTERNAL_TOOLS, true)) {
+                continue; // registered by a sibling plugin (e.g. firstchurch-enews)
+            }
             $this->assertArrayHasKey(
                 $tool,
                 $abilities,
                 "FCMCP_DIRECT_TOOLS names '$tool' but no such ability is registered."
             );
+        }
+    }
+
+    public function testExternalPromotedToolsAreInTheDirectList(): void
+    {
+        // Drift guard: the externally-registered tools we exempt above must still
+        // actually be promoted in FCMCP_DIRECT_TOOLS.
+        foreach (self::EXTERNAL_TOOLS as $tool) {
+            $this->assertContains($tool, FCMCP_DIRECT_TOOLS, "External tool '$tool' is no longer promoted.");
         }
     }
 

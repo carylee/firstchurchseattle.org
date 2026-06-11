@@ -48,6 +48,8 @@ const FCMCP_DIRECT_TOOLS = array(
 	'firstchurch/search-redirects', 'firstchurch/create-redirect', 'firstchurch/update-redirect', 'firstchurch/set-redirect-enabled',
 	// Navigation menus
 	'firstchurch/list-menus', 'firstchurch/get-menu', 'firstchurch/add-menu-item', 'firstchurch/update-menu-item', 'firstchurch/remove-menu-item', 'firstchurch/reorder-menu',
+	// E-News (firstchurch-enews plugin — registered there, promoted here)
+	'firstchurch/list-enews', 'firstchurch/get-enews', 'firstchurch/create-enews', 'firstchurch/update-enews', 'firstchurch/set-enews-status', 'firstchurch/preview-enews',
 	// Dashboard
 	'firstchurch/review-queue',
 );

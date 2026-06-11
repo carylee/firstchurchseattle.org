@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church E-News
  * Description: The weekly e-news as a Happenings surface. An `enews_issue` is a thin, block-editor authoring object that composes the firstchurch-happenings spine — a featured event, this week's events, recent announcements — plus evergreen recurring items and a fixed footer. New issues open pre-filled from the spine (not duplicated from last week), so staff write the editorial bits and curate rather than re-key content. See ops/docs/enews-spine.md.
- * Version:     0.1.0
+ * Version:     0.2.0
  * Author:      First Church Seattle
  *
  * Pairs with firstchurch-happenings (the spine): the composing blocks are the
@@ -34,6 +34,8 @@ require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/meta.php';
 require_once __DIR__ . '/inc/render.php';
 require_once __DIR__ . '/inc/mailchimp.php';
+require_once __DIR__ . '/inc/compose.php'; // pure body composer (API/MCP prefill)
+require_once __DIR__ . '/inc/mcp.php';     // draft-first WordPress Abilities
 
 // The CPT carries a custom rewrite slug (/enews/<slug>/ for preview + a web
 // archive), so flush rewrites on activation. On deploy, also run once:
