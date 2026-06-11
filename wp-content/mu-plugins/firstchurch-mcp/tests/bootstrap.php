@@ -221,6 +221,14 @@ if (!function_exists('wp_insert_term')) {
     }
 }
 
+if (!function_exists('get_terms')) {
+    function get_terms($args = array())
+    {
+        $taxonomy = is_array($args) ? ($args['taxonomy'] ?? '') : (string) $args;
+        return $GLOBALS['fcmcp_test']['terms'][$taxonomy] ?? array();
+    }
+}
+
 /* --------------------------- Sanitizers + util --------------------------- */
 
 if (!function_exists('sanitize_text_field')) {
@@ -245,6 +253,20 @@ if (!function_exists('sanitize_title')) {
         $title = strtolower(trim((string) $title));
         $title = preg_replace('/[^a-z0-9]+/', '-', $title);
         return trim((string) $title, '-');
+    }
+}
+
+if (!function_exists('sanitize_key')) {
+    function sanitize_key($key): string
+    {
+        return preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $key));
+    }
+}
+
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($data, $options = 0, $depth = 512)
+    {
+        return json_encode($data, $options, $depth);
     }
 }
 

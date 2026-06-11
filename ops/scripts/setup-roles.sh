@@ -18,13 +18,18 @@ set -euo pipefail
 # abilities (Redirection plugin) — it is NOT manage_options, so it does not open
 # the full Redirection admin or core REST. Redirect writes go through the
 # controlled abilities, which call the Red_Item model directly.
+#
+# fcmcp_manage_menus is the same pattern for the navigation-menu abilities: a
+# narrow cap (NOT edit_theme_options), so menu edits go through the controlled
+# abilities without opening the full Appearance ▸ Menus / Customizer surface.
 EDITOR_CAPS="read \
 edit_posts edit_others_posts edit_published_posts publish_posts \
 delete_posts delete_others_posts delete_published_posts \
 edit_pages edit_others_pages edit_published_pages publish_pages \
 delete_pages delete_others_pages delete_published_pages \
 upload_files \
-fcmcp_manage_redirects"
+fcmcp_manage_redirects \
+fcmcp_manage_menus"
 
 ssh firstchurch 'bash -l -s' <<REMOTE
 set -e

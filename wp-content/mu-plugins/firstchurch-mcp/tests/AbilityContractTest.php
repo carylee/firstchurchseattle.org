@@ -89,6 +89,18 @@ final class AbilityContractTest extends TestCase
     }
 
     #[DataProvider('abilityProvider')]
+    public function testMcpTypeIsValidAndResourcesCarryUri(string $name, array $args): void
+    {
+        $type = $args['meta']['mcp']['type'] ?? 'tool';
+        $this->assertContains($type, array('tool', 'resource', 'prompt'), "$name has an invalid mcp.type.");
+        if ('resource' === $type) {
+            $uri = $args['meta']['mcp']['uri'] ?? '';
+            $this->assertNotEmpty($uri, "$name is a resource but declares no mcp.uri.");
+            $this->assertStringContainsString('://', $uri, "$name resource uri must be an RFC-3986 URI.");
+        }
+    }
+
+    #[DataProvider('abilityProvider')]
     public function testWriteAbilitiesDeclareDestructiveness(string $name, array $args): void
     {
         $annotations = $args['meta']['annotations'] ?? null;

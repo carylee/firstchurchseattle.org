@@ -109,6 +109,25 @@ final class PermissionTest extends TestCase
         $this->assertTrue((bool) $cb(array()));
     }
 
+    public function testMenuReadsRequireOnlyReadCap(): void
+    {
+        fcmcp_test_set_caps(array('read'));
+        $this->assertTrue((bool) $this->permissionCallback('firstchurch/list-menus')(array()));
+        $this->assertTrue((bool) $this->permissionCallback('firstchurch/get-menu')(array()));
+    }
+
+    public function testMenuWritesRequireManageMenusCap(): void
+    {
+        foreach (array('create-menu', 'add-menu-item', 'update-menu-item', 'remove-menu-item', 'reorder-menu') as $verb) {
+            $cb = $this->permissionCallback("firstchurch/$verb");
+            // An editor without the narrow menu cap is denied.
+            fcmcp_test_set_caps(array('edit_posts', 'edit_pages'));
+            $this->assertFalse((bool) $cb(array()), "$verb should require fcmcp_manage_menus");
+            fcmcp_test_set_caps(array('fcmcp_manage_menus'));
+            $this->assertTrue((bool) $cb(array()), "$verb should be allowed with fcmcp_manage_menus");
+        }
+    }
+
     /* --------------------- map_meta_cap role scoping -------------------- */
 
     private function mapMetaCap(): callable
