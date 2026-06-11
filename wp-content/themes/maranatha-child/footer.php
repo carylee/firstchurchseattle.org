@@ -46,37 +46,13 @@ $quick_links = array(
 	__( 'E-news Sign-up', 'maranatha-child' )    => 'https://firstchurchseattle.us2.list-manage.com/subscribe?u=18291af87fbc7224df67d6ab8&id=24fee5f80d',
 );
 
-// Small static map under the Contact column (Google Static Maps via the
-// parent framework helper — served from the API per Google's ToS, not a
-// stored screenshot). Coordinates come from the location post's authored
-// meta, the same source the retired live map used. Fails soft to nothing
-// without the helpers, coordinates, or an API key.
-$fcs_footer_map = '';
-if ( function_exists( 'ctfw_first_ordered_post' )
-	&& function_exists( 'ctfw_location_data' )
-	&& function_exists( 'ctfw_google_map_image' )
-	&& function_exists( 'ctfw_google_maps_api_key' )
-	&& ctfw_google_maps_api_key() ) {
-
-	$fcs_footer_location = ctfw_first_ordered_post( 'ctc_location' );
-
-	if ( ! empty( $fcs_footer_location['ID'] ) ) {
-		$fcs_footer_loc_data = ctfw_location_data( $fcs_footer_location['ID'] );
-
-		if ( ! empty( $fcs_footer_loc_data['map_lat'] ) && ! empty( $fcs_footer_loc_data['map_lng'] ) ) {
-			$fcs_footer_map = ctfw_google_map_image( array(
-				'latitude'     => $fcs_footer_loc_data['map_lat'],
-				'longitude'    => $fcs_footer_loc_data['map_lng'],
-				'zoom'         => 14,
-				'width'        => 400,
-				'height'       => 200,
-				'marker_color' => '70334e',
-				'alt'          => __( 'Map showing First Church at 180 Denny Way, Seattle', 'maranatha-child' ),
-			) );
-			// The helper has no lazy-load option; the footer is always below the fold.
-			$fcs_footer_map = str_replace( '<img ', '<img loading="lazy" ', $fcs_footer_map );
-		}
-	}
+// Small static map under the Contact column — shared builder in
+// inc/static-map.php (Google Static Maps via the parent framework helper,
+// fails soft to nothing).
+$fcs_footer_map = fcs_static_map_image();
+if ( $fcs_footer_map ) {
+	// The helper has no lazy-load option; the footer is always below the fold.
+	$fcs_footer_map = str_replace( '<img ', '<img loading="lazy" ', $fcs_footer_map );
 }
 ?>
 
