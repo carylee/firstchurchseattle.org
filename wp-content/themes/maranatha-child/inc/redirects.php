@@ -88,5 +88,6 @@ add_action(
 			wp_safe_redirect( home_url( '/about/contact-us/' ), 301 );
 			exit;
 		}
-	}
+	},
+	1
 );
