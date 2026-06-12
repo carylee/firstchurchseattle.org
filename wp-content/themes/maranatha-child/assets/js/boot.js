@@ -10,6 +10,7 @@
  * are imported by their registered specifier (@firstchurch/…); WordPress emits
  * the import map and the versioned URLs.
  */
+import { mountNav } from '@firstchurch/nav';
 import { wireSkipLink } from '@firstchurch/skip-link';
 import { mountWorshipLive } from '@firstchurch/worship-live';
 
@@ -28,6 +29,7 @@ function onReady(fn) {
 }
 
 onReady(() => {
+	mountNav(document);
 	wireSkipLink(document);
 	mountWorshipLive(document);
 });

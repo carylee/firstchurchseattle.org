@@ -1,0 +1,178 @@
+/**
+ * First Church Seattle — events pages.
+ *
+ * Spine-backed events pages (page-templates/page-events-upcoming.php and
+ * page-events-calendar.php). The list/cards reuse .fcs-card-grid (see
+ * components.css); the calendar month grid is .fcs-cal. These rules add the
+ * page-level scaffolding (spacing, month nav, empty state).
+ */
+
+.fcs-events {
+	margin-top: 1.5em;
+}
+
+.fcs-events__empty {
+	color: var(--fcs-text-soft);
+	font-style: italic;
+	padding: 1em 0;
+}
+
+/* Calendar month-nav header: prev · Month Year · next on one row. */
+.fcs-events-calendar {
+	margin-top: 1.5em;
+}
+
+.fcs-events-calendar__header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1em;
+	margin-bottom: 0.75em;
+}
+
+.fcs-events-calendar__title {
+	margin: 0;
+	text-align: center;
+	flex: 1 1 auto;
+}
+
+.fcs-events-calendar__nav {
+	flex: 0 0 auto;
+	white-space: nowrap;
+	color: var(--fcs-accent);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.fcs-events-calendar__nav:hover {
+	color: var(--fcs-accent-strong);
+	text-decoration: underline;
+}
+
+.fcs-events-calendar__nav.is-disabled {
+	visibility: hidden;
+}
+
+.fcs-events-calendar__list {
+	margin-top: 2em;
+}
+
+.fcs-events-calendar__list-heading {
+	margin: 0 0 0.75em;
+	color: var(--fcs-accent);
+}
+
+/* Weekly-rhythm occurrences land on every week of the month grid by design;
+   mute them so the one-offs and special Sundays read as the signal. */
+.fcs-cal .fcs-cal-event--rhythm a {
+	color: var(--fcs-text-muted);
+	font-weight: 400;
+	font-size: 0.85em;
+}
+
+/* The grid's inline per-day event list isn't built for phones; below ~640px the
+   card list under the calendar is the primary view. */
+@media (max-width: 640px) {
+	.fcs-events-calendar .fcs-cal {
+		display: none;
+	}
+}
+
+/* -------------------------------------------------------------------------
+ * Month grid (.fcs-cal) — first-party calendar table rendered by
+ * page-templates/page-events-calendar.php. Desktop-first by design: under
+ * 640px the grid hides and the card list below it takes over (rule above).
+ * --------------------------------------------------------------------- */
+
+.fcs-cal {
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+	margin-top: 1rem;
+	font-size: 0.85rem;
+}
+
+.fcs-cal__header {
+	padding: 0.5rem 0.5rem;
+	border: 1px solid var(--fcs-border);
+	background: var(--fcs-surface-2);
+	color: var(--fcs-text-soft);
+	font-family: var(--font-sans);
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-align: center;
+}
+
+/* Full weekday names from 64rem; three-letter abbreviations below. */
+.fcs-cal__header-full { display: none; }
+.fcs-cal__header-short { display: inline; }
+
+@media (min-width: 64rem) {
+	.fcs-cal__header-full { display: inline; }
+	.fcs-cal__header-short { display: none; }
+}
+
+.fcs-cal__day {
+	height: 6.5rem;
+	padding: 0.4rem 0.5rem;
+	border: 1px solid var(--fcs-border);
+	vertical-align: top;
+}
+
+.fcs-cal__day.is-other-month {
+	background: var(--fcs-surface-2);
+}
+
+.fcs-cal__day.is-other-month .fcs-cal__day-number,
+.fcs-cal__day.is-past .fcs-cal__day-number {
+	color: var(--fcs-text-muted);
+}
+
+.fcs-cal__day-heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-bottom: 0.25rem;
+}
+
+.fcs-cal__day-number {
+	font-weight: 700;
+	color: var(--fcs-text-soft);
+}
+
+.fcs-cal__day.is-today .fcs-cal__day-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.7em;
+	height: 1.7em;
+	border-radius: 999px;
+	background: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
+
+.fcs-cal__day-label {
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--fcs-accent);
+}
+
+.fcs-cal__events {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.25rem;
+}
+
+.fcs-cal__events a {
+	display: block;
+	font-weight: 600;
+	line-height: 1.3;
+	overflow-wrap: break-word;
+}

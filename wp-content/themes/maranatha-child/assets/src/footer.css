@@ -1,0 +1,196 @@
+/**
+ * First Church Seattle — site footer (.fcs-footer).
+ *
+ * Styles the theme's footer.php — a standard modern footer (identity +
+ * worship time / contact / quick links + a bottom copyright bar). Deep brand
+ * maroon, white text. Cross-viewport: one column on phones, three from
+ * 700px up.
+ */
+
+.fcs-footer {
+	background: var(--fcs-maroon-dark);
+	color: rgba(255, 255, 255, 0.85);
+	font-size: 0.9rem;
+	line-height: 1.6;
+}
+
+.fcs-footer__inner {
+	max-width: 1170px;
+	margin: 0 auto;
+	padding: 48px 24px 40px;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 36px;
+}
+
+@media (min-width: 700px) {
+	.fcs-footer__inner {
+		grid-template-columns: 1.4fr 1fr 1fr;
+		gap: 48px;
+	}
+}
+
+/* Links: quiet by default, brighten + underline on hover. */
+.fcs-footer a {
+	color: rgba(255, 255, 255, 0.85);
+	text-decoration: none;
+}
+
+.fcs-footer a:hover,
+.fcs-footer a:focus {
+	color: #fff;
+	text-decoration: underline;
+}
+
+.fcs-footer a:focus-visible {
+	outline: 2px solid rgba(255, 255, 255, 0.7);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* -- Column 1: identity -- */
+
+.fcs-footer__name {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: #fff;
+}
+
+.fcs-footer__denom {
+	margin: 2px 0 14px;
+	font-size: 0.82rem;
+	color: rgba(255, 255, 255, 0.55);
+}
+
+.fcs-footer__worship {
+	margin: 0 0 18px;
+}
+
+/* -- Column headings -- */
+
+.fcs-footer__heading {
+	margin: 0 0 14px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.55);
+}
+
+/* -- Column 2: contact -- */
+
+.fcs-footer__contact {
+	font-style: normal; /* <address> defaults to italic */
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fcs-footer__mailing {
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.55);
+}
+
+/* -- Contact-column static map (footer.php) -- */
+
+.fcs-footer__map {
+	display: block;
+	margin-top: 16px;
+	max-width: 280px;
+	border-radius: 10px;
+	overflow: hidden;
+	line-height: 0;
+}
+
+.fcs-footer__map img {
+	width: 100%;
+	height: auto;
+	display: block;
+	opacity: 0.92;
+	transition: opacity 0.12s ease-out;
+}
+
+.fcs-footer__map:hover img,
+.fcs-footer__map:focus img {
+	opacity: 1;
+}
+
+/* -- Column 3: quick links -- */
+
+.fcs-footer__links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fcs-footer__links li {
+	margin: 0;
+}
+
+/* -- Social icons (inline SVGs in footer.php) -- */
+
+.fcs-footer__social {
+	list-style: none;
+	margin: 12px 0 0;
+	padding: 0;
+	display: flex;
+	gap: 8px;
+}
+
+.fcs-footer__social li {
+	margin: 0;
+}
+
+.fcs-footer__social a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--fcs-tap-min);
+	height: var(--fcs-tap-min);
+	border-radius: 8px;
+	color: #fff;
+	opacity: 0.85;
+	transition: opacity 0.12s ease-out;
+}
+
+.fcs-footer__social a:hover,
+.fcs-footer__social a:focus {
+	opacity: 1;
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.fcs-footer__social svg {
+	width: 24px;
+	height: 24px;
+}
+
+/* -- Bottom bar: copyright + privacy -- */
+
+.fcs-footer__bottom {
+	border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.fcs-footer__bottom-inner {
+	max-width: 1170px;
+	margin: 0 auto;
+	padding: 16px 24px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px 24px;
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.55);
+}
+
+.fcs-footer__notice {
+	margin: 0;
+}
+
+.fcs-footer__bottom a {
+	color: rgba(255, 255, 255, 0.55);
+}

@@ -1,0 +1,329 @@
+/**
+ * Site chrome — header, primary nav, page banner.
+ * (The footer lives in footer.css.)
+ *
+ * The header is a single sticky maroon bar: logo left, menu right, with CSS
+ * dropdowns (hover/focus) enhanced by the nav island (assets/js/islands/nav.js)
+ * for touch + aria state. Under 64rem the menu collapses behind a hamburger
+ * into a full-screen panel with every section expanded (no accordions to
+ * fight — the whole menu is ~25 items and scrolls).
+ */
+
+.fcs-header {
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	background-color: var(--fcs-maroon);
+	box-shadow: 0 1px 0 rgb(0 0 0 / 0.12);
+}
+
+.fcs-header__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	max-width: 80rem;
+	margin-inline: auto;
+	padding: 0.875rem 1.25rem;
+}
+
+.fcs-logo {
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.fcs-logo img {
+	display: block;
+	width: auto;
+	height: 2.75rem;
+}
+
+/* ---- Desktop menu --------------------------------------------------------- */
+
+.fcs-nav {
+	display: none;
+}
+
+.fcs-nav__list {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.fcs-nav__list li {
+	position: relative;
+}
+
+.fcs-nav__list a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	padding: 0.625rem 0.75rem;
+	border-radius: 0.375rem;
+	color: var(--fcs-text-light);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.fcs-nav__list a:hover,
+.fcs-nav__list a:focus-visible {
+	background-color: rgb(255 255 255 / 0.12);
+	color: var(--fcs-text-light);
+	text-decoration: none;
+}
+
+/* Chevron on items with a submenu. */
+.fcs-nav__list > .menu-item-has-children > a::after {
+	content: "";
+	width: 0.55em;
+	height: 0.55em;
+	margin-top: -0.2em;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+	opacity: 0.7;
+}
+
+/* Dropdown panel. Closed by default; opened by hover, keyboard focus within,
+   or the nav island setting aria-expanded (touch). */
+.fcs-nav__list .sub-menu {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 60;
+	min-width: 15rem;
+	margin: 0;
+	padding: 0.5rem;
+	list-style: none;
+	background-color: var(--fcs-maroon-dark);
+	border-radius: 0.5rem;
+	box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+	display: none;
+}
+
+.fcs-nav__list li:hover > .sub-menu,
+.fcs-nav__list li:focus-within > .sub-menu,
+.fcs-nav__list li > [aria-expanded="true"] + .sub-menu {
+	display: block;
+}
+
+.fcs-nav__list .sub-menu a {
+	display: block;
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 400;
+	letter-spacing: 0.01em;
+	text-transform: none;
+	white-space: normal;
+}
+
+/* Third level (unused today, but the menu allows depth 3): nest inline. */
+.fcs-nav__list .sub-menu .sub-menu {
+	position: static;
+	box-shadow: none;
+	padding: 0 0 0 0.75rem;
+	display: block;
+}
+
+/* ---- Header action buttons (search, hamburger) ---------------------------- */
+
+.fcs-header__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.fcs-header__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--fcs-tap-min);
+	height: var(--fcs-tap-min);
+	border: 0;
+	border-radius: 0.375rem;
+	background: transparent;
+	color: var(--fcs-text-light);
+	cursor: pointer;
+}
+
+.fcs-header__btn:hover,
+.fcs-header__btn:focus-visible {
+	background-color: rgb(255 255 255 / 0.12);
+}
+
+.fcs-header__btn svg {
+	width: 1.375rem;
+	height: 1.375rem;
+}
+
+.fcs-header__btn .fcs-icon-close,
+.fcs-header__btn[aria-expanded="true"] .fcs-icon-open {
+	display: none;
+}
+
+.fcs-header__btn[aria-expanded="true"] .fcs-icon-close {
+	display: block;
+}
+
+/* ---- Search popover -------------------------------------------------------- */
+
+.fcs-search {
+	border-top: 1px solid rgb(255 255 255 / 0.15);
+	background-color: var(--fcs-maroon-dark);
+}
+
+.fcs-search form {
+	display: flex;
+	gap: 0.5rem;
+	max-width: 36rem;
+	margin-inline: auto;
+	padding: 0.875rem 1.25rem;
+}
+
+.fcs-search input[type="search"] {
+	flex: 1 1 auto;
+	min-height: var(--fcs-tap-min);
+	background-color: var(--fcs-surface);
+	color: var(--fcs-text);
+}
+
+/* ---- Mobile panel ----------------------------------------------------------
+ * A fixed full-height sheet below the header bar. Every section renders
+ * expanded: top-level items become group headings with their children
+ * indented beneath. */
+
+.fcs-mobile {
+	position: fixed;
+	inset: 0;
+	top: var(--fcs-header-h, 4.5rem);
+	z-index: 49;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	background-color: var(--fcs-maroon-dark);
+	padding: 1rem 1.25rem 3rem;
+}
+
+.fcs-mobile form {
+	display: flex;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.fcs-mobile input[type="search"] {
+	flex: 1 1 auto;
+	min-height: var(--fcs-tap-min);
+	background-color: var(--fcs-surface);
+	color: var(--fcs-text);
+}
+
+.fcs-mobile ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.fcs-mobile a {
+	display: block;
+	padding: 0.625rem 0.5rem;
+	min-height: var(--fcs-tap-min);
+	border-radius: 0.375rem;
+	color: var(--fcs-text-light);
+	font-size: 1.0625rem;
+	text-decoration: none;
+}
+
+.fcs-mobile a:hover,
+.fcs-mobile a:focus-visible {
+	background-color: rgb(255 255 255 / 0.1);
+	color: var(--fcs-text-light);
+}
+
+.fcs-mobile > ul > li {
+	border-bottom: 1px solid rgb(255 255 255 / 0.12);
+	padding: 0.25rem 0;
+}
+
+.fcs-mobile > ul > li > a {
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 1.125rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.fcs-mobile .sub-menu a {
+	padding-left: 1.25rem;
+	color: rgb(255 255 255 / 0.85);
+}
+
+/* Lock page scroll while the mobile panel is open (class set by the island). */
+body.fcs-nav-open {
+	overflow: hidden;
+}
+
+/* ---- Breakpoint: desktop nav from 64rem ----------------------------------- */
+
+@media (min-width: 64rem) {
+	.fcs-nav {
+		display: block;
+	}
+
+	.fcs-nav-toggle {
+		display: none;
+	}
+}
+
+/* ---- Page banner (every page except the front page) ------------------------ */
+
+.fcs-banner {
+	background-color: var(--fcs-maroon);
+}
+
+.fcs-banner__inner {
+	max-width: 64rem;
+	margin-inline: auto;
+	padding: 2.25rem 1.5rem 2rem;
+}
+
+.fcs-banner h1 {
+	margin: 0;
+	color: var(--fcs-text-light);
+	font-family: var(--font-display);
+	font-weight: 500;
+	font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.375rem);
+	letter-spacing: 0.025em;
+	text-align: center;
+}
+
+/* ---- Shared layout containers ---------------------------------------------- */
+
+.fcs-container {
+	max-width: 80rem;
+	margin-inline: auto;
+	padding-inline: 1.25rem;
+}
+
+.fcs-container--med {
+	max-width: 64rem;
+	margin-inline: auto;
+	padding-inline: 1.25rem;
+}
+
+.fcs-container--text {
+	max-width: 46rem;
+	margin-inline: auto;
+	padding-inline: 1.25rem;
+}
+
+/* A bare text measure for use INSIDE a container (no centring, no padding). */
+.fcs-measure {
+	max-width: 43.5rem;
+}

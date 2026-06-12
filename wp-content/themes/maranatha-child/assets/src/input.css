@@ -1,135 +1,60 @@
 /**
- * Tailwind v4 source for the Maranatha child theme.
+ * Tailwind v4 source for the First Church Seattle theme.
  *
- * Compiled to ../tailwind.css by build-css.sh (the committed artifact — prod
- * never runs a build; CI verifies the artifact matches this source).
+ * Compiled to ../theme.css by build-css.sh (the built artifact — prod never
+ * runs a build; the CD workflow builds on the deploy runner).
  *
- * Non-obvious choices (see README.md "Important non-obvious things"):
- *  - Utilities are imported UNLAYERED. Unlayered parent-theme element selectors
- *    (h1, a, p, …) always beat @layer-ed rules, so layered utilities silently
- *    lose. Importing utilities without a layer lets them join the normal cascade.
- *  - Preflight is intentionally NOT imported — we live inside the parent theme's
- *    own reset and don't want to fight it.
- *  - The components below are plain CSS (not @utility / @layer components) for
- *    the same cascade reason.
+ * This is the site's ONE stylesheet. The theme is standalone (no parent), so
+ * we import all of Tailwind — including preflight — and own the cascade:
+ *
+ *   theme.css   — design tokens (@theme)
+ *   base        — @font-face, element defaults, entry-content typography
+ *   components  — buttons, cards, chrome (header/footer), page sections
+ *   utilities   — Tailwind utilities used directly in template markup
  */
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css";
+@import "tailwindcss";
 
 /* Which files to scan for utility classes (relative to this file = theme root). */
 @source "../../**/*.php";
 @source "../../assets/*.js";
+@source "../../assets/js/**/*.js";
 
 @theme {
+  /* Brand */
   --color-brand: #70334e;
   --color-brand-dark: #5a2940;
+  --color-brand-deep: #4a2236;
   --color-brand-soft: #faf6f8;
   --color-brand-line: #ebe1e5;
   --color-brand-ink: #2a1a22;
+
+  /* Type */
   --font-display: "Raleway", "Lato", system-ui, sans-serif;
+  --font-sans: "Lato", system-ui, sans-serif;
 }
 
-/* Semantic colour utilities (bg-surface, text-ink, text-muted, text-accent,
- * border-line, …). `inline` makes the generated utilities reference the
- * --fcs-* custom properties DIRECTLY, so when assets/dark-mode.css flips those
- * vars under @media (prefers-color-scheme: dark) the utilities flip with them —
- * no `dark:` variant needed for a plain colour swap, and a Tailwind-rendered
- * card is guaranteed the same dark colour as a mobile.css-rendered one (one
- * palette, no desync). The fallbacks keep utilities working if the always-on
- * mobile.css somehow isn't present. Light values live in mobile.css :root; dark
- * values in dark-mode.css. Brand FILL colours stay in the static @theme above.
- *
- * Use `dark:` variants in markup only for genuine per-element refinements
- * (e.g. dimming a decorative image), not for colour flips the tokens handle. */
+/* Semantic colour tokens. `inline` makes generated utilities (bg-surface,
+ * text-ink, …) reference the --fcs-* custom properties directly, so the dark
+ * scheme flips them site-wide by reassigning the vars (see base.css) — no
+ * `dark:` variant needed for plain colour swaps. Use `dark:` in markup only
+ * for genuine per-element refinements. */
 @theme inline {
-  --color-surface: var(--fcs-surface, #fff);
-  --color-elevated: var(--fcs-surface-2, #faf6f8);
-  --color-band: var(--fcs-surface-3, #f7f4f6);
-  --color-ink: var(--fcs-text, #3a2a33);
-  --color-soft: var(--fcs-text-soft, #4a414c);
-  --color-muted: var(--fcs-text-muted, #8a7d86);
-  --color-line: var(--fcs-border, #ebe1e5);
-  --color-accent: var(--fcs-accent, #70334e);
-  --color-accent-strong: var(--fcs-accent-strong, #5a2940);
+  --color-surface: var(--fcs-surface);
+  --color-elevated: var(--fcs-surface-2);
+  --color-band: var(--fcs-surface-3);
+  --color-ink: var(--fcs-text);
+  --color-soft: var(--fcs-text-soft);
+  --color-muted: var(--fcs-text-muted);
+  --color-line: var(--fcs-border);
+  --color-accent: var(--fcs-accent);
+  --color-accent-strong: var(--fcs-accent-strong);
 }
 
-/* ---- Components (plain, unlayered) ---------------------------------------- */
-.btn-primary {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 2.75rem;
-  padding: .75rem 1.25rem;
-  border: 1px solid var(--color-brand);
-  border-radius: .5rem;
-  background-color: var(--color-brand);
-  color: #fff;
-  font-size: .875rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-decoration: none;
-  box-shadow: 0 1px 2px #70334e2e;
-  transition: background-color .12s ease-out, transform .12s ease-out;
-}
-.btn-primary:hover,
-.btn-primary:focus {
-  background-color: var(--color-brand-dark);
-  border-color: var(--color-brand-dark);
-  color: #fff;
-}
-.btn-primary:active { transform: translateY(1px); }
-
-.btn-ghost {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 2.75rem;
-  padding: .75rem 1.25rem;
-  border: 1px solid var(--fcs-accent);
-  border-radius: .5rem;
-  background-color: #0000;
-  color: var(--fcs-accent);
-  font-size: .875rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-decoration: none;
-  transition: background-color .12s ease-out, color .12s ease-out;
-}
-.btn-ghost:hover,
-.btn-ghost:focus {
-  background-color: var(--color-brand);
-  color: #fff;
-}
-
-.card-action {
-  padding: 1.5rem;
-  border: 1px solid var(--fcs-border);
-  border-radius: 1rem;
-  background-color: var(--fcs-surface-2);
-  box-shadow: 0 1px 3px #70334e0a;
-}
-@media (min-width: 640px) {
-  .card-action { padding: 1.75rem; }
-}
-
-.cta-tile {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  border: 1px solid var(--fcs-border);
-  border-radius: .75rem;
-  background-color: var(--fcs-surface-2);
-  box-shadow: 0 2px 12px #70334e14;
-  transition: box-shadow .18s ease-out, transform .18s ease-out;
-}
-.cta-tile:hover { box-shadow: 0 4px 18px #70334e24; }
-
-/* The whole tile (image, title, body) clicks through to the button's target —
-   the tile's single link stretches over it via a pseudo-element. The button
-   stays the visible affordance. */
-.cta-tile .btn-primary::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
+@import "./base.css";
+@import "./chrome.css";
+@import "./footer.css";
+@import "./components.css";
+@import "./content.css";
+@import "./home.css";
+@import "./events.css";
+@import "./extras.css";

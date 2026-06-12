@@ -1,0 +1,241 @@
+/**
+ * Entry content typography + loop/archive scaffolding.
+ *
+ * .fcs-entry is the editor-content canvas (the prose measure). It styles the
+ * HTML WordPress emits — headings, lists, quotes, tables, galleries, embeds,
+ * core blocks — since that markup carries no theme classes of its own.
+ */
+
+.fcs-entry {
+	font-size: 1.0625rem;
+	line-height: 1.7;
+	color: var(--fcs-text);
+}
+
+.fcs-entry > * + * {
+	margin-top: 1.1em;
+}
+
+.fcs-entry h1,
+.fcs-entry h2,
+.fcs-entry h3,
+.fcs-entry h4 {
+	color: var(--fcs-accent);
+	font-weight: 500;
+	margin-top: 1.6em;
+}
+
+.fcs-entry h1 { font-size: 1.9rem; }
+.fcs-entry h2 { font-size: 1.55rem; }
+.fcs-entry h3 { font-size: 1.25rem; }
+.fcs-entry h4 { font-size: 1.0625rem; font-weight: 600; }
+
+.fcs-entry a {
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, var(--fcs-accent) 40%, transparent);
+	text-underline-offset: 2px;
+}
+
+.fcs-entry a:hover {
+	text-decoration-color: currentColor;
+}
+
+.fcs-entry ul,
+.fcs-entry ol {
+	padding-left: 1.5em;
+}
+
+.fcs-entry ul { list-style: disc; }
+.fcs-entry ol { list-style: decimal; }
+.fcs-entry li { margin-top: 0.35em; }
+
+.fcs-entry blockquote {
+	border-left: 3px solid var(--fcs-maroon);
+	padding-left: 1.25em;
+	color: var(--fcs-text-soft);
+	font-style: italic;
+}
+
+.fcs-entry hr {
+	border: 0;
+	border-top: 1px solid var(--fcs-border);
+	margin-block: 2.5em;
+}
+
+.fcs-entry table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.95em;
+}
+
+.fcs-entry th,
+.fcs-entry td {
+	border: 1px solid var(--fcs-border);
+	padding: 0.5em 0.75em;
+	text-align: left;
+}
+
+.fcs-entry th {
+	background-color: var(--fcs-surface-2);
+	font-weight: 700;
+}
+
+.fcs-entry img {
+	border-radius: 6px;
+}
+
+.fcs-entry figure {
+	margin-inline: 0;
+}
+
+.fcs-entry figcaption,
+.fcs-entry .wp-caption-text {
+	font-size: 0.85em;
+	color: var(--fcs-text-muted);
+	margin-top: 0.5em;
+	text-align: center;
+}
+
+/* Keep responsive embeds (YouTube etc.) proportional. */
+.fcs-entry iframe {
+	max-width: 100%;
+	border: 0;
+}
+
+.fcs-entry .wp-block-embed__wrapper iframe,
+.fcs-entry p > iframe[src*="youtube"],
+.fcs-entry p > iframe[src*="vimeo"] {
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	height: auto;
+}
+
+/* Buttons typed in content (legacy .ctc-button-* links + core button block)
+   render as the brand button. */
+.fcs-entry .wp-block-button__link,
+.fcs-entry a.ctc-button,
+.fcs-entry a.ctc-button-light {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.75rem;
+	padding: 0.75rem 1.25rem;
+	border: 1px solid var(--fcs-maroon);
+	border-radius: 0.5rem;
+	background-color: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.fcs-entry .wp-block-button__link:hover,
+.fcs-entry a.ctc-button:hover,
+.fcs-entry a.ctc-button-light:hover {
+	background-color: var(--fcs-maroon-dark);
+	border-color: var(--fcs-maroon-dark);
+	color: var(--fcs-text-light);
+}
+
+/* ---- Legacy [gallery] shortcode + core gallery block ----------------------- */
+
+.fcs-entry .gallery {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+	margin-block: 1.5em;
+}
+
+.fcs-entry .gallery-item {
+	margin: 0;
+}
+
+.fcs-entry .gallery-item img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 6px;
+}
+
+.fcs-entry .gallery-caption {
+	font-size: 0.8em;
+	color: var(--fcs-text-muted);
+}
+
+/* ---- Page / single layout --------------------------------------------------- */
+
+.fcs-main {
+	padding-block: 2.5rem 4rem;
+}
+
+.fcs-page-meta {
+	color: var(--fcs-text-muted);
+	font-size: 0.875rem;
+	margin-bottom: 1.5rem;
+}
+
+.fcs-page-meta a {
+	color: inherit;
+}
+
+/* ---- Archive / search loop --------------------------------------------------- */
+
+.fcs-archive-header {
+	margin-bottom: 2rem;
+}
+
+.fcs-archive-header h1 {
+	color: var(--fcs-accent);
+	font-weight: 500;
+	font-size: 1.9rem;
+	margin: 0 0 0.5rem;
+}
+
+.fcs-archive-header .fcs-archive-desc {
+	color: var(--fcs-text-soft);
+}
+
+.fcs-no-results {
+	padding: 2rem 0;
+	color: var(--fcs-text-soft);
+}
+
+/* Pagination (paginate_links 'list' output). */
+.fcs-pagination {
+	margin-top: 2.5rem;
+}
+
+.fcs-pagination ul.page-numbers {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	justify-content: center;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.fcs-pagination li .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.5rem;
+	min-height: 2.5rem;
+	padding: 0.25rem 0.75rem;
+	border: 1px solid var(--fcs-border);
+	border-radius: 0.5rem;
+	text-decoration: none;
+	color: var(--fcs-accent);
+}
+
+.fcs-pagination li .page-numbers.current {
+	background-color: var(--fcs-maroon);
+	border-color: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
+
+.fcs-pagination li a.page-numbers:hover {
+	background-color: var(--fcs-surface-2);
+	text-decoration: none;
+}
