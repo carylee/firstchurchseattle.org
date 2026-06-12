@@ -64,7 +64,9 @@ describe('nav island', () => {
 
 	it('Escape closes an open panel', () => {
 		doc.querySelector('.fcs-search-toggle').click();
-		doc.dispatchEvent(new doc.defaultView.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		doc.dispatchEvent(
+			new doc.defaultView.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+		);
 		expect(doc.getElementById('fcs-search').hidden).toBe(true);
 	});
 });
