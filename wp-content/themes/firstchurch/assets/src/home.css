@@ -377,9 +377,11 @@
  * --------------------------------------------------------------------- */
 
 .fcs-mast {
+	/* Compact enough that the ticker and most of the mosaic clear the fold
+	   on a ~1470×860 laptop viewport. */
 	max-width: 78rem;
 	margin-inline: auto;
-	padding: 4.5rem 1.5rem 3rem;
+	padding: 2.75rem 1.5rem 2rem;
 }
 
 .fcs-mast .fcs-kicker {
@@ -387,10 +389,10 @@
 }
 
 .fcs-mast h1 {
-	margin: 0.75rem 0 1.25rem;
+	margin: 0.5rem 0 1rem;
 	font-family: var(--font-display);
 	font-weight: 300;
-	font-size: clamp(3rem, 7.4vw, 5.6rem);
+	font-size: clamp(2.7rem, 5.8vw, 4.5rem);
 	line-height: 1.04;
 	letter-spacing: -0.015em;
 	color: var(--fcs-text);
@@ -460,10 +462,10 @@
 .fcs-mosaic {
 	max-width: 78rem;
 	margin-inline: auto;
-	padding: 2.5rem 1.5rem 4rem;
+	padding: 1.5rem 1.5rem 3rem;
 	display: grid;
 	grid-template-columns: repeat(6, 1fr);
-	grid-auto-rows: 11rem;
+	grid-auto-rows: 10rem;
 	gap: 1rem;
 }
 
@@ -532,7 +534,7 @@
 .fcs-creed__in {
 	max-width: 50rem;
 	margin-inline: auto;
-	padding: 4.5rem 2rem;
+	padding: 3.5rem 2rem;
 	text-align: center;
 	color: rgb(255 255 255 / 0.94);
 }
