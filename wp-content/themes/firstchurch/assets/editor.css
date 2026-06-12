@@ -1,0 +1,28 @@
+/**
+ * Block editor (Gutenberg) base styles.
+ *
+ * The theme deliberately doesn't load its full front-end stylesheet into the
+ * editor — just enough for comfortable writing: a sans base, legible title,
+ * brand-coloured headings to mirror the front end.
+ */
+
+.editor-styles-wrapper,
+.editor-styles-wrapper p,
+.editor-styles-wrapper li,
+.editor-styles-wrapper .block-editor-rich-text__editable,
+.editor-styles-wrapper .editor-post-title__input,
+.editor-styles-wrapper .wp-block-post-title {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+		Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+}
+
+.editor-styles-wrapper .editor-post-title__input,
+.editor-styles-wrapper .wp-block-post-title {
+	color: #1e1e1e;
+}
+
+.editor-styles-wrapper h2,
+.editor-styles-wrapper h3,
+.editor-styles-wrapper h4 {
+	color: #70334e;
+}

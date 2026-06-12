@@ -1,0 +1,60 @@
+/**
+ * Tailwind v4 source for the First Church Seattle theme.
+ *
+ * Compiled to ../theme.css by build-css.sh (the built artifact — prod never
+ * runs a build; the CD workflow builds on the deploy runner).
+ *
+ * This is the site's ONE stylesheet. The theme is standalone (no parent), so
+ * we import all of Tailwind — including preflight — and own the cascade:
+ *
+ *   theme.css   — design tokens (@theme)
+ *   base        — @font-face, element defaults, entry-content typography
+ *   components  — buttons, cards, chrome (header/footer), page sections
+ *   utilities   — Tailwind utilities used directly in template markup
+ */
+@import "tailwindcss";
+
+/* Which files to scan for utility classes (relative to this file = theme root). */
+@source "../../**/*.php";
+@source "../../assets/*.js";
+@source "../../assets/js/**/*.js";
+
+@theme {
+  /* Brand */
+  --color-brand: #70334e;
+  --color-brand-dark: #5a2940;
+  --color-brand-deep: #4a2236;
+  --color-brand-soft: #faf6f8;
+  --color-brand-line: #ebe1e5;
+  --color-brand-ink: #2a1a22;
+
+  /* Type */
+  --font-display: "Raleway", "Lato", system-ui, sans-serif;
+  --font-sans: "Lato", system-ui, sans-serif;
+}
+
+/* Semantic colour tokens. `inline` makes generated utilities (bg-surface,
+ * text-ink, …) reference the --fcs-* custom properties directly, so the dark
+ * scheme flips them site-wide by reassigning the vars (see base.css) — no
+ * `dark:` variant needed for plain colour swaps. Use `dark:` in markup only
+ * for genuine per-element refinements. */
+@theme inline {
+  --color-surface: var(--fcs-surface);
+  --color-elevated: var(--fcs-surface-2);
+  --color-band: var(--fcs-surface-3);
+  --color-ink: var(--fcs-text);
+  --color-soft: var(--fcs-text-soft);
+  --color-muted: var(--fcs-text-muted);
+  --color-line: var(--fcs-border);
+  --color-accent: var(--fcs-accent);
+  --color-accent-strong: var(--fcs-accent-strong);
+}
+
+@import "./base.css";
+@import "./chrome.css";
+@import "./footer.css";
+@import "./components.css";
+@import "./content.css";
+@import "./home.css";
+@import "./events.css";
+@import "./extras.css";

@@ -1,0 +1,449 @@
+/**
+ * First Church Seattle — homepage sections.
+ *
+ * Visit card, Shared Breakfast story, home happenings strip and the
+ * worship-live status line. Plain CSS on the --fcs-* semantic tokens, so the
+ * dark palette applies automatically.
+ */
+
+/* ============================================================
+   Homepage: visit card + happenings strip
+   (partials/home-visit-happenings.php — replaces the live map
+   in the slot after the hero; see partials/map-section.php)
+   ============================================================ */
+
+.fcs-visit {
+	background: var(--fcs-surface);
+	padding: 48px 24px;
+}
+
+.fcs-visit__inner {
+	max-width: 980px;
+	margin: 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 28px 48px;
+}
+
+.fcs-visit__details {
+	flex: 1 1 380px;
+}
+
+.fcs-visit__heading {
+	margin: 0 0 10px;
+	font-size: 1.7rem;
+	color: var(--fcs-accent);
+}
+
+.fcs-visit__time {
+	margin: 0 0 6px;
+	font-size: 1.05rem;
+	font-weight: 600;
+}
+
+.fcs-visit__address {
+	font-style: normal;
+	margin: 0 0 6px;
+}
+
+.fcs-visit__parking {
+	margin: 0;
+	font-size: 0.92rem;
+	color: var(--fcs-text-soft);
+}
+
+.fcs-visit__actions {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	flex: 0 0 auto;
+	min-width: 220px;
+}
+
+.fcs-visit__btn {
+	display: block;
+	text-align: center;
+	padding: 12px 26px;
+	min-height: var(--fcs-tap-min);
+	border: 1px solid var(--fcs-accent);
+	border-radius: 999px;
+	color: var(--fcs-accent);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.fcs-visit__btn:hover,
+.fcs-visit__btn:focus {
+	background: var(--fcs-maroon-dark);
+	border-color: var(--fcs-maroon-dark);
+	color: var(--fcs-text-light);
+}
+
+.fcs-visit__btn--primary {
+	background: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
+
+/* "This Sunday" schedule — a full-width row under the visit details/actions
+   listing that Sunday's spine occurrences. */
+.fcs-visit__date {
+	color: #5a5158;
+	font-weight: 400;
+	white-space: nowrap;
+}
+
+.fcs-visit__date::before {
+	content: "· ";
+}
+
+.fcs-visit__schedule {
+	flex: 1 1 100%;
+	border-top: 1px solid #e8e2e6;
+	padding-top: 20px;
+}
+
+.fcs-visit__schedule-heading {
+	margin: 0 0 10px;
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #5a5158;
+}
+
+.fcs-visit__schedule-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 8px 32px;
+}
+
+.fcs-visit__schedule-item {
+	display: flex;
+	gap: 10px;
+	align-items: baseline;
+}
+
+.fcs-visit__schedule-time {
+	flex: 0 0 4.6em;
+	font-weight: 600;
+	color: var(--fcs-maroon);
+	font-variant-numeric: tabular-nums;
+}
+
+.fcs-visit__schedule-what a {
+	color: inherit;
+	text-decoration-color: #c9b6c1;
+}
+
+.fcs-visit__schedule-loc {
+	color: #5a5158;
+	font-size: 0.92rem;
+}
+
+/* Shared Breakfast story section (partials/home-breakfast-story.php). */
+.fcs-breakfast {
+	background: #fff;
+	padding: 56px 24px;
+}
+
+.fcs-breakfast__inner {
+	max-width: 980px;
+	margin: 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 32px 48px;
+}
+
+.fcs-breakfast__media {
+	flex: 1 1 360px;
+	line-height: 0;
+}
+
+.fcs-breakfast__img {
+	width: 100%;
+	height: 320px;
+	object-fit: cover;
+	border-radius: 12px;
+}
+
+.fcs-breakfast__story {
+	flex: 1 1 380px;
+}
+
+.fcs-breakfast__kicker {
+	margin: 0 0 8px;
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #5a5158;
+}
+
+.fcs-breakfast__heading {
+	margin: 0 0 12px;
+	font-size: 1.7rem;
+	color: var(--fcs-maroon);
+}
+
+.fcs-breakfast__copy {
+	margin: 0 0 16px;
+}
+
+.fcs-breakfast__quote {
+	margin: 0 0 20px;
+	padding-left: 16px;
+	border-left: 3px solid var(--fcs-maroon);
+}
+
+.fcs-breakfast__quote p {
+	margin: 0 0 4px;
+	font-style: italic;
+}
+
+.fcs-breakfast__quote cite {
+	font-style: normal;
+	font-size: 0.92rem;
+	color: #5a5158;
+}
+
+.fcs-breakfast__quote cite::before {
+	content: "— ";
+}
+
+.fcs-breakfast__btn {
+	display: inline-block;
+}
+
+/* Home happenings strip. The three-up card-grid variant it uses
+   (.fcs-card-grid--three) lives with the card system in components.css. */
+.fcs-home-happenings {
+	background: var(--fcs-surface-3);
+	padding: 48px 24px 40px;
+}
+
+.fcs-home-happenings__inner {
+	max-width: 980px;
+	margin: 0 auto;
+}
+
+.fcs-home-happenings__heading {
+	margin: 0 0 18px;
+	font-size: 1.7rem;
+	color: var(--fcs-accent);
+	text-align: center;
+}
+
+.fcs-home-happenings__more {
+	margin: 4px 0 0;
+	text-align: center;
+}
+
+.fcs-home-happenings__more a {
+	color: var(--fcs-accent);
+	font-weight: 600;
+}
+
+/* -------------------------------------------------------------------------
+ * Worship-live status line. The slot ships hidden; the island
+ * (assets/js/islands/worship-live.js) reveals it and adds .is-live during the
+ * Sunday service, where a pulsing dot makes the "Live now" state read as
+ * active rather than a static schedule note.
+ * --------------------------------------------------------------------- */
+[data-island="worship-live"].is-live {
+	color: var(--fcs-live); /* a calm green, distinct from the brand maroon */
+}
+
+[data-island="worship-live"].is-live::before {
+	content: "";
+	display: inline-block;
+	width: 0.5em;
+	height: 0.5em;
+	margin-right: 0.4em;
+	border-radius: 50%;
+	background: currentColor;
+	animation: fcs-live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes fcs-live-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	[data-island="worship-live"].is-live::before {
+		animation: none;
+	}
+}
+
+/* -------------------------------------------------------------------------
+ * Hero + navigation bands (front-page.php)
+ *
+ * The hero keeps the old homepage's language: a maroon landing banner with an
+ * optional photo washed to ~30% over the brand colour, a light Raleway
+ * heading, and pill CTAs. The bands alternate dark / light and stay dark in
+ * dark mode (they're a design feature, not a surface).
+ * --------------------------------------------------------------------- */
+
+.fcs-hero {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: min(34rem, 72vh);
+	padding: 4rem 1.5rem 4.5rem;
+	background-color: var(--fcs-maroon);
+	overflow: hidden;
+}
+
+.fcs-hero__image {
+	position: absolute;
+	inset: 0;
+	background-size: cover;
+	background-position: center;
+	opacity: 0.3;
+}
+
+.fcs-hero__content {
+	position: relative;
+	max-width: 50rem;
+	text-align: center;
+	color: var(--fcs-text-light);
+}
+
+.fcs-hero__content h1 {
+	margin: 0 0 1rem;
+	color: var(--fcs-text-light);
+	font-family: var(--font-display);
+	font-weight: 300;
+	font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
+	letter-spacing: 0.02em;
+}
+
+.fcs-hero__copy {
+	font-size: 1.125rem;
+	line-height: 1.6;
+}
+
+.fcs-hero__copy p {
+	margin: 0 0 0.75em;
+}
+
+.fcs-hero__copy a {
+	color: var(--fcs-text-light);
+	text-decoration: underline;
+	text-decoration-color: rgb(255 255 255 / 0.5);
+}
+
+/* ---- Pill CTA row (hero + bands) ---- */
+
+.fcs-pill-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	justify-content: center;
+	list-style: none;
+	margin: 1.75rem 0 0;
+	padding: 0;
+}
+
+.fcs-pill-list a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: var(--fcs-tap-min);
+	padding: 0.7rem 1.5rem;
+	border: 1px solid currentColor;
+	border-radius: 999px;
+	color: inherit;
+	font-size: 0.8125rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	text-decoration: none;
+	transition: background-color 0.12s ease-out, color 0.12s ease-out;
+}
+
+.fcs-pill-list a:hover,
+.fcs-pill-list a:focus-visible {
+	background-color: rgb(255 255 255 / 0.15);
+	text-decoration: none;
+	color: inherit;
+}
+
+.fcs-pill-list a.is-primary {
+	background-color: #fff;
+	border-color: #fff;
+	color: var(--fcs-maroon);
+}
+
+.fcs-pill-list a.is-primary:hover,
+.fcs-pill-list a.is-primary:focus-visible {
+	background-color: rgb(255 255 255 / 0.88);
+}
+
+/* ---- Bands ---- */
+
+.fcs-band {
+	position: relative;
+	overflow: hidden;
+	padding: 5rem 1.5rem;
+}
+
+/* Washed background photo, same treatment the old widgets used (~10%). */
+.fcs-band__image {
+	position: absolute;
+	inset: 0;
+	background-size: cover;
+	background-position: center;
+	opacity: 0.12;
+}
+
+.fcs-band__content {
+	position: relative;
+	max-width: 46rem;
+	margin-inline: auto;
+	text-align: center;
+}
+
+.fcs-band__content h2 {
+	margin: 0 0 0.75rem;
+	font-family: var(--font-display);
+	font-weight: 300;
+	font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+}
+
+.fcs-band--dark {
+	background-color: #26222a;
+	color: #e8e4ea;
+}
+
+.fcs-band--dark h2 {
+	color: #fff;
+}
+
+.fcs-band--light {
+	background-color: var(--fcs-surface-3);
+	color: var(--fcs-text);
+}
+
+.fcs-band--light h2 {
+	color: var(--fcs-text);
+}
+
+/* On the light band the pills read in accent, not white. */
+.fcs-band--light .fcs-pill-list a {
+	color: var(--fcs-accent);
+}
+
+.fcs-band--light .fcs-pill-list a:hover,
+.fcs-band--light .fcs-pill-list a:focus-visible {
+	background-color: var(--fcs-maroon);
+	border-color: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}

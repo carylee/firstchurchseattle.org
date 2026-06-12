@@ -1,0 +1,158 @@
+/**
+ * First Church Seattle — extras: history timeline, 404 page, static maps.
+ *
+ * Plain CSS on the --fcs-* semantic tokens, so dark mode flips for free.
+ */
+
+/* ============================================================
+   History timeline (/about/history/timeline/).
+
+   Markup contract — authored in the page content (core blocks
+   with custom classNames), not a template:
+     .fc-timeline   wp:group wrapping the whole timeline (gets the rail)
+     .fc-tl-year    h3 year marker (gets the rail dot)
+     .fc-tl-img     wp:image figure inside the timeline
+
+   Enqueued by inc/history-timeline.php only on pages whose
+   content contains "fc-timeline".
+   ============================================================ */
+
+.fc-timeline {
+	position: relative;
+	margin-left: 0.5rem;
+	padding-left: 2rem;
+	border-left: 3px solid var(--fcs-border, #ebe1e5);
+}
+
+.fc-timeline .fc-tl-year {
+	position: relative;
+	clear: both;
+	margin: 3rem 0 0.75rem;
+	color: var(--fcs-accent, #70334e);
+}
+
+.fc-timeline .fc-tl-year:first-child {
+	margin-top: 0.5rem;
+}
+
+/* Rail dot, centered on the 3px rail. */
+.fc-timeline .fc-tl-year::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: calc(-2rem - 1.5px);
+	transform: translate(-50%, -50%);
+	width: 0.85rem;
+	height: 0.85rem;
+	border-radius: 50%;
+	background: var(--fcs-accent, #70334e);
+	border: 3px solid var(--fcs-surface, #ffffff);
+	box-sizing: content-box;
+}
+
+/* Timeline entries read as stacked units — year, image, text — so keep
+   figures full-width and unfloated regardless of any content-figure layout. */
+.fc-timeline .fc-tl-img {
+	float: none;
+	width: auto;
+	max-width: 100%;
+	clear: both;
+	margin: 0.75rem 0 1rem;
+}
+
+/* Many timeline images are tall scans (bulletins, telegrams, portraits);
+   cap their height so no single artifact dominates the scroll. */
+.fc-timeline .fc-tl-img img {
+	max-width: 100%;
+	max-height: 30rem;
+	width: auto;
+	height: auto;
+	border-radius: 6px;
+}
+
+.fc-timeline .fc-tl-img figcaption {
+	color: var(--fcs-text-muted, #8a7d86);
+	font-size: 0.85em;
+}
+
+@media (max-width: 640px) {
+	.fc-timeline {
+		margin-left: 0.25rem;
+		padding-left: 1.25rem;
+	}
+
+	.fc-timeline .fc-tl-year::before {
+		left: calc(-1.25rem - 1.5px);
+	}
+}
+
+/* ============================================================
+   404 page (404.php)
+   Search form + quick-link pills.
+   ============================================================ */
+
+.fcs-404 {
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 8px 0 24px;
+}
+
+.fcs-404__lead {
+	font-size: 1.05rem;
+}
+
+.fcs-404__heading {
+	font-size: 1.2rem;
+	margin: 0 0 12px;
+}
+
+.fcs-404__links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.fcs-404__links li {
+	margin: 0;
+}
+
+.fcs-404__links a {
+	display: inline-block;
+	padding: 10px 18px;
+	border: 1px solid var(--fcs-accent);
+	border-radius: 999px;
+	color: var(--fcs-accent);
+	text-decoration: none;
+	min-height: var(--fcs-tap-min);
+}
+
+.fcs-404__links a:hover,
+.fcs-404__links a:focus {
+	background: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
+
+/* -- In-content static map (inc/static-map.php fills the placeholder) -- */
+
+a.fcs-content-map {
+	display: block;
+	border-radius: 10px;
+	overflow: hidden;
+	line-height: 0;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+a.fcs-content-map img {
+	width: 100%;
+	height: auto;
+	display: block;
+	transition: opacity 0.12s ease-out;
+}
+
+a.fcs-content-map:hover img,
+a.fcs-content-map:focus img {
+	opacity: 0.92;
+}

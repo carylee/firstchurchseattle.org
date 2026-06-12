@@ -8,7 +8,7 @@ Stitches ~15 OSM tiles (one-time fetch, well within the tile usage policy),
 draws a brand-colored pin at the church and the required attribution, and
 writes the result to the child theme:
 
-    wp-content/themes/maranatha-child/assets/map.webp
+    wp-content/themes/firstchurch/assets/map.webp
 
 The image is 1280x800 — a 2x (retina) rendering of a 640x400 CSS-pixel map
 at zoom 15. It's served by inc/static-map.php in the page content and the
@@ -33,7 +33,7 @@ BRAND = (0x70, 0x33, 0x4E)  # maroon, same as the old map marker
 UA = "FirstChurchSeattle-website/1.0 (one-time static map render; office@firstchurchseattle.org)"
 OUT = (
     Path(__file__).resolve().parents[2]
-    / "wp-content/themes/maranatha-child/assets/map.webp"
+    / "wp-content/themes/firstchurch/assets/map.webp"
 )
 
 

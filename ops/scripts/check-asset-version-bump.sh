@@ -20,11 +20,11 @@ cd "$REPO"
 BASE="${BASE_REF:-origin/main}"
 
 # Dirs exempt from the bump rule:
-# - themes/maranatha: third-party vendored parent theme — not ours to version.
-# - themes/maranatha-child: enqueues every asset with a filemtime() version
+
+# - themes/firstchurch: enqueues every asset with a filemtime() version
 #   (fcs_asset_version() in functions.php), so shipped files self-bust and
 #   there is no constant to bump.
-EXEMPT="wp-content/themes/maranatha wp-content/themes/maranatha-child"
+EXEMPT="wp-content/themes/firstchurch"
 
 is_exempt() {
   local dir="$1"

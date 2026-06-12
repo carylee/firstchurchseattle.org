@@ -1,0 +1,20 @@
+/*
+Theme Name:     First Church Seattle
+Theme URI:      https://firstchurchseattle.org
+Author:         First Church Seattle
+Description:    First-party standalone theme for firstchurchseattle.org —
+                classic PHP templates, a single Tailwind-built stylesheet
+                (assets/src/ → assets/tailwind.css), self-hosted fonts, and
+                small native ES-module islands. Succeeded the Maranatha
+                parent + child pair in 2026.
+Version:        1.0.0
+Requires PHP:   8.1
+License:        GNU General Public License v2 or later
+Text Domain:    firstchurch
+*/
+
+/*
+ * Intentionally empty — WordPress requires this file to identify the theme.
+ * All styles are compiled from assets/src/ into assets/tailwind.css by
+ * build-css.sh and enqueued from functions.php.
+ */

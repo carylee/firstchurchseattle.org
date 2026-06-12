@@ -23,7 +23,7 @@
 # Excluded so a pull never overwrites in-progress local edits. Edit these in the repo and
 # ship with ops/deploy.sh; do NOT edit them directly on prod (a pull won't capture that and
 # the next deploy would overwrite it).
-/wp-content/themes/maranatha-child/
+/wp-content/themes/firstchurch/
 /wp-content/plugins/firstchurch-breeze-forms/
 /wp-content/plugins/firstchurch-carousel/
 /wp-content/plugins/firstchurch-connection-card/
