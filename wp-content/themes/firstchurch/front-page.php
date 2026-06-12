@@ -79,14 +79,24 @@ if ( function_exists( 'happenings_section_items' ) && function_exists( 'happenin
 		</div>
 	</section>
 
-	<?php // The welcome, in the congregation's own Sunday-morning words (ops/docs/voice-guide.md §1). ?>
-	<section class="fcs-welcome" aria-label="<?php esc_attr_e( 'New here?', 'firstchurch' ); ?>">
+	<?php
+	// The welcome — adapted for the web from the community-candle liturgy
+	// spoken at First Church 2024–2026 ("Whoever you are, wherever you find
+	// yourself today…"). Addressed to one reader, no claims about current
+	// practice, no member/visitor sorting: the words are the welcome.
+	?>
+	<section class="fcs-welcome" aria-label="<?php esc_attr_e( 'Welcome', 'firstchurch' ); ?>">
 		<div class="fcs-welcome__inner">
-			<p class="fcs-kicker"><?php esc_html_e( 'New here?', 'firstchurch' ); ?></p>
-			<h2><?php esc_html_e( 'You are welcome here.', 'firstchurch' ); ?></h2>
-			<p class="fcs-welcome__copy"><?php esc_html_e( 'Whether you’ve got your faith all figured out, you’re really not sure about God, or you’re anywhere in between — there’s a place for you at First Church. Come as you are on Sunday, or say hello first.', 'firstchurch' ); ?></p>
+			<span class="fcs-welcome__rule" aria-hidden="true"></span>
+			<h2><?php esc_html_e( 'Whoever you are, wherever you find yourself today —', 'firstchurch' ); ?></h2>
+			<div class="fcs-welcome__verse">
+				<p><?php esc_html_e( 'across the whole spectrum of human existence, sexuality, gender, identity, ability, or privilege;', 'firstchurch' ); ?></p>
+				<p><?php esc_html_e( 'with your questions and your doubts, in a world that needs repair —', 'firstchurch' ); ?></p>
+				<p><?php esc_html_e( 'may this community be a place of companionship and healing for you.', 'firstchurch' ); ?></p>
+				<p class="fcs-welcome__landing"><?php esc_html_e( 'There is nothing that can separate you from God’s all-embracing love.', 'firstchurch' ); ?></p>
+			</div>
 			<ul class="fcs-btn-list fcs-btn-list--on-light">
-				<li><a class="is-primary" href="<?php echo esc_url( home_url( '/about/newcomers/' ) ); ?>"><?php esc_html_e( 'Plan your visit', 'firstchurch' ); ?></a></li>
+				<li><a class="is-primary" href="<?php echo esc_url( home_url( '/about/newcomers/' ) ); ?>"><?php esc_html_e( 'Plan a visit', 'firstchurch' ); ?></a></li>
 				<li><a href="<?php echo esc_url( home_url( '/connection-card/' ) ); ?>"><?php esc_html_e( 'Say hello', 'firstchurch' ); ?></a></li>
 			</ul>
 		</div>

@@ -431,12 +431,14 @@
 }
 
 /* ---- Welcome band (front-page.php) ------------------------------------------
- * The unconditional welcome, set quietly on the brand-soft surface. */
+ * The candle welcome, set as quiet verse on the brand-soft surface. The thin
+ * gold rule above is the only ornament — a nod to the candle, not a picture
+ * of one. */
 
 .fcs-welcome {
 	background: var(--fcs-surface-2);
 	border-bottom: 1px solid var(--fcs-border-soft);
-	padding: 3.75rem 1.5rem;
+	padding: 4rem 1.5rem;
 }
 
 .fcs-welcome__inner {
@@ -445,18 +447,39 @@
 	text-align: center;
 }
 
-.fcs-welcome h2 {
-	margin: 0 0 0.75rem;
-	font-family: var(--font-display);
-	font-weight: 500;
-	font-size: clamp(1.6rem, 1.25rem + 1.5vw, 2.1rem);
-	color: var(--fcs-accent);
+.fcs-welcome__rule {
+	display: block;
+	width: 3rem;
+	height: 2px;
+	margin: 0 auto 1.5rem;
+	background: var(--fcs-gold);
+	border-radius: 1px;
 }
 
-.fcs-welcome__copy {
-	margin: 0;
-	line-height: 1.7;
+.fcs-welcome h2 {
+	margin: 0 0 1rem;
+	font-family: var(--font-display);
+	font-weight: 500;
+	font-size: clamp(1.5rem, 1.2rem + 1.3vw, 1.95rem);
+	line-height: 1.35;
+	color: var(--fcs-accent);
+	text-wrap: balance;
+}
+
+.fcs-welcome__verse p {
+	margin: 0 0 0.4rem;
+	line-height: 1.65;
 	color: var(--fcs-text-soft);
+	font-size: 1.0625rem;
+}
+
+.fcs-welcome__landing {
+	margin-top: 0.9rem;
+	font-style: italic;
+}
+
+p.fcs-welcome__landing {
+	margin-top: 0.9rem;
 }
 
 /* Button row on light surfaces: accent outline / accent fill. */
