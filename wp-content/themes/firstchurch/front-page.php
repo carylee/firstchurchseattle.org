@@ -146,8 +146,8 @@ $fcs_ticker = fcs_ticker_items();
 			<?php esc_html_e( 'for you.', 'firstchurch' ); ?>
 		</p>
 		<p class="fcs-mast__meta">
-			<strong><?php esc_html_e( 'Worship Sundays · 10:30 am · 180 Denny Way', 'firstchurch' ); ?></strong>
-			— <?php esc_html_e( 'in person & live on YouTube · kids welcome · doubts welcome', 'firstchurch' ); ?>
+			<strong><?php esc_html_e( 'Worship Sundays · 10:30 am · 180 Denny Way & YouTube', 'firstchurch' ); ?></strong>
+			· <?php esc_html_e( 'doubts welcome · kids welcome · childcare provided · free parking', 'firstchurch' ); ?>
 		</p>
 		<?php if ( $fcs_seasonal ) : ?>
 			<p class="fcs-mast__notice"><?php echo esc_html( $fcs_seasonal ); ?></p>
