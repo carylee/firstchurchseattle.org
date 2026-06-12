@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $GLOBALS['maranatha_top_map_attempted'] = true;
 $GLOBALS['maranatha_top_map_shown']     = true;
 
-if ( is_page_template( CTFW_THEME_PAGE_TPL_DIR . '/homepage.php' )
+if ( is_page_template( 'page-templates/homepage.php' )
 	&& empty( $GLOBALS['fcs_home_visit_rendered'] ) ) {
 
 	// Render once — the parent's footer also reloads this partial.

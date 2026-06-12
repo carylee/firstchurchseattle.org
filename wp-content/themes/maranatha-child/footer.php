@@ -109,7 +109,7 @@ $fcs_footer_map = str_replace( '<img ', '<img loading="lazy" ', fcs_static_map_i
 <?php
 // Parent parity: the "stickies" partial (latest events / comments pinned to the
 // bottom of large screens) self-gates on its Customizer options.
-get_template_part( CTFW_THEME_PARTIAL_DIR . '/footer-stickies' );
+get_template_part( 'partials/footer-stickies' );
 
 wp_footer();
 ?>

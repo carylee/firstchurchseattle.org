@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Homepage uses a different template entirely.
-if ( is_page_template( CTFW_THEME_PAGE_TPL_DIR . '/homepage.php' ) ) {
+if ( is_page_template( 'page-templates/homepage.php' ) ) {
 	return;
 }
 

@@ -7,10 +7,12 @@
  *
  * Owned by the child as part of the theme-independence work (extracting the
  * base template skeleton so the maranatha parent can eventually be dropped —
- * see ops/docs/theme-independence.md). This is a byte-for-byte copy of the
- * parent's header.php: it still pulls the header-top / header-bottom partials
- * and the CTFW_THEME_PARTIAL_DIR constant from the parent, so behavior is
- * identical for now. De-coupling those calls is tracked separately.
+ * see ops/docs/theme-independence.md). Started as a verbatim copy of the
+ * parent's header.php; the parent's CTFW_THEME_PARTIAL_DIR constant is now
+ * literalized to 'partials' so this file no longer fatals once the parent (and
+ * its constant) is gone. The header-top / header-bottom sub-partials it pulls
+ * still resolve to the parent (the child has no copy yet) — tracked as a
+ * remaining dependency.
  *
  * Parent source: maranatha/header.php (pinned in this repo) — re-diff if the
  * parent theme is ever updated.
@@ -36,10 +38,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <header id="maranatha-header">
 
-	<?php get_template_part( CTFW_THEME_PARTIAL_DIR . '/header-top' ); // header-top.php ?>
+	<?php get_template_part( 'partials/header-top' ); // header-top.php ?>
 
-	<?php get_template_part( CTFW_THEME_PARTIAL_DIR . '/header-banner' ); ?>
+	<?php get_template_part( 'partials/header-banner' ); ?>
 
-	<?php get_template_part( CTFW_THEME_PARTIAL_DIR . '/header-bottom' ); // breadcrumbs (left), archive dropdowns (right) ?>
+	<?php get_template_part( 'partials/header-bottom' ); // breadcrumbs (left), archive dropdowns (right) ?>
 
 </header>

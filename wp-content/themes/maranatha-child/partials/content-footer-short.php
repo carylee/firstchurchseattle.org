@@ -44,7 +44,7 @@ $post_type = get_post_type();
 
 	<?php
 	// Gallery Page Button
-	elseif ('page' == $post_type && isset( $post->page_template ) && CTFW_THEME_PAGE_TPL_DIR . '/gallery.php' == $post->page_template) :
+	elseif ('page' == $post_type && isset( $post->page_template ) && 'page-templates/gallery.php' == $post->page_template) :
 	?>
 
 		<ul class="maranatha-entry-short-footer-item maranatha-buttons-list">
