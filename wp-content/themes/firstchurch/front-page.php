@@ -139,7 +139,7 @@ $fcs_ticker = fcs_ticker_items();
 
 	<section class="fcs-mast" aria-label="<?php esc_attr_e( 'Welcome', 'firstchurch' ); ?>">
 		<p class="fcs-kicker"><?php esc_html_e( 'A progressive, inclusive church in downtown Seattle', 'firstchurch' ); ?></p>
-		<h1><?php esc_html_e( 'All are welcome.', 'firstchurch' ); ?><br><em><?php esc_html_e( 'No exceptions.', 'firstchurch' ); ?></em></h1>
+		<h1><?php esc_html_e( 'Whoever you are,', 'firstchurch' ); ?><br><em><?php esc_html_e( 'wherever you find yourself today.', 'firstchurch' ); ?></em></h1>
 		<p class="fcs-mast__sub">
 			<strong><?php esc_html_e( 'Worship Sundays · 10:30 am · 180 Denny Way', 'firstchurch' ); ?></strong>
 			— <?php esc_html_e( 'in person and live on YouTube. Kids always welcome. Doubts always welcome. Come as you are.', 'firstchurch' ); ?>
@@ -175,12 +175,14 @@ $fcs_ticker = fcs_ticker_items();
 
 	<?php
 	// The candle welcome, closing the page as a creed band — adapted for the
-	// web from the community-candle liturgy spoken here 2024–2026.
+	// web from the community-candle liturgy spoken here 2024–2026. The
+	// masthead opens the welcome ("Whoever you are, wherever you find
+	// yourself today"); this band finishes the sentence.
 	?>
 	<section class="fcs-creed" aria-label="<?php esc_attr_e( 'Our welcome', 'firstchurch' ); ?>">
 		<div class="fcs-creed__in">
 			<p class="fcs-creed__big">
-				<?php esc_html_e( 'Whoever you are, wherever you find yourself today — across the whole spectrum of human existence; with your questions and your doubts, in a world that needs repair — may this community be a place of', 'firstchurch' ); ?>
+				<?php esc_html_e( 'Across the whole spectrum of human existence, with your questions and your doubts, in a world that needs repair — may this community be a place of', 'firstchurch' ); ?>
 				<em><?php esc_html_e( 'companionship and healing', 'firstchurch' ); ?></em>
 				<?php esc_html_e( 'for you. There is nothing that can separate you from God’s all-embracing love.', 'firstchurch' ); ?>
 			</p>
