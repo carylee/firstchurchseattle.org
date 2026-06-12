@@ -68,7 +68,7 @@
 	padding: 12px 26px;
 	min-height: var(--fcs-tap-min);
 	border: 1px solid var(--fcs-accent);
-	border-radius: 999px;
+	border-radius: 0.5rem;
 	color: var(--fcs-accent);
 	text-decoration: none;
 	font-weight: 600;
@@ -110,7 +110,7 @@
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: #5a5158;
+	color: var(--fcs-gold);
 }
 
 .fcs-visit__schedule-list {
@@ -182,7 +182,7 @@
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: #5a5158;
+	color: var(--fcs-gold);
 }
 
 .fcs-breakfast__heading {
@@ -282,21 +282,18 @@
 }
 
 /* -------------------------------------------------------------------------
- * Hero + navigation bands (front-page.php)
+ * Hero (front-page.php)
  *
- * The hero keeps the old homepage's language: a maroon landing banner with an
- * optional photo washed to ~30% over the brand colour, a light Raleway
- * heading, and pill CTAs. The bands alternate dark / light and stay dark in
- * dark mode (they're a design feature, not a surface).
+ * Full-colour photo under a maroon gradient scrim; content sits left-aligned
+ * on the scrim's strongest corner (centred on small screens). With no photo
+ * the scrim alone gives a solid brand banner.
  * --------------------------------------------------------------------- */
 
 .fcs-hero {
 	position: relative;
 	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: min(34rem, 72vh);
-	padding: 4rem 1.5rem 4.5rem;
+	align-items: flex-end;
+	min-height: min(36rem, 76vh);
 	background-color: var(--fcs-maroon);
 	overflow: hidden;
 }
@@ -306,32 +303,54 @@
 	inset: 0;
 	background-size: cover;
 	background-position: center;
-	opacity: 0.3;
+}
+
+.fcs-hero__scrim {
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(to top, rgb(58 22 40 / 0.92) 0%, rgb(58 22 40 / 0.55) 45%, rgb(58 22 40 / 0.25) 100%),
+		linear-gradient(to right, rgb(58 22 40 / 0.55) 0%, rgb(58 22 40 / 0.05) 70%);
+}
+
+.fcs-hero__inner {
+	position: relative;
+	width: 100%;
+	max-width: 80rem;
+	margin-inline: auto;
+	padding: 5rem 1.5rem 3.5rem;
 }
 
 .fcs-hero__content {
-	position: relative;
-	max-width: 50rem;
-	text-align: center;
+	max-width: 44rem;
 	color: var(--fcs-text-light);
+	text-align: center;
+}
+
+@media (min-width: 40rem) {
+	.fcs-hero__content {
+		text-align: left;
+	}
 }
 
 .fcs-hero__content h1 {
-	margin: 0 0 1rem;
+	margin: 0 0 0.75rem;
 	color: var(--fcs-text-light);
 	font-family: var(--font-display);
-	font-weight: 300;
-	font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
-	letter-spacing: 0.02em;
+	font-weight: 500;
+	font-size: clamp(2rem, 1.4rem + 2.6vw, 3.1rem);
+	letter-spacing: 0.01em;
+	text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
 }
 
 .fcs-hero__copy {
-	font-size: 1.125rem;
+	font-size: 1.0938rem;
 	line-height: 1.6;
+	text-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
 }
 
 .fcs-hero__copy p {
-	margin: 0 0 0.75em;
+	margin: 0 0 0.6em;
 }
 
 .fcs-hero__copy a {
@@ -340,110 +359,211 @@
 	text-decoration-color: rgb(255 255 255 / 0.5);
 }
 
-/* ---- Pill CTA row (hero + bands) ---- */
+/* ---- Unified CTA row (hero, featured band) --------------------------------
+ * One button language site-wide: rounded rectangle, sentence case. On dark/
+ * brand surfaces the default is the outline form and .is-primary is filled
+ * white; uppercase is reserved for the menu. */
 
-.fcs-pill-list {
+.fcs-btn-list {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.75rem;
 	justify-content: center;
 	list-style: none;
-	margin: 1.75rem 0 0;
+	margin: 1.5rem 0 0;
 	padding: 0;
 }
 
-.fcs-pill-list a {
+@media (min-width: 40rem) {
+	.fcs-hero .fcs-btn-list {
+		justify-content: flex-start;
+	}
+}
+
+.fcs-btn-list a {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	min-height: var(--fcs-tap-min);
-	padding: 0.7rem 1.5rem;
-	border: 1px solid currentColor;
-	border-radius: 999px;
-	color: inherit;
-	font-size: 0.8125rem;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
+	padding: 0.7rem 1.4rem;
+	border: 1px solid rgb(255 255 255 / 0.75);
+	border-radius: 0.5rem;
+	color: var(--fcs-text-light);
+	font-size: 0.9375rem;
+	font-weight: 600;
 	text-decoration: none;
 	transition: background-color 0.12s ease-out, color 0.12s ease-out;
 }
 
-.fcs-pill-list a:hover,
-.fcs-pill-list a:focus-visible {
+.fcs-btn-list a:hover,
+.fcs-btn-list a:focus-visible {
 	background-color: rgb(255 255 255 / 0.15);
+	border-color: #fff;
+	color: var(--fcs-text-light);
 	text-decoration: none;
-	color: inherit;
 }
 
-.fcs-pill-list a.is-primary {
+.fcs-btn-list a.is-primary {
 	background-color: #fff;
 	border-color: #fff;
 	color: var(--fcs-maroon);
 }
 
-.fcs-pill-list a.is-primary:hover,
-.fcs-pill-list a.is-primary:focus-visible {
+.fcs-btn-list a.is-primary:hover,
+.fcs-btn-list a.is-primary:focus-visible {
 	background-color: rgb(255 255 255 / 0.88);
+	color: var(--fcs-maroon);
 }
 
-/* ---- Bands ---- */
+/* ---- Kicker (small gold section label) ------------------------------------ */
 
-.fcs-band {
-	position: relative;
-	overflow: hidden;
-	padding: 5rem 1.5rem;
+.fcs-kicker {
+	margin: 0 0 0.4rem;
+	color: var(--fcs-gold);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
 }
 
-/* Washed background photo, same treatment the old widgets used (~10%). */
-.fcs-band__image {
-	position: absolute;
-	inset: 0;
-	background-size: cover;
-	background-position: center;
-	opacity: 0.12;
+.fcs-kicker--on-dark {
+	color: var(--fcs-gold-on-dark);
 }
 
-.fcs-band__content {
-	position: relative;
-	max-width: 46rem;
-	margin-inline: auto;
+/* ---- "New here?" pathway (front-page.php) ---------------------------------- */
+
+.fcs-path {
+	padding: 3.5rem 0 1rem;
+}
+
+.fcs-path .fcs-kicker,
+.fcs-path__heading {
 	text-align: center;
 }
 
-.fcs-band__content h2 {
-	margin: 0 0 0.75rem;
+.fcs-path__heading {
+	margin: 0 0 1.75rem;
 	font-family: var(--font-display);
-	font-weight: 300;
-	font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+	font-weight: 500;
+	font-size: clamp(1.5rem, 1.2rem + 1.2vw, 1.9rem);
 }
 
-.fcs-band--dark {
-	background-color: #26222a;
-	color: #e8e4ea;
+.fcs-path__tiles {
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: 1fr;
 }
 
-.fcs-band--dark h2 {
-	color: #fff;
+@media (min-width: 48rem) {
+	.fcs-path__tiles {
+		grid-template-columns: 1fr 1fr 1fr;
+	}
 }
 
-.fcs-band--light {
-	background-color: var(--fcs-surface-3);
+.fcs-path__tile {
+	display: flex;
+	gap: 0.9rem;
+	align-items: flex-start;
+	padding: 1.25rem;
+	border: 1px solid var(--fcs-border);
+	border-radius: 0.875rem;
+	background: var(--fcs-surface);
 	color: var(--fcs-text);
+	text-decoration: none;
+	box-shadow: 0 1px 4px rgb(112 51 78 / 0.06);
+	transition: box-shadow 0.15s ease-out, border-color 0.15s ease-out;
 }
 
-.fcs-band--light h2 {
+.fcs-path__tile:hover,
+.fcs-path__tile:focus-visible {
+	border-color: var(--fcs-accent);
+	box-shadow: 0 4px 14px rgb(112 51 78 / 0.14);
 	color: var(--fcs-text);
+	text-decoration: none;
 }
 
-/* On the light band the pills read in accent, not white. */
-.fcs-band--light .fcs-pill-list a {
+.fcs-path__num {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 999px;
+	background: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+	font-weight: 700;
+	font-size: 0.9375rem;
+}
+
+.fcs-path__body {
+	display: block;
+}
+
+.fcs-path__title {
+	display: block;
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 1.0625rem;
 	color: var(--fcs-accent);
 }
 
-.fcs-band--light .fcs-pill-list a:hover,
-.fcs-band--light .fcs-pill-list a:focus-visible {
-	background-color: var(--fcs-maroon);
-	border-color: var(--fcs-maroon);
+.fcs-path__copy {
+	display: block;
+	margin-top: 0.2rem;
+	font-size: 0.9rem;
+	line-height: 1.5;
+	color: var(--fcs-text-soft);
+}
+
+.fcs-path__arrow {
+	margin-left: auto;
+	align-self: center;
+	color: var(--fcs-accent);
+	opacity: 0;
+	transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.fcs-path__tile:hover .fcs-path__arrow,
+.fcs-path__tile:focus-visible .fcs-path__arrow {
+	opacity: 1;
+	transform: translateX(2px);
+}
+
+/* ---- Featured story band (front-page.php) ----------------------------------
+ * One promoted item from the spine's Featured row, on a deep brand band. */
+
+.fcs-feature {
+	background-color: var(--fcs-maroon-dark);
+	padding: 4.5rem 1.5rem;
+}
+
+.fcs-feature__content {
+	max-width: 46rem;
+	margin-inline: auto;
+	text-align: center;
+	color: rgb(255 255 255 / 0.92);
+}
+
+.fcs-feature__content h2 {
+	margin: 0 0 0.75rem;
+	font-family: var(--font-display);
+	font-weight: 500;
+	font-size: clamp(1.6rem, 1.25rem + 1.5vw, 2.1rem);
 	color: var(--fcs-text-light);
+}
+
+.fcs-feature__content h2 a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.fcs-feature__content h2 a:hover {
+	text-decoration: underline;
+	text-decoration-color: rgb(255 255 255 / 0.5);
+}
+
+.fcs-feature__blurb {
+	margin: 0;
+	line-height: 1.65;
 }
