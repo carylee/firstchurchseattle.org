@@ -398,3 +398,41 @@ function fcs_announcements_shortcode( $atts ) {
 	return (string) ob_get_clean();
 }
 add_shortcode( 'fcs_announcements', 'fcs_announcements_shortcode' );
+
+/**
+ * Echo the CTA button on the single-post detail page.
+ *
+ * The CTA meta was built to give the /engage cards a button affordance, so it
+ * only ever rendered on card surfaces (the shortcode above + the happenings
+ * block). A reader who follows a card through to the full post — or lands on it
+ * from search or a shared link — saw no button at all, even when one was set.
+ * This closes that gap: the same action shows at the foot of the post body.
+ *
+ * Hooked on the shared parent-theme `maranatha_after_content`, which also fires
+ * for events, sermons, people, etc. — so we guard to a single `post` in the main
+ * loop. Unlike the cards there is no "Read more" fallback: you're already reading
+ * it, so we render only when a real CTA URL is set.
+ */
+add_action(
+	'maranatha_after_content',
+	function () {
+		if ( ! is_singular( 'post' ) || ! is_main_query() || ! in_the_loop() ) {
+			return;
+		}
+
+		$pid = get_the_ID();
+		$url = get_post_meta( $pid, FCS_CTA_URL_KEY, true );
+		if ( ! $url ) {
+			return;
+		}
+
+		$text = get_post_meta( $pid, FCS_CTA_TEXT_KEY, true );
+		?>
+		<p class="fcs-post-cta">
+			<a href="<?php echo esc_url( $url ); ?>" class="fcs-post-cta__button">
+				<?php echo esc_html( $text ? $text : __( 'Learn more', 'maranatha-child' ) ); ?>
+			</a>
+		</p>
+		<?php
+	}
+);
