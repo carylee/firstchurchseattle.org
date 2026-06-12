@@ -88,18 +88,3 @@ function fcs_banner_kicker(): string {
 	}
 	return '';
 }
-
-/**
- * Tag the Give menu item so the nav can style it as the one filled pill.
- */
-add_filter(
-	'nav_menu_css_class',
-	function ( $classes, $item ) {
-		if ( 'give' === sanitize_title( $item->title ) ) {
-			$classes[] = 'fcs-menu-give';
-		}
-		return $classes;
-	},
-	10,
-	2
-);

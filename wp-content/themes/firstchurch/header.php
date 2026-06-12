@@ -51,6 +51,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="fcs-header__actions">
 
+			<?php // The standing Give CTA lives with the utility actions, not in the editable menu. ?>
+			<a class="fcs-header__give" href="<?php echo esc_url( home_url( '/give/' ) ); ?>"><?php esc_html_e( 'Give', 'firstchurch' ); ?></a>
+
 			<button type="button" class="fcs-header__btn fcs-search-toggle" aria-expanded="false" aria-controls="fcs-search" aria-label="<?php esc_attr_e( 'Search', 'firstchurch' ); ?>">
 				<svg class="fcs-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
 				<svg class="fcs-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
