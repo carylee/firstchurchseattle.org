@@ -140,9 +140,14 @@ $fcs_ticker = fcs_ticker_items();
 	<section class="fcs-mast" aria-label="<?php esc_attr_e( 'Welcome', 'firstchurch' ); ?>">
 		<p class="fcs-kicker"><?php esc_html_e( 'A progressive, inclusive church in downtown Seattle', 'firstchurch' ); ?></p>
 		<h1><?php esc_html_e( 'Whoever you are,', 'firstchurch' ); ?><br><em><?php esc_html_e( 'wherever you find yourself today.', 'firstchurch' ); ?></em></h1>
-		<p class="fcs-mast__sub">
+		<p class="fcs-mast__bless">
+			<?php esc_html_e( 'May this community be a place of', 'firstchurch' ); ?>
+			<em><?php esc_html_e( 'companionship and healing', 'firstchurch' ); ?></em>
+			<?php esc_html_e( 'for you.', 'firstchurch' ); ?>
+		</p>
+		<p class="fcs-mast__meta">
 			<strong><?php esc_html_e( 'Worship Sundays · 10:30 am · 180 Denny Way', 'firstchurch' ); ?></strong>
-			— <?php esc_html_e( 'in person and live on YouTube. Kids always welcome. Doubts always welcome. Come as you are.', 'firstchurch' ); ?>
+			— <?php esc_html_e( 'in person & live on YouTube · kids welcome · doubts welcome', 'firstchurch' ); ?>
 		</p>
 		<?php if ( $fcs_seasonal ) : ?>
 			<p class="fcs-mast__notice"><?php echo esc_html( $fcs_seasonal ); ?></p>

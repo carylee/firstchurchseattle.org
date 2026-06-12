@@ -404,14 +404,28 @@
 	color: var(--fcs-accent);
 }
 
-.fcs-mast__sub {
-	max-width: 38rem;
+/* The blessing leads at reading size; worship logistics demote to a compact
+   meta row beneath it. */
+.fcs-mast__bless {
+	max-width: 44rem;
+	margin: 0 0 0.65rem;
+	font-size: 1.22rem;
+	line-height: 1.5;
+	color: var(--fcs-text);
+}
+
+.fcs-mast__bless em {
+	font-style: italic;
+	color: var(--fcs-accent);
+}
+
+.fcs-mast__meta {
 	margin: 0;
-	font-size: 1.125rem;
+	font-size: 0.98rem;
 	color: var(--fcs-text-soft);
 }
 
-.fcs-mast__sub strong {
+.fcs-mast__meta strong {
 	color: var(--fcs-text);
 }
 
