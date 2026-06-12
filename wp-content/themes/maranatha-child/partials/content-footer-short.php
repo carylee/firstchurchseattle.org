@@ -26,7 +26,7 @@ $post_type = get_post_type();
 	if ('ctc_person' == $post_type) :
 	?>
 
-		<?php if (ctfw_has_content()) : // show only if has bio content ?>
+		<?php if (fcs_has_content()) : // show only if has bio content ?>
 
 			<ul class="maranatha-entry-short-footer-item maranatha-buttons-list">
 
@@ -52,7 +52,7 @@ $post_type = get_post_type();
 			<li>
 
 				<a href="<?php the_permalink(); ?>">
-					<span class="<?php maranatha_icon_class( 'gallery' ); ?>"></span>
+					<span class="<?php fcs_icon_class( 'gallery' ); ?>"></span>
 					<?php _e( 'View Gallery', 'maranatha' ); ?>
 				</a>
 

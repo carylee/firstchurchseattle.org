@@ -8,6 +8,11 @@
  * checkerboard. Scoped to the `post` type — sermons, events, and people
  * keep the parent's behavior exactly.
  *
+ * Theme-independence: the parent's ctfw_make_friendly / ctfw_has_content /
+ * ctfw_has_title calls were swapped for the first-party fcs_* equivalents in
+ * inc/theme-compat.php (faithful replicas), so this partial no longer depends
+ * on the parent framework.
+ *
  * Parent source: maranatha/partials/content-header-short.php (pinned in
  * this repo) — re-diff if the parent theme is ever updated.
  */
@@ -17,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 // Post type
 $post_type = get_post_type();
-$post_type_friendly = ctfw_make_friendly( $post_type );
+$post_type_friendly = fcs_make_friendly( $post_type );
 
 // Thumbnail image
 $image_size = 'post-thumbnail';
@@ -26,7 +31,7 @@ if ( 'ctc_person' == $post_type ) {
 }
 
 // Has content?
-$has_content = ctfw_has_content();
+$has_content = fcs_has_content();
 
 ?>
 
@@ -52,7 +57,7 @@ $has_content = ctfw_has_content();
 
 <?php endif; ?>
 
-<?php if ( ctfw_has_title() ) : ?>
+<?php if ( fcs_has_title() ) : ?>
 
 	<h2 class="maranatha-entry-short-title">
 
