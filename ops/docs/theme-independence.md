@@ -51,21 +51,33 @@ the dead‑branch cleanup above. All of these must be replaced before `Template:
 can be dropped. (`get_template_directory[_uri]()` in `functions.php` is the parent‑stylesheet
 dequeue/re‑enqueue and goes away once the child owns its CSS.)
 
+**✅ Decoupled (2026-06-12)** — replaced with first‑party code, no live verification needed
+(byte‑identical / faithful replicas, no code hooks the dropped filters):
+
+| Was | Now | How |
+|---|---|---|
+| `ctfw_make_friendly()` | `fcs_make_friendly()` | `inc/theme-compat.php` replica |
+| `ctfw_has_content()` | `fcs_has_content()` | `inc/theme-compat.php` replica |
+| `ctfw_has_title()` | `fcs_has_title()` | `inc/theme-compat.php` replica |
+| `maranatha_icon_class()` (gallery) | `fcs_icon_class()` | `inc/theme-compat.php` replica (full icon map) |
+| `CTFW_THEME_PARTIAL_DIR` | `'partials'` | literalized in header/index/footer |
+| `CTFW_THEME_PAGE_TPL_DIR` | `'page-templates'` | literalized in header-banner/map-section/content-footer-short |
+| `header`/`index`/`loop`/`comments` skeleton | child‑owned | extracted (above) |
+
+**⏳ Still coupled** — customizer/framework‑bound or render‑critical; needs the running site
+to verify before swapping:
+
 | Call | Site(s) | What it does | Replacement effort |
 |---|---|---|---|
-| `ctfw_make_friendly()` | `partials/content-header-short.php:20` | Humanize CPT slug for CSS class | trivial |
-| `ctfw_has_content()` | `content-header-short.php:29`, `content-footer-short.php` (person) | Body has content? | low |
-| `ctfw_has_title()` | `content-header-short.php:55` | Has a title? | low |
-| `ctfw_customization()` | `footer.php:27,31`, `inc/footer.php:18` | Read customizer (`footer_icon_urls`, `footer_notice`) | low — `get_option()` |
+| `ctfw_customization()` | `footer.php:27,31`, `inc/footer.php:18` | Read customizer (`footer_icon_urls`, `footer_notice`) | low — `get_option()`, but verify keys |
 | `ctfw_google_fonts_style_url()` | `inc/font-optimization.php:33` | Google Fonts URL (filtered) | low |
-| `maranatha_social_icons()` | `footer.php:26` | Render social icon `<ul>` | low |
+| `maranatha_social_icons()` | `footer.php:26` | Render social icon `<ul>` from customizer URLs | medium — also owns the customizer setting |
 | `maranatha_title_paged()` | `partials/header-banner.php:36` | Echo page title + pagination | low |
-| `maranatha_icon_class()` | `content-footer-short.php` (gallery) | Icon CSS class (`gallery` only now) | low |
+| `ctfw_current_content_type()`, `ctfw_get_content_template()` | `loop.php:20,42` | Pick the `content-*` template per post type | medium — the loop dispatcher |
+| `ctfw_comment`, `maranatha_get_icon_class()`, `maranatha_loop_after_content_used()` | `comments.php` | Comment list callback + nav icons | medium |
 | `maranatha_after_content` (action) | `inc/announcements-cta.php:417`, `page-events-upcoming.php:30`, `page-events-calendar.php:36` | Inject content after main | medium — own template restructure |
 | `maranatha_content_width` (filter) | `page-events-calendar.php:30` | Force full‑width container | low |
-| `CTFW_THEME_PARTIAL_DIR` | `footer.php:112` (`/footer-stickies`) | Parent partial path | low — port partial or inline |
-| `CTFW_THEME_PAGE_TPL_DIR` | `header-banner.php:21`, `map-section.php:32`, `content-footer-short.php` (gallery) | Parent page‑template path (homepage detection) | low — own template flag |
-| Header/footer/index/loop skeleton | inherited (no child override) | Base document structure | **medium — the big one** |
+| Inherited sub‑partials (`header-top`, `header-bottom`, `loop-header`, `loop-author`, `loop-navigation`, `footer-stickies`) | header/index/footer | Header chrome, loop headers/nav, footer stickies | medium — port into child |
 
 ---
 
@@ -82,8 +94,9 @@ dequeue/re‑enqueue and goes away once the child owns its CSS.)
 - `partials/content-header-short.php` — **kept as‑is, not dead.** Its `ctc_person`
   thumbnail‑size + title‑link logic is *live*: people are re‑owned in place by
   `firstchurch-people`, so a person can still surface in a generic loop (e.g. search) and
-  render through this partial. Its `ctfw_make_friendly()` / `ctfw_has_content()` /
-  `ctfw_has_title()` calls fire for every post type and are tracked in the ledger below.
+  render through this partial. Its former `ctfw_make_friendly()` / `ctfw_has_content()` /
+  `ctfw_has_title()` calls have since been swapped for the first‑party `fcs_*` equivalents
+  in `inc/theme-compat.php` (see the decoupled table above).
 
 ---
 
@@ -94,10 +107,12 @@ dequeue/re‑enqueue and goes away once the child owns its CSS.)
 2. ~~**Extract base templates** into the child~~ ✅ Done — `header`/`index`/`loop`/`comments`
    owned as pinned verbatim copies (footer.php was already child‑owned). The parent has no
    `single`/`archive`/`search`/`page` templates, so the skeleton is complete.
-3. **De‑couple the `ctfw_*` / `maranatha_*` calls** in those now‑child templates and partials
-   — reimplement the live inventory above as first‑party helpers, and port the inherited
-   sub‑partials (`header-top`, `header-bottom`, `loop-header`, `loop-author`,
-   `loop-navigation`, `footer-stickies`).
+3. **De‑couple the `ctfw_*` / `maranatha_*` calls** — *in progress.* ✅ The pure‑logic leaf
+   helpers (`fcs_make_friendly`/`has_title`/`has_content`/`icon_class`) and the two path
+   constants are done (no live verification needed — see the decoupled table). ⏳ Remaining:
+   the customizer/framework‑bound calls and the loop dispatcher in the "Still coupled" table,
+   plus porting the inherited sub‑partials. **These touch live rendering and should be
+   verified against a running DDEV site before merge.**
 4. **Self‑owned stylesheet** — migrate the ~6,500‑line parent SCSS into the child's Tailwind build.
 5. **Drop the parent:** remove the `Template: maranatha` line, delete the parent from the tree
    and its `check-deploy-coverage.sh` exemption.
