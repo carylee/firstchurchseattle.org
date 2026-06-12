@@ -13,8 +13,28 @@
 	position: sticky;
 	top: 0;
 	z-index: 50;
-	background-color: var(--fcs-maroon);
-	box-shadow: 0 1px 0 rgb(0 0 0 / 0.12);
+	background-color: var(--fcs-surface);
+	border-bottom: 2px solid var(--fcs-text);
+}
+
+/* Typographic wordmark (the white-on-maroon logo lives on in the footer). */
+.fcs-wordmark {
+	font-family: var(--font-serif);
+	font-weight: 600;
+	font-size: 1.25rem;
+	line-height: 1.1;
+	color: var(--fcs-text);
+	text-decoration: none;
+}
+.fcs-wordmark:hover { color: var(--fcs-text); text-decoration: none; }
+.fcs-wordmark small {
+	display: block;
+	font-family: var(--font-sans);
+	font-weight: 400;
+	font-size: 0.6rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--fcs-text-muted);
 }
 
 .fcs-header__inner {
@@ -63,7 +83,7 @@
 	gap: 0.3rem;
 	padding: 0.625rem 0.75rem;
 	border-radius: 0.375rem;
-	color: var(--fcs-text-light);
+	color: var(--fcs-text);
 	font-size: 0.8125rem;
 	font-weight: 700;
 	letter-spacing: 0.08em;
@@ -74,9 +94,23 @@
 
 .fcs-nav__list a:hover,
 .fcs-nav__list a:focus-visible {
-	background-color: rgb(255 255 255 / 0.12);
-	color: var(--fcs-text-light);
+	background-color: rgb(0 0 0 / 0.06);
+	color: var(--fcs-text);
 	text-decoration: none;
+}
+
+/* The Give item gets the one filled pill in the bar. */
+.fcs-nav__list > .fcs-menu-give > a {
+	background-color: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+	border-radius: 999px;
+	padding-inline: 1.1rem;
+	margin-left: 0.35rem;
+}
+.fcs-nav__list > .fcs-menu-give > a:hover,
+.fcs-nav__list > .fcs-menu-give > a:focus-visible {
+	background-color: var(--fcs-maroon-dark);
+	color: var(--fcs-text-light);
 }
 
 /* Chevron on items with a submenu. */
@@ -102,10 +136,15 @@
 	margin: 0;
 	padding: 0.5rem;
 	list-style: none;
-	background-color: var(--fcs-maroon-dark);
+	background-color: var(--fcs-surface-2);
+	border: 1px solid var(--fcs-border);
 	border-radius: 0.5rem;
-	box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+	box-shadow: 0 12px 28px rgb(46 34 40 / 0.18);
 	display: none;
+}
+
+.fcs-nav__list .sub-menu a {
+	color: var(--fcs-text);
 }
 
 .fcs-nav__list li:hover > .sub-menu,
@@ -150,13 +189,13 @@
 	border: 0;
 	border-radius: 0.375rem;
 	background: transparent;
-	color: var(--fcs-text-light);
+	color: var(--fcs-text);
 	cursor: pointer;
 }
 
 .fcs-header__btn:hover,
 .fcs-header__btn:focus-visible {
-	background-color: rgb(255 255 255 / 0.12);
+	background-color: rgb(0 0 0 / 0.06);
 }
 
 .fcs-header__btn svg {
@@ -176,8 +215,8 @@
 /* ---- Search popover -------------------------------------------------------- */
 
 .fcs-search {
-	border-top: 1px solid rgb(255 255 255 / 0.15);
-	background-color: var(--fcs-maroon-dark);
+	border-top: 1px solid var(--fcs-border);
+	background-color: var(--fcs-surface-2);
 }
 
 .fcs-search form {
@@ -284,23 +323,30 @@ body.fcs-nav-open {
 /* ---- Page banner (every page except the front page) ------------------------ */
 
 .fcs-banner {
-	background-color: var(--fcs-maroon);
+	background-color: var(--fcs-surface);
+	border-bottom: 2px solid var(--fcs-text);
 }
 
 .fcs-banner__inner {
 	max-width: 64rem;
 	margin-inline: auto;
-	padding: 2.25rem 1.5rem 2rem;
+	padding: 3rem 1.5rem 2.25rem;
+}
+
+.fcs-banner .fcs-kicker {
+	margin-bottom: 0.5rem;
 }
 
 .fcs-banner h1 {
 	margin: 0;
-	color: var(--fcs-text-light);
-	font-family: var(--font-display);
-	font-weight: 500;
-	font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.375rem);
-	letter-spacing: 0.025em;
-	text-align: center;
+	color: var(--fcs-text);
+	font-family: var(--font-serif);
+	font-weight: 600;
+	font-size: clamp(2.1rem, 1.5rem + 2.8vw, 3.4rem);
+	letter-spacing: -0.01em;
+	line-height: 1.08;
+	text-align: left;
+	text-wrap: balance;
 }
 
 /* ---- Shared layout containers ---------------------------------------------- */

@@ -29,6 +29,7 @@
   --color-brand-ink: #2a1a22;
 
   /* Type */
+  --font-serif: "Fraunces", "Iowan Old Style", Palatino, Georgia, serif;
   --font-display: "Raleway", "Lato", system-ui, sans-serif;
   --font-sans: "Lato", system-ui, sans-serif;
 }

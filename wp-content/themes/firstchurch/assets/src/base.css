@@ -48,6 +48,20 @@
   font-display: swap;
   src: url("fonts/lato-400i.woff2") format("woff2");
 }
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/fraunces-var.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/fraunces-var-italic.woff2") format("woff2");
+}
 
 /* ---- Semantic theme tokens ---------------------------------------------- */
 :root {
@@ -61,14 +75,14 @@
   /* "accent" is brand maroon used as TEXT or an OUTLINE (links, headings,
      ghost buttons) — distinct from the fills because on a dark canvas a text
      colour must lighten to stay legible, while a fill must not. */
-  --fcs-surface: #ffffff;        /* page / card background            */
-  --fcs-surface-2: #faf6f8;      /* subtly raised panel (brand soft)  */
-  --fcs-surface-3: #f7f4f6;      /* section band (happenings)         */
-  --fcs-text: #3a2a33;           /* primary text on a surface         */
-  --fcs-text-soft: #4a414c;      /* secondary body text               */
-  --fcs-text-muted: #8a7d86;     /* meta / muted                      */
-  --fcs-border: #ebe1e5;         /* hairline border                   */
-  --fcs-border-soft: #f0e8ec;    /* very light divider                */
+  --fcs-surface: #f6f1e8;        /* page background (warm cream)      */
+  --fcs-surface-2: #fffdf7;      /* raised panel / card (lighter)     */
+  --fcs-surface-3: #efe8da;      /* section band                      */
+  --fcs-text: #2e2228;           /* primary text (warm ink)           */
+  --fcs-text-soft: #4d4248;      /* secondary body text               */
+  --fcs-text-muted: #857a80;     /* meta / muted                      */
+  --fcs-border: #e0d6c4;         /* warm hairline border              */
+  --fcs-border-soft: #eae2d2;    /* very light divider                */
   --fcs-accent: var(--fcs-maroon);             /* brand as link / accent text */
   --fcs-accent-strong: var(--fcs-maroon-dark); /* its hover/active state      */
   --fcs-accent-muted: #8a5a72;   /* quieter brand (fallback CTAs)     */
@@ -87,14 +101,14 @@
        to a rose so links stay legible on dark (maroon on near-black fails
        WCAG). Contrast checked against #16181c: body ~14:1, muted ~5:1,
        accent ~7:1 — all ≥ AA. */
-    --fcs-surface: #16181c;
-    --fcs-surface-2: #1e2127;
-    --fcs-surface-3: #1a1d22;
-    --fcs-text: #e9e7e4;
-    --fcs-text-soft: #c8c3c9;
-    --fcs-text-muted: #9b949c;
-    --fcs-border: #34373d;
-    --fcs-border-soft: #2a2d33;
+    --fcs-surface: #1d1813;
+    --fcs-surface-2: #272018;
+    --fcs-surface-3: #221c15;
+    --fcs-text: #ece5da;
+    --fcs-text-soft: #cfc5bb;
+    --fcs-text-muted: #9b9089;
+    --fcs-border: #3b332a;
+    --fcs-border-soft: #2f281f;
     --fcs-accent: #e295b6;
     --fcs-accent-strong: #f1b6d0;
     --fcs-accent-muted: #c98aac;
@@ -123,7 +137,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-serif);
     color: var(--fcs-text);
     line-height: 1.25;
     text-wrap: balance;

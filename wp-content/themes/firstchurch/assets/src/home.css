@@ -281,88 +281,9 @@
 	}
 }
 
-/* -------------------------------------------------------------------------
- * Hero (front-page.php)
- *
- * Full-colour photo under a maroon gradient scrim; content sits left-aligned
- * on the scrim's strongest corner (centred on small screens). With no photo
- * the scrim alone gives a solid brand banner.
- * --------------------------------------------------------------------- */
-
-.fcs-hero {
-	position: relative;
-	display: flex;
-	align-items: flex-end;
-	min-height: min(36rem, 76vh);
-	background-color: var(--fcs-maroon);
-	overflow: hidden;
-}
-
-.fcs-hero__image {
-	position: absolute;
-	inset: 0;
-	background-size: cover;
-	background-position: center;
-}
-
-.fcs-hero__scrim {
-	position: absolute;
-	inset: 0;
-	background:
-		linear-gradient(to top, rgb(58 22 40 / 0.92) 0%, rgb(58 22 40 / 0.55) 45%, rgb(58 22 40 / 0.25) 100%),
-		linear-gradient(to right, rgb(58 22 40 / 0.55) 0%, rgb(58 22 40 / 0.05) 70%);
-}
-
-.fcs-hero__inner {
-	position: relative;
-	width: 100%;
-	max-width: 80rem;
-	margin-inline: auto;
-	padding: 5rem 1.5rem 3.5rem;
-}
-
-.fcs-hero__content {
-	max-width: 44rem;
-	color: var(--fcs-text-light);
-	text-align: center;
-}
-
-@media (min-width: 40rem) {
-	.fcs-hero__content {
-		text-align: left;
-	}
-}
-
-.fcs-hero__content h1 {
-	margin: 0 0 0.75rem;
-	color: var(--fcs-text-light);
-	font-family: var(--font-display);
-	font-weight: 500;
-	font-size: clamp(2rem, 1.4rem + 2.6vw, 3.1rem);
-	letter-spacing: 0.01em;
-	text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
-}
-
-.fcs-hero__copy {
-	font-size: 1.0938rem;
-	line-height: 1.6;
-	text-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
-}
-
-.fcs-hero__copy p {
-	margin: 0 0 0.6em;
-}
-
-.fcs-hero__copy a {
-	color: var(--fcs-text-light);
-	text-decoration: underline;
-	text-decoration-color: rgb(255 255 255 / 0.5);
-}
-
-/* ---- Unified CTA row (hero, featured band) --------------------------------
- * One button language site-wide: rounded rectangle, sentence case. On dark/
- * brand surfaces the default is the outline form and .is-primary is filled
- * white; uppercase is reserved for the menu. */
+/* ---- Unified CTA row ---------------------------------------------------------
+ * One button language: rounded rectangle, sentence case. Default styling is
+ * for dark/brand surfaces; --on-light flips to accent outline/fill. */
 
 .fcs-btn-list {
 	display: flex;
@@ -372,12 +293,6 @@
 	list-style: none;
 	margin: 1.5rem 0 0;
 	padding: 0;
-}
-
-@media (min-width: 40rem) {
-	.fcs-hero .fcs-btn-list {
-		justify-content: flex-start;
-	}
 }
 
 .fcs-btn-list a {
@@ -404,85 +319,18 @@
 }
 
 .fcs-btn-list a.is-primary {
-	background-color: #fff;
-	border-color: #fff;
-	color: var(--fcs-maroon);
+	background-color: var(--fcs-gold-on-dark);
+	border-color: var(--fcs-gold-on-dark);
+	color: #3a1628;
 }
 
 .fcs-btn-list a.is-primary:hover,
 .fcs-btn-list a.is-primary:focus-visible {
-	background-color: rgb(255 255 255 / 0.88);
-	color: var(--fcs-maroon);
+	background-color: #efd27a;
+	border-color: #efd27a;
+	color: #3a1628;
 }
 
-/* ---- Kicker (small gold section label) ------------------------------------ */
-
-.fcs-kicker {
-	margin: 0 0 0.4rem;
-	color: var(--fcs-gold);
-	font-size: 0.8125rem;
-	font-weight: 700;
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-}
-
-.fcs-kicker--on-dark {
-	color: var(--fcs-gold-on-dark);
-}
-
-/* ---- Welcome band (front-page.php) ------------------------------------------
- * The candle welcome, set as quiet verse on the brand-soft surface. The thin
- * gold rule above is the only ornament — a nod to the candle, not a picture
- * of one. */
-
-.fcs-welcome {
-	background: var(--fcs-surface-2);
-	border-bottom: 1px solid var(--fcs-border-soft);
-	padding: 4rem 1.5rem;
-}
-
-.fcs-welcome__inner {
-	max-width: 42rem;
-	margin-inline: auto;
-	text-align: center;
-}
-
-.fcs-welcome__rule {
-	display: block;
-	width: 3rem;
-	height: 2px;
-	margin: 0 auto 1.5rem;
-	background: var(--fcs-gold);
-	border-radius: 1px;
-}
-
-.fcs-welcome h2 {
-	margin: 0 0 1rem;
-	font-family: var(--font-display);
-	font-weight: 500;
-	font-size: clamp(1.5rem, 1.2rem + 1.3vw, 1.95rem);
-	line-height: 1.35;
-	color: var(--fcs-accent);
-	text-wrap: balance;
-}
-
-.fcs-welcome__verse p {
-	margin: 0 0 0.4rem;
-	line-height: 1.65;
-	color: var(--fcs-text-soft);
-	font-size: 1.0625rem;
-}
-
-.fcs-welcome__landing {
-	margin-top: 0.9rem;
-	font-style: italic;
-}
-
-p.fcs-welcome__landing {
-	margin-top: 0.9rem;
-}
-
-/* Button row on light surfaces: accent outline / accent fill. */
 .fcs-btn-list--on-light a {
 	border-color: var(--fcs-accent);
 	color: var(--fcs-accent);
@@ -508,52 +356,198 @@ p.fcs-welcome__landing {
 	color: var(--fcs-text-light);
 }
 
-/* ---- Featured story band (front-page.php) ----------------------------------
- * One promoted item from the spine's Featured row, on a deep brand band. */
+/* ---- Kicker (small gold label) ---------------------------------------------- */
 
-.fcs-feature {
-	position: relative;
-	overflow: hidden;
-	background-color: var(--fcs-maroon-dark);
-	padding: 4.5rem 1.5rem;
+.fcs-kicker {
+	margin: 0 0 0.4rem;
+	color: var(--fcs-gold);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
 }
 
-/* Washed background photo, the old bands' ~10% treatment. */
-.fcs-feature__image {
-	position: absolute;
-	inset: 0;
-	background-size: cover;
-	background-position: center;
-	opacity: 0.13;
+.fcs-kicker--on-dark {
+	color: var(--fcs-gold-on-dark);
 }
 
-.fcs-feature__content {
-	position: relative;
-	max-width: 46rem;
+/* -------------------------------------------------------------------------
+ * "The Open Table" homepage (front-page.php)
+ * Masthead → ticker → mosaic → creed.
+ * --------------------------------------------------------------------- */
+
+.fcs-mast {
+	max-width: 78rem;
 	margin-inline: auto;
-	text-align: center;
-	color: rgb(255 255 255 / 0.92);
+	padding: 4.5rem 1.5rem 3rem;
 }
 
-.fcs-feature__content h2 {
-	margin: 0 0 0.75rem;
-	font-family: var(--font-display);
-	font-weight: 500;
-	font-size: clamp(1.6rem, 1.25rem + 1.5vw, 2.1rem);
-	color: var(--fcs-text-light);
+.fcs-mast .fcs-kicker {
+	color: var(--fcs-accent);
+	letter-spacing: 0.14em;
 }
 
-.fcs-feature__content h2 a {
+.fcs-mast h1 {
+	margin: 0.75rem 0 1.25rem;
+	font-family: var(--font-serif);
+	font-weight: 600;
+	font-size: clamp(3rem, 7.2vw, 5.4rem);
+	line-height: 1.04;
+	letter-spacing: -0.01em;
+	color: var(--fcs-text);
+}
+
+.fcs-mast h1 em {
+	font-style: italic;
+	color: var(--fcs-accent);
+}
+
+.fcs-mast__sub {
+	max-width: 38rem;
+	margin: 0;
+	font-size: 1.125rem;
+	color: var(--fcs-text-soft);
+}
+
+.fcs-mast__sub strong {
+	color: var(--fcs-text);
+}
+
+.fcs-mast__notice {
+	max-width: 38rem;
+	margin: 0.9rem 0 0;
+	font-size: 1.02rem;
+	color: var(--fcs-accent);
+	font-weight: 700;
+}
+
+/* ---- Happening-next ticker ---- */
+
+.fcs-ticker {
+	background: var(--fcs-text);
+	color: var(--fcs-surface);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.fcs-ticker__in {
+	display: flex;
+	gap: 3rem;
+	padding: 0.8rem 2rem;
+	font-size: 0.92rem;
+	white-space: nowrap;
+}
+
+.fcs-ticker b {
+	color: var(--fcs-gold-on-dark);
+	font-weight: 700;
+	margin-right: 0.3rem;
+}
+
+.fcs-ticker a {
 	color: inherit;
+}
+
+.fcs-ticker a:hover {
+	color: var(--fcs-gold-on-dark);
 	text-decoration: none;
 }
 
-.fcs-feature__content h2 a:hover {
-	text-decoration: underline;
-	text-decoration-color: rgb(255 255 255 / 0.5);
+/* ---- Photo mosaic ---- */
+
+.fcs-mosaic {
+	max-width: 78rem;
+	margin-inline: auto;
+	padding: 2.5rem 1.5rem 4rem;
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	grid-auto-rows: 11rem;
+	gap: 1rem;
 }
 
-.fcs-feature__blurb {
+.fcs-tile {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	overflow: hidden;
+	border-radius: 1.1rem;
+	background-size: cover;
+	background-position: center;
+	color: var(--fcs-text-light);
+	text-decoration: none;
+	transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+
+.fcs-tile::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(transparent 38%, rgb(30 12 22 / 0.84));
+}
+
+.fcs-tile:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 28px rgb(46 34 40 / 0.25);
+	color: var(--fcs-text-light);
+	text-decoration: none;
+}
+
+.fcs-tile__lab {
+	position: relative;
+	z-index: 2;
+	padding: 1.2rem 1.4rem;
+}
+
+.fcs-tile__lab b {
+	display: block;
+	font-family: var(--font-serif);
+	font-weight: 600;
+	font-size: 1.4rem;
+}
+
+.fcs-tile__lab span {
+	font-size: 0.88rem;
+	opacity: 0.9;
+}
+
+.is-worship { grid-column: span 4; grid-row: span 2; }
+.is-breakfast { grid-column: span 2; grid-row: span 2; }
+.is-music, .is-pride, .is-community { grid-column: span 2; }
+
+@media (max-width: 47.9rem) {
+	.fcs-mosaic { grid-template-columns: 1fr 1fr; grid-auto-rows: 10rem; }
+	.is-worship { grid-column: span 2; }
+	.is-breakfast { grid-column: span 2; grid-row: span 1; }
+	.is-music, .is-pride, .is-community { grid-column: span 1; }
+}
+
+/* ---- Creed band (the candle welcome) ---- */
+
+.fcs-creed {
+	background: var(--fcs-maroon);
+}
+
+.fcs-creed__in {
+	max-width: 50rem;
+	margin-inline: auto;
+	padding: 4.5rem 2rem;
+	text-align: center;
+	color: rgb(255 255 255 / 0.94);
+}
+
+.fcs-creed__big {
 	margin: 0;
-	line-height: 1.65;
+	font-family: var(--font-serif);
+	font-weight: 400;
+	font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+	line-height: 1.55;
+}
+
+.fcs-creed__big em {
+	font-style: italic;
+	color: var(--fcs-gold-on-dark);
+}
+
+.fcs-creed .fcs-btn-list {
+	margin-top: 2rem;
 }

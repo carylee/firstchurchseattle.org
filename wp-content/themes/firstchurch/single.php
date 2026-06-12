@@ -19,15 +19,13 @@ get_header();
 <main id="fcs-content" class="fcs-main">
 	<?php while ( have_posts() ) : the_post(); ?>
 		<div class="fcs-container--text">
-			<p class="fcs-page-meta">
-				<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
-				<?php
-				$fcs_cats = get_the_category_list( ', ' );
-				if ( $fcs_cats ) {
-					echo ' · ' . $fcs_cats; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-built link list.
-				}
+			<?php
+			// The date lives in the banner kicker; surface only the categories here.
+			$fcs_cats = get_the_category_list( ', ' );
+			if ( $fcs_cats ) :
 				?>
-			</p>
+				<p class="fcs-page-meta"><?php echo $fcs_cats; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-built link list. ?></p>
+			<?php endif; ?>
 			<div class="fcs-entry">
 				<?php the_content(); ?>
 			</div>

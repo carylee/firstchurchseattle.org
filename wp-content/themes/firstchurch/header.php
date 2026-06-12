@@ -30,9 +30,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div class="fcs-header__inner">
 
-		<a class="fcs-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
-			<?php // The header bar is brand maroon in both light and dark mode (see --fcs-maroon in base.css), so the white wordmark is correct in both; the black variant is for light backgrounds elsewhere. ?>
-			<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/logo-white.svg' ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="171" height="44">
+		<a class="fcs-wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+			First Church
+			<small><?php esc_html_e( 'Seattle · est. 1853', 'firstchurch' ); ?></small>
 		</a>
 
 		<nav class="fcs-nav" aria-label="<?php esc_attr_e( 'Primary', 'firstchurch' ); ?>">
