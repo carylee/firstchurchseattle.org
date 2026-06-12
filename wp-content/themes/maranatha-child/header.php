@@ -1,47 +1,103 @@
 <?php
 /**
- * Theme Header — child override (pinned verbatim copy).
+ * Theme header: <head>, the sticky site header (logo, primary nav, search,
+ * mobile panel), and the page-title banner on non-front pages.
  *
- * Outputs <head> and header content (logo, navigation, search icon, banner,
- * breadcrumb, etc.).
+ * Dropdown menus are CSS-driven (hover / focus-within); the nav island
+ * (assets/js/islands/nav.js) layers on touch support, aria state, and the
+ * mobile/search toggles. Without JS the desktop menu still works; the mobile
+ * toggles are buttons that simply do nothing, which is the accepted
+ * progressive-enhancement floor (same as the old jQuery menu).
  *
- * Owned by the child as part of the theme-independence work (extracting the
- * base template skeleton so the maranatha parent can eventually be dropped —
- * see ops/docs/theme-independence.md). Started as a verbatim copy of the
- * parent's header.php; the parent's CTFW_THEME_PARTIAL_DIR constant is now
- * literalized to 'partials' so this file no longer fatals once the parent (and
- * its constant) is gone. The header-top / header-bottom sub-partials it pulls
- * still resolve to the parent (the child has no copy yet) — tracked as a
- * remaining dependency.
- *
- * Parent source: maranatha/header.php (pinned in this repo) — re-diff if the
- * parent theme is ever updated.
- *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
-// No direct access
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 ?><!DOCTYPE html>
-<html class="no-js" <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?>>
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="profile" href="http://gmpg.org/xfn/11">
-<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />
-<?php wp_head(); // prints out <title>, JavaScript, CSS, etc. as needed by WordPress, theme, plugins, etc. ?>
+<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<header id="maranatha-header">
+<header class="fcs-header" data-fcs-nav>
 
-	<?php get_template_part( 'partials/header-top' ); // header-top.php ?>
+	<div class="fcs-header__inner">
 
-	<?php get_template_part( 'partials/header-banner' ); ?>
+		<a class="fcs-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+			<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/logo-white.png' ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="171" height="44">
+		</a>
 
-	<?php get_template_part( 'partials/header-bottom' ); // breadcrumbs (left), archive dropdowns (right) ?>
+		<nav class="fcs-nav" aria-label="<?php esc_attr_e( 'Primary', 'firstchurch' ); ?>">
+			<?php
+			wp_nav_menu(
+				array(
+					'theme_location' => 'header',
+					'menu_class'     => 'fcs-nav__list',
+					'container'      => false,
+					'depth'          => 3,
+					'fallback_cb'    => false,
+				)
+			);
+			?>
+		</nav>
+
+		<div class="fcs-header__actions">
+
+			<button type="button" class="fcs-header__btn fcs-search-toggle" aria-expanded="false" aria-controls="fcs-search" aria-label="<?php esc_attr_e( 'Search', 'firstchurch' ); ?>">
+				<svg class="fcs-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+				<svg class="fcs-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+			</button>
+
+			<button type="button" class="fcs-header__btn fcs-nav-toggle" aria-expanded="false" aria-controls="fcs-mobile" aria-label="<?php esc_attr_e( 'Menu', 'firstchurch' ); ?>">
+				<svg class="fcs-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+				<svg class="fcs-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+			</button>
+
+		</div>
+
+	</div>
+
+	<div id="fcs-search" class="fcs-search" hidden>
+		<form role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+			<label class="screen-reader-text" for="fcs-search-input"><?php esc_html_e( 'Search for:', 'firstchurch' ); ?></label>
+			<input type="search" id="fcs-search-input" name="s" placeholder="<?php esc_attr_e( 'Search the site…', 'firstchurch' ); ?>" value="<?php echo esc_attr( get_search_query() ); ?>">
+			<button type="submit" class="btn-primary"><?php esc_html_e( 'Search', 'firstchurch' ); ?></button>
+		</form>
+	</div>
+
+	<div id="fcs-mobile" class="fcs-mobile" hidden>
+		<form role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+			<label class="screen-reader-text" for="fcs-mobile-search-input"><?php esc_html_e( 'Search for:', 'firstchurch' ); ?></label>
+			<input type="search" id="fcs-mobile-search-input" name="s" placeholder="<?php esc_attr_e( 'Search the site…', 'firstchurch' ); ?>">
+			<button type="submit" class="btn-primary"><?php esc_html_e( 'Search', 'firstchurch' ); ?></button>
+		</form>
+		<nav aria-label="<?php esc_attr_e( 'Primary (mobile)', 'firstchurch' ); ?>">
+			<?php
+			wp_nav_menu(
+				array(
+					'theme_location' => 'header',
+					'container'      => false,
+					'depth'          => 3,
+					'fallback_cb'    => false,
+				)
+			);
+			?>
+		</nav>
+	</div>
 
 </header>
+
+<?php
+// Page-title banner on everything except the front page (which opens with
+// the hero) and the detail templates that set their own in-page <h1>
+// (event singles, staff profiles).
+if ( ! is_front_page() && ! is_singular( array( 'fce_event', 'ctc_person' ) ) ) {
+	get_template_part( 'partials/header-banner' );
+}

@@ -13,7 +13,7 @@
  * assets/js/boot.js. (Declaring it as a dependency is what puts it in the import
  * map and gives it a cache-busted URL.)
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -38,6 +38,12 @@ add_action(
 
 		// Islands (leaves of the graph).
 		wp_register_script_module(
+			'@firstchurch/nav',
+			$base . '/islands/nav.js',
+			array(),
+			fcs_asset_version( 'assets/js/islands/nav.js' )
+		);
+		wp_register_script_module(
 			'@firstchurch/skip-link',
 			$base . '/islands/skip-link.js',
 			array(),
@@ -55,7 +61,7 @@ add_action(
 		wp_register_script_module(
 			'@firstchurch/boot',
 			$base . '/boot.js',
-			array( '@firstchurch/skip-link', '@firstchurch/worship-live' ),
+			array( '@firstchurch/nav', '@firstchurch/skip-link', '@firstchurch/worship-live' ),
 			fcs_asset_version( 'assets/js/boot.js' )
 		);
 
