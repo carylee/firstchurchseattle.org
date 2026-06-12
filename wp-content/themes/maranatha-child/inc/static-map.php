@@ -20,7 +20,7 @@
  *
  * Styles: the `.fcs-content-map` section of assets/mobile.css.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -40,7 +40,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function fcs_static_map_image( $args = array() ) {
 
 	$args = wp_parse_args( $args, array(
-		'alt' => __( 'Map showing First Church at 180 Denny Way, Seattle', 'maranatha-child' ),
+		'alt' => __( 'Map showing First Church at 180 Denny Way, Seattle', 'firstchurch' ),
 	) );
 
 	return sprintf(
@@ -68,7 +68,7 @@ function fcs_fill_content_map_placeholder( $content ) {
 	$html = sprintf(
 		'<a class="fcs-content-map" href="%s" target="_blank" rel="noopener noreferrer" title="%s">%s</a>',
 		esc_url( 'https://www.google.com/maps/dir/?api=1&destination=180+Denny+Way%2C+Seattle%2C+WA+98109' ),
-		esc_attr__( 'Get directions to First Church', 'maranatha-child' ),
+		esc_attr__( 'Get directions to First Church', 'firstchurch' ),
 		fcs_static_map_image()
 	);
 

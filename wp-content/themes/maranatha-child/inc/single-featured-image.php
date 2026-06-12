@@ -12,7 +12,7 @@
  * blog posts in the main loop (not pages, not feeds, not CTC sermons/events,
  * which manage their own imagery).
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

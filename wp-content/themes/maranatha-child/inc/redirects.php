@@ -21,7 +21,7 @@
  *    its authored coordinates for the footer static map. The /locations/
  *    archive already 301s to /campus-locations/ elsewhere and is left alone.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

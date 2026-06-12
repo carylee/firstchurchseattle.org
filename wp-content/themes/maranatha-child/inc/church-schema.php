@@ -13,7 +13,7 @@
  * (partials/home-visit-happenings.php) and footer render — update together if
  * they ever change.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

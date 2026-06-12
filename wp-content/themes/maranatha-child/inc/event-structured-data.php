@@ -12,7 +12,7 @@
  * unlocks event rich results. Conservative: emits only when the projection has a
  * title and a start date, so we never publish invalid schema.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

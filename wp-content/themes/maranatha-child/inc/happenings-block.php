@@ -10,7 +10,7 @@
  * the existing .fcs-card visual language (assets/mobile.css). Renders nothing if
  * the spine plugin is inactive or the section is empty.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

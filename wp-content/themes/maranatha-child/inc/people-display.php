@@ -5,12 +5,12 @@
  * single profile — the same split as firstchurch-events / single-fce_event.php.
  *
  * GATED on the plugin's fcs_people_active(): while Church Theme Content + the
- * maranatha parent still render people, these swaps stay off and the live
+ * legacy theme still rendered people, these swaps stayed off and the live
  * /staff/ pages are untouched. They take over automatically at the CTC cutover.
  * Self-contained on purpose — they bypass loop.php and the parent's
  * content-person-* partials, so nothing here depends on the parent surviving.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
