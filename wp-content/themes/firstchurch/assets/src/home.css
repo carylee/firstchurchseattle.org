@@ -512,11 +512,23 @@ p.fcs-welcome__landing {
  * One promoted item from the spine's Featured row, on a deep brand band. */
 
 .fcs-feature {
+	position: relative;
+	overflow: hidden;
 	background-color: var(--fcs-maroon-dark);
 	padding: 4.5rem 1.5rem;
 }
 
+/* Washed background photo, the old bands' ~10% treatment. */
+.fcs-feature__image {
+	position: absolute;
+	inset: 0;
+	background-size: cover;
+	background-position: center;
+	opacity: 0.13;
+}
+
 .fcs-feature__content {
+	position: relative;
 	max-width: 46rem;
 	margin-inline: auto;
 	text-align: center;
