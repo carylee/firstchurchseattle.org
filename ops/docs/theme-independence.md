@@ -39,7 +39,9 @@ ICS feed, `/staff/`, and all legacy redirects were verified 200/301 after deacti
 
 | Parent dependency | State | Replacement | Owner |
 |---|---|---|---|
-| Base templates + base stylesheet (`header`/`footer`/`index`/`loop`/`single`/`archive`/`search` + `_*.scss`) | **Pending** | The big one: child must grow its own skeleton + self‑owned CSS before the parent can be dropped. | `maranatha-child` |
+| Base templates (`header`/`footer`/`index`/`loop`/`comments`) | **✅ Owned by child** | All extracted as pinned verbatim copies (footer.php earlier; header/index/loop/comments on 2026-06-12). Parent has no `single`/`archive`/`search`/`page` — it routes everything through `index.php` + `loop.php`, so the skeleton is complete. They still call the `ctfw_*`/`maranatha_*` functions in the inventory below — that de‑coupling is the remaining work, not the file ownership. | `maranatha-child` |
+| Base stylesheet (`style.css` + `_*.scss`, ~6,500 lines) | **Pending** | The big one: migrate the parent SCSS into the child's Tailwind build so the child stops dequeue/re‑enqueueing the parent's `style.css`. | `maranatha-child` |
+| Inherited sub‑partials (`header-top`, `header-bottom`, `loop-header`, `loop-author`, `loop-navigation`, `footer-stickies`) | **Pending** | Pulled by the now‑child header/index/footer via `CTFW_THEME_PARTIAL_DIR`; still resolve to the parent. Port or replace before the parent is removed. | `maranatha-child` |
 | Customizer settings, banner, nav, fonts/icons (`ctfw_*`, `maranatha_*`) | **Audited** (see inventory) | Reimplement the live calls below as first‑party helpers; fold customizer reads into the child. | `maranatha-child` |
 
 ### Live `ctfw_*` / `maranatha_*` runtime inventory
@@ -89,7 +91,13 @@ dequeue/re‑enqueue and goes away once the child owns its CSS.)
 
 1. ~~**Audit `ctfw_*` / `maranatha_*` runtime calls** — live vs. dead.~~ ✅ Done — dead CTC
    branches removed; live calls catalogued in the inventory table above.
-2. **Extract base templates** into the child (header/footer/index/loop/single/archive/search).
-3. **Self‑owned stylesheet** — migrate the ~6,500‑line parent SCSS into the child's Tailwind build.
-4. **Drop the parent:** remove the `Template: maranatha` line, delete the parent from the tree
+2. ~~**Extract base templates** into the child~~ ✅ Done — `header`/`index`/`loop`/`comments`
+   owned as pinned verbatim copies (footer.php was already child‑owned). The parent has no
+   `single`/`archive`/`search`/`page` templates, so the skeleton is complete.
+3. **De‑couple the `ctfw_*` / `maranatha_*` calls** in those now‑child templates and partials
+   — reimplement the live inventory above as first‑party helpers, and port the inherited
+   sub‑partials (`header-top`, `header-bottom`, `loop-header`, `loop-author`,
+   `loop-navigation`, `footer-stickies`).
+4. **Self‑owned stylesheet** — migrate the ~6,500‑line parent SCSS into the child's Tailwind build.
+5. **Drop the parent:** remove the `Template: maranatha` line, delete the parent from the tree
    and its `check-deploy-coverage.sh` exemption.
