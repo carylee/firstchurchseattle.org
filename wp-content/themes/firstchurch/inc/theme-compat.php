@@ -29,9 +29,12 @@ function fcs_page_title(): string {
 		$title = sprintf( __( 'Search: %s', 'firstchurch' ), get_search_query() );
 	} elseif ( is_404() ) {
 		$title = __( 'Page Not Found', 'firstchurch' );
+	} elseif ( is_post_type_archive() ) {
+		$title = post_type_archive_title( '', false );
 	} elseif ( is_archive() ) {
-		$title = get_the_archive_title();
-		// Strip core's "Category:" style prefixes — the banner needs only the name.
+		// Core wraps the term name in markup; the banner escapes its output,
+		// so take plain text and strip the "Category:" style prefix.
+		$title = wp_strip_all_tags( get_the_archive_title() );
 		$title = preg_replace( '/^[^:]+:\s*/', '', $title );
 	} else {
 		$title = get_bloginfo( 'name' );
