@@ -72,6 +72,8 @@
   --fcs-accent: var(--fcs-maroon);             /* brand as link / accent text */
   --fcs-accent-strong: var(--fcs-maroon-dark); /* its hover/active state      */
   --fcs-accent-muted: #8a5a72;   /* quieter brand (fallback CTAs)     */
+  --fcs-gold: #8a6a14;           /* warm gold accent (kickers, featured tags) */
+  --fcs-gold-on-dark: #e2c258;   /* the same accent on maroon/dark fills      */
   --fcs-live: #2e7d32;           /* "live now" status green           */
 
   /* Tell the UA our palette so native form controls, scrollbars and the
@@ -96,6 +98,7 @@
     --fcs-accent: #e295b6;
     --fcs-accent-strong: #f1b6d0;
     --fcs-accent-muted: #c98aac;
+    --fcs-gold: #d9b54a;
     --fcs-live: #5cc46a;
   }
 }

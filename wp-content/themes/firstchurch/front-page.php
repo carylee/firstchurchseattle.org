@@ -2,14 +2,15 @@
 /**
  * Front page.
  *
- * Section order preserves the old homepage: hero → visit card + This Sunday +
- * happenings strip → Shared Breakfast story → three navigation bands
- * (Worship / News + Events / Gatherings).
+ * Section order: hero (full-colour photo under a maroon scrim) → "New here?"
+ * pathway → visit card + This Sunday + happenings strip → Shared Breakfast
+ * story → one featured story band (from the Happenings spine's Featured row;
+ * skipped when nothing is featured).
  *
  * The hero's copy is content, not code — it changes (seasonal notices like
  * Pride Sunday), so it lives in the `fcs_front_hero` option (seeded from the
  * old widget by ops/bin/seed-front-hero.php; editable via wp-cli/MCP). The
- * three bands are stable navigation copy and live here in the template.
+ * pathway tiles are stable wayfinding and live here in the template.
  *
  * @package FirstChurch
  */
@@ -46,43 +47,33 @@ get_header();
 $fcs_hero       = fcs_front_hero();
 $fcs_hero_image = $fcs_hero['image_id'] ? wp_get_attachment_image_url( (int) $fcs_hero['image_id'], 'full' ) : '';
 
-// The three stable navigation bands. Each carries the same washed background
-// photo the old widgets used (attachment IDs from the retired ctfw-section
-// instances; a missing attachment just renders the flat band).
-$fcs_bands = array(
+// "New here?" pathway — three first steps for a newcomer.
+$fcs_path_tiles = array(
 	array(
-		'variant'  => 'dark',
-		'title'    => __( 'Worship at First Church', 'firstchurch' ),
-		'copy'     => __( 'Join us for an uplifting service, choral music, and a thought-provoking sermon every Sunday. Nursery and Children’s activities available.', 'firstchurch' ),
-		'image_id' => 1669,
-		'links'    => array(
-			array( 'text' => __( 'Worship Livestream', 'firstchurch' ), 'url' => '/worship/live/' ),
-			array( 'text' => __( 'Prayer', 'firstchurch' ), 'url' => '/worship/prayer/' ),
-		),
+		'title' => __( 'Plan your visit', 'firstchurch' ),
+		'copy'  => __( 'Where to park, what Sunday looks like, and what to expect when you arrive.', 'firstchurch' ),
+		'url'   => '/about/newcomers/',
 	),
 	array(
-		'variant'  => 'light',
-		'title'    => __( 'News + Events', 'firstchurch' ),
-		'copy'     => __( 'There’s always a lot going on at First Church and in our community. Find more information about upcoming events and read our latest updates.', 'firstchurch' ),
-		'image_id' => 7641,
-		'links'    => array(
-			array( 'text' => __( 'Monthly Calendar', 'firstchurch' ), 'url' => '/events-calendar/' ),
-			array( 'text' => __( 'Upcoming Events', 'firstchurch' ), 'url' => '/upcoming-events/' ),
-			array( 'text' => __( 'News', 'firstchurch' ), 'url' => '/news/' ),
-		),
+		'title' => __( 'Watch a service', 'firstchurch' ),
+		'copy'  => __( 'Join live on Sunday at 10:30 am, or see what worship is like first.', 'firstchurch' ),
+		'url'   => '/worship/live/',
 	),
 	array(
-		'variant'  => 'dark',
-		'title'    => __( 'Gatherings at First Church', 'firstchurch' ),
-		'copy'     => __( 'Gather to learn, to fellowship, to serve, or to make music! We have something for everyone.', 'firstchurch' ),
-		'image_id' => 2087,
-		'links'    => array(
-			array( 'text' => __( 'Learn + Grow', 'firstchurch' ), 'url' => '/gather/grow-learn/' ),
-			array( 'text' => __( 'Fellowship', 'firstchurch' ), 'url' => '/gather/fellowship/' ),
-			array( 'text' => __( 'Serve', 'firstchurch' ), 'url' => '/gather/serve/' ),
-		),
+		'title' => __( 'Say hello', 'firstchurch' ),
+		'copy'  => __( 'Introduce yourself with the connection card — we’d love to meet you.', 'firstchurch' ),
+		'url'   => '/connection-card/',
 	),
 );
+
+// One featured story from the Happenings spine (fcs_weight-promoted).
+$fcs_featured = null;
+if ( function_exists( 'happenings_section_items' ) && function_exists( 'happenings_card_view' ) ) {
+	$fcs_featured_items = happenings_section_items( 'featured', 1 );
+	if ( $fcs_featured_items ) {
+		$fcs_featured = happenings_card_view( $fcs_featured_items[0] );
+	}
+}
 
 ?>
 <main id="fcs-home" class="fcs-home">
@@ -91,16 +82,38 @@ $fcs_bands = array(
 		<?php if ( $fcs_hero_image ) : ?>
 			<div class="fcs-hero__image" style="background-image: url('<?php echo esc_url( $fcs_hero_image ); ?>')" aria-hidden="true"></div>
 		<?php endif; ?>
-		<div class="fcs-hero__content">
-			<h1><?php echo esc_html( $fcs_hero['title'] ); ?></h1>
-			<div class="fcs-hero__copy"><?php echo wp_kses_post( $fcs_hero['content'] ); ?></div>
-			<?php if ( ! empty( $fcs_hero['links'] ) ) : ?>
-				<ul class="fcs-pill-list">
-					<?php foreach ( $fcs_hero['links'] as $i => $link ) : ?>
-						<li><a class="<?php echo 0 === $i ? 'is-primary' : ''; ?>" href="<?php echo esc_url( $link['url'] ); ?>"><?php echo esc_html( $link['text'] ); ?></a></li>
-					<?php endforeach; ?>
-				</ul>
-			<?php endif; ?>
+		<div class="fcs-hero__scrim" aria-hidden="true"></div>
+		<div class="fcs-hero__inner">
+			<div class="fcs-hero__content">
+				<h1><?php echo esc_html( $fcs_hero['title'] ); ?></h1>
+				<div class="fcs-hero__copy"><?php echo wp_kses_post( $fcs_hero['content'] ); ?></div>
+				<?php if ( ! empty( $fcs_hero['links'] ) ) : ?>
+					<ul class="fcs-btn-list">
+						<?php foreach ( $fcs_hero['links'] as $i => $link ) : ?>
+							<li><a class="<?php echo 0 === $i ? 'is-primary' : ''; ?>" href="<?php echo esc_url( $link['url'] ); ?>"><?php echo esc_html( $link['text'] ); ?></a></li>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+			</div>
+		</div>
+	</section>
+
+	<section class="fcs-path" aria-label="<?php esc_attr_e( 'New here?', 'firstchurch' ); ?>">
+		<div class="fcs-container--med">
+			<p class="fcs-kicker"><?php esc_html_e( 'New here?', 'firstchurch' ); ?></p>
+			<h2 class="fcs-path__heading"><?php esc_html_e( 'Three easy first steps', 'firstchurch' ); ?></h2>
+			<div class="fcs-path__tiles">
+				<?php foreach ( $fcs_path_tiles as $i => $tile ) : ?>
+					<a class="fcs-path__tile" href="<?php echo esc_url( $tile['url'] ); ?>">
+						<span class="fcs-path__num" aria-hidden="true"><?php echo esc_html( $i + 1 ); ?></span>
+						<span class="fcs-path__body">
+							<span class="fcs-path__title"><?php echo esc_html( $tile['title'] ); ?></span>
+							<span class="fcs-path__copy"><?php echo esc_html( $tile['copy'] ); ?></span>
+						</span>
+						<span class="fcs-path__arrow" aria-hidden="true">→</span>
+					</a>
+				<?php endforeach; ?>
+			</div>
 		</div>
 	</section>
 
@@ -108,23 +121,28 @@ $fcs_bands = array(
 
 	<?php get_template_part( 'partials/home-breakfast-story' ); ?>
 
-	<?php foreach ( $fcs_bands as $band ) : ?>
-		<?php $fcs_band_img = ! empty( $band['image_id'] ) ? wp_get_attachment_image_url( (int) $band['image_id'], 'full' ) : ''; ?>
-		<section class="fcs-band fcs-band--<?php echo esc_attr( $band['variant'] ); ?>">
-			<?php if ( $fcs_band_img ) : ?>
-				<div class="fcs-band__image" style="background-image: url('<?php echo esc_url( $fcs_band_img ); ?>')" aria-hidden="true"></div>
-			<?php endif; ?>
-			<div class="fcs-band__content">
-				<h2><?php echo esc_html( $band['title'] ); ?></h2>
-				<p><?php echo esc_html( $band['copy'] ); ?></p>
-				<ul class="fcs-pill-list">
-					<?php foreach ( $band['links'] as $link ) : ?>
-						<li><a href="<?php echo esc_url( $link['url'] ); ?>"><?php echo esc_html( $link['text'] ); ?></a></li>
-					<?php endforeach; ?>
-				</ul>
+	<?php if ( $fcs_featured ) : ?>
+		<section class="fcs-feature" aria-label="<?php esc_attr_e( 'Featured at First Church', 'firstchurch' ); ?>">
+			<div class="fcs-feature__content">
+				<p class="fcs-kicker fcs-kicker--on-dark"><?php esc_html_e( 'Featured at First Church', 'firstchurch' ); ?></p>
+				<h2>
+					<?php if ( '' !== $fcs_featured['url'] ) : ?>
+						<a href="<?php echo esc_url( $fcs_featured['url'] ); ?>"><?php echo esc_html( $fcs_featured['title'] ); ?></a>
+					<?php else : ?>
+						<?php echo esc_html( $fcs_featured['title'] ); ?>
+					<?php endif; ?>
+				</h2>
+				<?php if ( '' !== $fcs_featured['blurb'] ) : ?>
+					<p class="fcs-feature__blurb"><?php echo esc_html( wp_trim_words( $fcs_featured['blurb'], 40 ) ); ?></p>
+				<?php endif; ?>
+				<?php if ( '' !== $fcs_featured['ctaUrl'] ) : ?>
+					<ul class="fcs-btn-list">
+						<li><a class="is-primary" href="<?php echo esc_url( $fcs_featured['ctaUrl'] ); ?>"><?php echo esc_html( $fcs_featured['ctaLabel'] ?: __( 'Learn more', 'firstchurch' ) ); ?></a></li>
+					</ul>
+				<?php endif; ?>
 			</div>
 		</section>
-	<?php endforeach; ?>
+	<?php endif; ?>
 
 </main>
 <?php
