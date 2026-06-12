@@ -15,7 +15,7 @@
  *
  * Falls back to native title/content if the spine plugin is inactive.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -45,12 +45,12 @@ while ( have_posts() ) :
 	// the spine is inactive. Rendered with the_content filters at the surface.
 	$body = $item ? (string) ( $item['content'] ?? '' ) : (string) get_the_content();
 	?>
-	<main id="maranatha-content" tabindex="-1" class="bg-surface">
+	<main id="fcs-content" tabindex="-1" class="bg-surface">
 		<article class="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
 
 			<p class="mb-4">
 				<a href="<?php echo esc_url( home_url( '/upcoming-events/' ) ); ?>" class="text-accent hover:text-accent-strong">
-					&larr; <?php esc_html_e( 'All events', 'maranatha-child' ); ?>
+					&larr; <?php esc_html_e( 'All events', 'firstchurch' ); ?>
 				</a>
 			</p>
 
@@ -69,13 +69,13 @@ while ( have_posts() ) :
 
 			<?php if ( '' !== $next ) : ?>
 				<p class="mt-1 text-sm text-muted">
-					<?php printf( esc_html__( 'Next: %s', 'maranatha-child' ), esc_html( $next ) ); ?>
+					<?php printf( esc_html__( 'Next: %s', 'firstchurch' ), esc_html( $next ) ); ?>
 				</p>
 			<?php endif; ?>
 
 			<?php if ( $show_cta ) : ?>
 				<p class="mt-5">
-					<a href="<?php echo esc_url( $view['ctaUrl'] ); ?>" class="btn-primary"><?php echo esc_html( $view['ctaLabel'] ?: __( 'Register', 'maranatha-child' ) ); ?></a>
+					<a href="<?php echo esc_url( $view['ctaUrl'] ); ?>" class="btn-primary"><?php echo esc_html( $view['ctaLabel'] ?: __( 'Register', 'firstchurch' ) ); ?></a>
 				</p>
 			<?php endif; ?>
 

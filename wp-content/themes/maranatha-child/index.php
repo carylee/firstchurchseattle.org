@@ -1,65 +1,80 @@
 <?php
 /**
- * Main template file — child override (pinned verbatim copy).
+ * Fallback template: archives, search results, and anything without a more
+ * specific template. Singular content has page.php / single.php; this renders
+ * a card grid of whatever the query returned.
  *
- * All content not using a more specific template comes through this. See
- * content-*.php for different types of content loaded via loop.php.
- *
- * Owned by the child as part of the theme-independence work (extracting the
- * base template skeleton so the maranatha parent can eventually be dropped —
- * see ops/docs/theme-independence.md). Started as a verbatim copy of the
- * parent's index.php; the parent's CTFW_THEME_PARTIAL_DIR constant is now
- * literalized to 'partials' so this file no longer fatals once the parent is
- * gone. The loop-header / loop-author / loop-navigation sub-partials it pulls
- * still resolve to the parent (the child has no copy yet) — tracked as a
- * remaining dependency. Note get_template_part( 'loop' ) resolves to the
- * child's loop.php (also extracted in this change).
- *
- * Parent source: maranatha/index.php (pinned in this repo) — re-diff if the
- * parent theme is ever updated.
- *
- * More information: http://codex.wordpress.org/Template_Hierarchy
- *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
-// No direct access
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
-get_header(); // header.php ?>
+get_header();
 
-<main id="maranatha-content">
-
-	<div id="maranatha-content-inner"<?php if ( ! is_singular() ) : ?> class="maranatha-centered-large maranatha-entry-content"<?php endif; ?>>
-
-		<?php
-		// loop-header.php shows title, description, etc. for categories, tags, archives, etc. (not used by single posts)
-		get_template_part( 'partials/loop-header' );
-		?>
+?>
+<main id="fcs-content" class="fcs-main">
+	<div class="fcs-container--med">
 
 		<?php
-		// loop.php shows single or multiple posts
-		get_template_part( 'loop' );
-		?>
+		// Term descriptions add context under the banner title on archives.
+		$fcs_desc = is_archive() ? get_the_archive_description() : '';
+		if ( $fcs_desc ) :
+			?>
+			<div class="fcs-archive-header">
+				<div class="fcs-archive-desc"><?php echo wp_kses_post( $fcs_desc ); ?></div>
+			</div>
+		<?php endif; ?>
 
-		<?php
-		// loop-author.php shows bio below a blog post
-		// (loop-header.php shows the same at top of author archive)
-		get_template_part( 'partials/loop-author' );
-		?>
+		<?php if ( have_posts() ) : ?>
 
-		<?php
-		// loop-navigation.php shows the appropriate navigation at bottom
-		get_template_part( 'partials/loop-navigation' );
-		?>
+			<div class="fcs-card-grid">
+				<?php
+				while ( have_posts() ) {
+					the_post();
+					get_template_part( 'partials/card' );
+				}
+				?>
+			</div>
 
-		<?php
-		// comments.php lists comments when enabled (single posts only)
-		comments_template();
-		?>
+			<nav class="fcs-pagination" aria-label="<?php esc_attr_e( 'Posts navigation', 'firstchurch' ); ?>">
+				<?php
+				echo wp_kses_post(
+					paginate_links(
+						array(
+							'type'      => 'list',
+							'prev_text' => __( '← Newer', 'firstchurch' ),
+							'next_text' => __( 'Older →', 'firstchurch' ),
+						)
+					) ?: ''
+				);
+				?>
+			</nav>
+
+		<?php else : ?>
+
+			<div class="fcs-no-results">
+				<p>
+					<?php
+					if ( is_search() ) {
+						esc_html_e( 'Nothing matched that search. Try different words?', 'firstchurch' );
+					} else {
+						esc_html_e( 'Nothing to show here yet.', 'firstchurch' );
+					}
+					?>
+				</p>
+				<form role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+					<label class="screen-reader-text" for="fcs-loop-search"><?php esc_html_e( 'Search for:', 'firstchurch' ); ?></label>
+					<input type="search" id="fcs-loop-search" name="s" placeholder="<?php esc_attr_e( 'Search the site…', 'firstchurch' ); ?>" value="<?php echo esc_attr( get_search_query() ); ?>">
+					<button type="submit" class="btn-primary"><?php esc_html_e( 'Search', 'firstchurch' ); ?></button>
+				</form>
+			</div>
+
+		<?php endif; ?>
 
 	</div>
-
 </main>
+<?php
 
-<?php get_footer(); // footer.php ?>
+get_footer();

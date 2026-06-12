@@ -7,7 +7,7 @@
  * Swapped in by inc/people-display.php only when the plugin owns the person type
  * (post-CTC cutover); never the live template while the parent renders people.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,12 +24,12 @@ while ( have_posts() ) :
 	$img  = has_post_thumbnail() ? (string) get_the_post_thumbnail_url( $id, 'medium' ) : '';
 	$name = get_the_title();
 	?>
-	<main id="maranatha-content" tabindex="-1" class="bg-white">
+	<main id="fcs-content" tabindex="-1" class="fcs-main bg-surface">
 		<article class="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
 
 			<p class="mb-6">
 				<a href="<?php echo esc_url( get_post_type_archive_link( 'ctc_person' ) ?: home_url( '/staff/' ) ); ?>" class="text-brand hover:text-brand-dark">
-					&larr; <?php esc_html_e( 'All staff', 'maranatha-child' ); ?>
+					&larr; <?php esc_html_e( 'All staff', 'firstchurch' ); ?>
 				</a>
 			</p>
 

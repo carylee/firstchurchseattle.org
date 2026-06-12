@@ -8,7 +8,7 @@
  * get_header()) and adds a search form and quick links so visitors have
  * somewhere to go.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,30 +16,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $fcs_404_links = array(
-	__( 'Home', 'maranatha-child' )             => home_url( '/' ),
-	__( "What's Happening", 'maranatha-child' ) => home_url( '/engage/' ),
-	__( 'Events Calendar', 'maranatha-child' )  => home_url( '/events-calendar/' ),
-	__( 'Watch Live', 'maranatha-child' )       => home_url( '/worship/live/' ),
-	__( 'News', 'maranatha-child' )             => home_url( '/news/' ),
-	__( 'Give', 'maranatha-child' )             => home_url( '/give/' ),
-	__( 'Contact Us', 'maranatha-child' )       => home_url( '/about/contact-us/' ),
+	__( 'Home', 'firstchurch' )             => home_url( '/' ),
+	__( "What's Happening", 'firstchurch' ) => home_url( '/engage/' ),
+	__( 'Events Calendar', 'firstchurch' )  => home_url( '/events-calendar/' ),
+	__( 'Watch Live', 'firstchurch' )       => home_url( '/worship/live/' ),
+	__( 'News', 'firstchurch' )             => home_url( '/news/' ),
+	__( 'Give', 'firstchurch' )             => home_url( '/give/' ),
+	__( 'Contact Us', 'firstchurch' )       => home_url( '/about/contact-us/' ),
 );
 
 get_header(); ?>
 
-<main id="maranatha-content" tabindex="-1">
+<main id="fcs-content" tabindex="-1" class="fcs-main">
 
-	<div id="maranatha-content-inner" class="maranatha-centered-large maranatha-entry-content">
+	<div class="fcs-container--med">
 
 		<div class="fcs-404">
 
 			<p class="fcs-404__lead">
-				<?php esc_html_e( 'Sorry — we couldn\'t find that page. It may have moved, or the link may be out of date.', 'maranatha-child' ); ?>
+				<?php esc_html_e( 'Sorry — we couldn\'t find that page. It may have moved, or the link may be out of date.', 'firstchurch' ); ?>
 			</p>
 
 			<?php get_search_form(); ?>
 
-			<h2 class="fcs-404__heading"><?php esc_html_e( 'Or try one of these', 'maranatha-child' ); ?></h2>
+			<h2 class="fcs-404__heading"><?php esc_html_e( 'Or try one of these', 'firstchurch' ); ?></h2>
 
 			<ul class="fcs-404__links">
 				<?php foreach ( $fcs_404_links as $fcs_404_label => $fcs_404_url ) : ?>

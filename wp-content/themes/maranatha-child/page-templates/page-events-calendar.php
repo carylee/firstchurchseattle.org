@@ -2,39 +2,24 @@
 /**
  * Template Name: Events - Calendar (Spine)
  *
- * Spine-backed replacement for the parent theme's "Events - Calendar" template
- * (page-templates/events-calendar.php), which queried only `ctc_event` (via
- * ctfw_event_calendar_data) and went empty once events migrated to `fce_event`.
- *
  * Renders a static month grid from happenings_event_occurrences() — the spine's
  * occurrence-expanded event feed (recurring events land on each of their dates).
- * Reuses the parent theme's `maranatha-calendar-table*` styling for the grid (no
- * JS/AJAX — month nav is plain ?month= links), with a card list below for mobile.
- * See ops/docs/happenings.md (§5).
+ * No JS/AJAX — month nav is plain ?month= links — with a card list below for
+ * mobile and as an accessible linear view. See ops/docs/happenings.md (§5).
  *
  * Assign via wp-admin → Pages → Events Calendar → Page Attributes → Template.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// The parent maps its own events-calendar.php template to the full 1170px
-// container (maranatha_content_width() in includes/content.php special-cases it
-// by filename). This replacement template isn't on that list, so it would fall
-// back to the 700px reading width — far too narrow for a 7-column month grid.
-// Claim the full width here; this file only loads when the template is active.
-add_filter(
-	'maranatha_content_width',
-	function () {
-		return 1170;
-	}
-);
-
-add_action( 'maranatha_after_content', 'fcs_events_calendar_after_content' );
-function fcs_events_calendar_after_content() {
+/**
+ * The month grid + card list (called below, after the page's own content).
+ */
+function fcs_events_calendar_section() {
 	if ( ! function_exists( 'happenings_event_occurrences' ) || ! function_exists( 'fcs_render_happening_card' ) ) {
 		return; // spine inactive — fail soft.
 	}
@@ -85,11 +70,7 @@ function fcs_events_calendar_after_content() {
 	$show_prev = $month > $this_month;
 	$show_next = $next->format( 'Y-m' ) <= $max_month;
 
-	// NB: deliberately NOT id="maranatha-calendar" — that id makes the parent
-	// theme's main.js (maranatha_attach_calendar_dropdowns + pjax) auto-fire and
-	// call a jQuery .dropdown() plugin we don't load (console error). We reuse the
-	// table's `maranatha-calendar-table*` styling without the parent's JS.
-	echo '<section class="fcs-events-calendar" aria-label="' . esc_attr__( 'Events calendar', 'maranatha-child' ) . '">';
+	echo '<section class="fcs-events-calendar" aria-label="' . esc_attr__( 'Events calendar', 'firstchurch' ) . '">';
 
 	// ---- Header: prev · month · next ----
 	echo '<div class="fcs-events-calendar__header">';
@@ -106,48 +87,43 @@ function fcs_events_calendar_after_content() {
 	}
 	echo '</div>';
 
-	// ---- Month grid (reuses parent maranatha-calendar-table* styling) ----
-	echo '<table id="maranatha-calendar-table"><tbody>';
-	echo '<tr class="maranatha-calendar-table-header-row">';
+	// ---- Month grid ----
+	echo '<table class="fcs-cal"><tbody>';
+	echo '<tr class="fcs-cal__header-row">';
 	foreach ( $weekdays as $wd ) {
-		echo '<th class="maranatha-calendar-table-header"><div class="maranatha-calendar-table-header-content"><span class="maranatha-calendar-table-header-full">' . esc_html( $wd ) . '</span></div></th>';
+		echo '<th class="fcs-cal__header" scope="col"><span class="fcs-cal__header-full">' . esc_html( $wd ) . '</span><span class="fcs-cal__header-short" aria-hidden="true">' . esc_html( mb_substr( $wd, 0, 3 ) ) . '</span></th>';
 	}
 	echo '</tr>';
 
 	$cur = $grid_start;
 	while ( $cur <= $grid_end ) {
-		echo '<tr class="maranatha-calendar-table-week">';
+		echo '<tr>';
 		for ( $i = 0; $i < 7; $i++ ) {
 			$ymd        = $cur->format( 'Y-m-d' );
-			$dow_friend = ( ( (int) $cur->format( 'w' ) - $sow + 7 ) % 7 ) + 1; // 1..7
 			$has_events = ! empty( $by_date[ $ymd ] );
 
-			$classes = array( 'maranatha-calendar-table-day', 'maranatha-calendar-table-day-' . $dow_friend );
+			$classes = array( 'fcs-cal__day' );
 			if ( $cur->format( 'Y-m' ) !== $month ) {
-				$classes[] = 'maranatha-calendar-table-day-other-month';
+				$classes[] = 'is-other-month';
 			}
 			if ( $ymd === $today ) {
-				$classes[] = 'maranatha-calendar-table-day-today';
+				$classes[] = 'is-today';
 			}
 			if ( $ymd < $today ) {
-				$classes[] = 'maranatha-calendar-table-day-past';
-			}
-			if ( $has_events ) {
-				$classes[] = 'maranatha-calendar-table-day-has-events';
+				$classes[] = 'is-past';
 			}
 
 			echo '<td class="' . esc_attr( implode( ' ', $classes ) ) . '" data-date="' . esc_attr( $ymd ) . '">';
-			echo '<div class="maranatha-calendar-table-day-content-container"><div class="maranatha-calendar-table-day-content">';
-			echo '<div class="maranatha-calendar-table-day-heading">';
+			echo '<div class="fcs-cal__day-heading">';
 			if ( $ymd === $today ) {
-				echo '<span class="maranatha-calendar-table-day-label">' . esc_html_x( 'Today', 'event calendar', 'maranatha-child' ) . '</span>';
+				echo '<span class="fcs-cal__day-label">' . esc_html_x( 'Today', 'event calendar', 'firstchurch' ) . '</span>';
 			}
-			echo '<span class="maranatha-calendar-table-day-number">' . esc_html( $cur->format( 'j' ) ) . '</span>';
+			echo '<span class="fcs-cal__day-number">' . esc_html( $cur->format( 'j' ) ) . '</span>';
 			echo '</div>';
 
-			// Only surface events today or later (past days stay quiet, like the old calendar).
+			// Only surface events today or later (past days stay quiet).
 			if ( $has_events && $ymd >= $today ) {
-				echo '<ul class="maranatha-calendar-table-day-events">';
+				echo '<ul class="fcs-cal__events">';
 				foreach ( $by_date[ $ymd ] as $ev ) {
 					// Weekly rhythms land on every week of the grid by design; mute
 					// them so the special Sundays read as the signal (event-kinds.md).
@@ -157,7 +133,7 @@ function fcs_events_calendar_after_content() {
 				echo '</ul>';
 			}
 
-			echo '</div></div></td>';
+			echo '</td>';
 			$cur = $cur->modify( '+1 day' );
 		}
 		echo '</tr>';
@@ -179,7 +155,7 @@ function fcs_events_calendar_after_content() {
 
 	if ( ! empty( $cards ) ) {
 		echo '<div class="fcs-events-calendar__list">';
-		echo '<h3 class="fcs-events-calendar__list-heading">' . esc_html( sprintf( /* translators: %s: month and year */ __( 'Events in %s', 'maranatha-child' ), $first->format( 'F Y' ) ) ) . '</h3>';
+		echo '<h3 class="fcs-events-calendar__list-heading">' . esc_html( sprintf( /* translators: %s: month and year */ __( 'Events in %s', 'firstchurch' ), $first->format( 'F Y' ) ) ) . '</h3>';
 		echo '<div class="fcs-card-grid">';
 		foreach ( $cards as $item ) {
 			echo fcs_render_happening_card( happenings_card_view( $item ), true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes internally.
@@ -191,5 +167,21 @@ function fcs_events_calendar_after_content() {
 	echo '</section>';
 }
 
-// Load main template to show the page (standard chrome + the page's own content).
-locate_template( 'index.php', true );
+get_header();
+
+?>
+<main id="fcs-content" class="fcs-main">
+	<?php while ( have_posts() ) : the_post(); ?>
+		<div class="fcs-container">
+			<?php if ( fcs_has_content() ) : ?>
+				<div class="fcs-measure fcs-entry">
+					<?php the_content(); ?>
+				</div>
+			<?php endif; ?>
+			<?php fcs_events_calendar_section(); ?>
+		</div>
+	<?php endwhile; ?>
+</main>
+<?php
+
+get_footer();

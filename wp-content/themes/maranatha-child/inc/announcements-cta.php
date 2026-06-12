@@ -15,7 +15,7 @@
  *
  * Mirrors how Church Theme Content events already carry a `registration_url`.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -38,9 +38,9 @@ const FCS_EXPIRES_KEY = 'fcs_expires';
 /** Weight presets surfaced in the meta box (label => stored int). */
 function fcs_weight_choices() {
 	return array(
-		0  => __( 'Normal', 'maranatha-child' ),
-		10 => __( 'Featured', 'maranatha-child' ),
-		20 => __( 'Pinned (top)', 'maranatha-child' ),
+		0  => __( 'Normal', 'firstchurch' ),
+		10 => __( 'Featured', 'firstchurch' ),
+		20 => __( 'Pinned (top)', 'firstchurch' ),
 	);
 }
 
@@ -149,7 +149,7 @@ add_action(
 		// CTA button is post-only — events carry their own registration URL field.
 		add_meta_box(
 			'fcs-cta',
-			__( 'Call to Action (button)', 'maranatha-child' ),
+			__( 'Call to Action (button)', 'firstchurch' ),
 			'fcs_cta_meta_box_render',
 			'post',
 			'side',
@@ -159,7 +159,7 @@ add_action(
 		foreach ( fcs_promo_post_types() as $promo_type ) {
 			add_meta_box(
 				'fcs-promo',
-				__( 'Promotion & expiry', 'maranatha-child' ),
+				__( 'Promotion & expiry', 'firstchurch' ),
 				'fcs_promo_meta_box_render',
 				$promo_type,
 				'side',
@@ -181,22 +181,22 @@ function fcs_cta_meta_box_render( $post ) {
 	?>
 	<p>
 		<label for="fcs_cta_text_field" style="display:block;font-weight:600;margin-bottom:4px;">
-			<?php esc_html_e( 'Button text', 'maranatha-child' ); ?>
+			<?php esc_html_e( 'Button text', 'firstchurch' ); ?>
 		</label>
 		<input type="text" id="fcs_cta_text_field" name="fcs_cta_text_field"
 		       value="<?php echo esc_attr( $text ); ?>" class="widefat"
-		       placeholder="<?php esc_attr_e( 'Sign up', 'maranatha-child' ); ?>">
+		       placeholder="<?php esc_attr_e( 'Sign up', 'firstchurch' ); ?>">
 	</p>
 	<p>
 		<label for="fcs_cta_url_field" style="display:block;font-weight:600;margin-bottom:4px;">
-			<?php esc_html_e( 'Button link (URL)', 'maranatha-child' ); ?>
+			<?php esc_html_e( 'Button link (URL)', 'firstchurch' ); ?>
 		</label>
 		<input type="url" id="fcs_cta_url_field" name="fcs_cta_url_field"
 		       value="<?php echo esc_attr( $url ); ?>" class="widefat"
 		       placeholder="https://firstchurchseattle.breezechms.com/form/…">
 	</p>
 	<p style="color:#666;font-size:12px;margin:0;">
-		<?php esc_html_e( 'Shown as a button on the What\'s Happening page. Leave blank for no button.', 'maranatha-child' ); ?>
+		<?php esc_html_e( 'Shown as a button on the What\'s Happening page. Leave blank for no button.', 'firstchurch' ); ?>
 	</p>
 	<?php
 }
@@ -218,7 +218,7 @@ function fcs_promo_meta_box_render( $post ) {
 	?>
 	<p>
 		<label for="fcs_weight_field" style="display:block;font-weight:600;margin-bottom:4px;">
-			<?php esc_html_e( 'Prominence', 'maranatha-child' ); ?>
+			<?php esc_html_e( 'Prominence', 'firstchurch' ); ?>
 		</label>
 		<select id="fcs_weight_field" name="fcs_weight_field" class="widefat">
 			<?php foreach ( fcs_weight_choices() as $value => $label ) : ?>
@@ -231,7 +231,7 @@ function fcs_promo_meta_box_render( $post ) {
 	<?php if ( $show_expiry ) : ?>
 	<p>
 		<label for="fcs_expires_field" style="display:block;font-weight:600;margin-bottom:4px;">
-			<?php esc_html_e( 'Stop showing after', 'maranatha-child' ); ?>
+			<?php esc_html_e( 'Stop showing after', 'firstchurch' ); ?>
 		</label>
 		<input type="date" id="fcs_expires_field" name="fcs_expires_field"
 		       value="<?php echo esc_attr( $expires ); ?>" class="widefat">
@@ -240,8 +240,8 @@ function fcs_promo_meta_box_render( $post ) {
 	<p style="color:#666;font-size:12px;margin:0;">
 		<?php
 		echo $show_expiry
-			? esc_html__( 'Featured/Pinned float this up the What\'s Happening page and lobby screen. After the expiry date it drops off those surfaces but stays in the news archive.', 'maranatha-child' )
-			: esc_html__( 'Featured/Pinned float this event up the What\'s Happening page, the e-news, and the lobby screen. Past events drop off on their own.', 'maranatha-child' );
+			? esc_html__( 'Featured/Pinned float this up the What\'s Happening page and lobby screen. After the expiry date it drops off those surfaces but stays in the news archive.', 'firstchurch' )
+			: esc_html__( 'Featured/Pinned float this event up the What\'s Happening page, the e-news, and the lobby screen. Past events drop off on their own.', 'firstchurch' );
 		?>
 	</p>
 	<?php
@@ -379,11 +379,11 @@ function fcs_announcements_shortcode( $atts ) {
 			<div class="fcs-card__cta">
 				<?php if ( $cta_url ) : ?>
 					<a href="<?php echo esc_url( $cta_url ); ?>" class="fcs-cta-button">
-						<?php echo esc_html( $cta_text ? $cta_text : __( 'Learn more', 'maranatha-child' ) ); ?>
+						<?php echo esc_html( $cta_text ? $cta_text : __( 'Learn more', 'firstchurch' ) ); ?>
 					</a>
 				<?php else : // No explicit CTA — fall back to a quiet "Read more" so every card has an action. ?>
 					<a href="<?php the_permalink(); ?>" class="fcs-cta-button is-fallback">
-						<?php esc_html_e( 'Read more', 'maranatha-child' ); ?>
+						<?php esc_html_e( 'Read more', 'firstchurch' ); ?>
 					</a>
 				<?php endif; ?>
 			</div>
@@ -408,13 +408,13 @@ add_shortcode( 'fcs_announcements', 'fcs_announcements_shortcode' );
  * from search or a shared link — saw no button at all, even when one was set.
  * This closes that gap: the same action shows at the foot of the post body.
  *
- * Hooked on the shared parent-theme `maranatha_after_content`, which also fires
- * for events, sermons, people, etc. — so we guard to a single `post` in the main
- * loop. Unlike the cards there is no "Read more" fallback: you're already reading
- * it, so we render only when a real CTA URL is set.
+ * Hooked on the theme's `fcs_after_content` (fired by page.php / single.php
+ * after the entry) — guarded to a single `post` in the main loop. Unlike the
+ * cards there is no "Read more" fallback: you're already reading it, so we
+ * render only when a real CTA URL is set.
  */
 add_action(
-	'maranatha_after_content',
+	'fcs_after_content',
 	function () {
 		if ( ! is_singular( 'post' ) || ! is_main_query() || ! in_the_loop() ) {
 			return;
@@ -430,7 +430,7 @@ add_action(
 		?>
 		<p class="fcs-post-cta">
 			<a href="<?php echo esc_url( $url ); ?>" class="fcs-post-cta__button">
-				<?php echo esc_html( $text ? $text : __( 'Learn more', 'maranatha-child' ) ); ?>
+				<?php echo esc_html( $text ? $text : __( 'Learn more', 'firstchurch' ) ); ?>
 			</a>
 		</p>
 		<?php
