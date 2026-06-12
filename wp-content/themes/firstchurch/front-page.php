@@ -47,25 +47,6 @@ get_header();
 $fcs_hero       = fcs_front_hero();
 $fcs_hero_image = $fcs_hero['image_id'] ? wp_get_attachment_image_url( (int) $fcs_hero['image_id'], 'full' ) : '';
 
-// "New here?" pathway — three first steps for a newcomer.
-$fcs_path_tiles = array(
-	array(
-		'title' => __( 'Plan your visit', 'firstchurch' ),
-		'copy'  => __( 'Where to park, what Sunday looks like, and what to expect when you arrive.', 'firstchurch' ),
-		'url'   => '/about/newcomers/',
-	),
-	array(
-		'title' => __( 'Watch a service', 'firstchurch' ),
-		'copy'  => __( 'Join live on Sunday at 10:30 am, or see what worship is like first.', 'firstchurch' ),
-		'url'   => '/worship/live/',
-	),
-	array(
-		'title' => __( 'Say hello', 'firstchurch' ),
-		'copy'  => __( 'Introduce yourself with the connection card — we’d love to meet you.', 'firstchurch' ),
-		'url'   => '/connection-card/',
-	),
-);
-
 // One featured story from the Happenings spine (fcs_weight-promoted).
 $fcs_featured = null;
 if ( function_exists( 'happenings_section_items' ) && function_exists( 'happenings_card_view' ) ) {
@@ -98,22 +79,16 @@ if ( function_exists( 'happenings_section_items' ) && function_exists( 'happenin
 		</div>
 	</section>
 
-	<section class="fcs-path" aria-label="<?php esc_attr_e( 'New here?', 'firstchurch' ); ?>">
-		<div class="fcs-container--med">
+	<?php // The welcome, in the congregation's own Sunday-morning words (ops/docs/voice-guide.md §1). ?>
+	<section class="fcs-welcome" aria-label="<?php esc_attr_e( 'New here?', 'firstchurch' ); ?>">
+		<div class="fcs-welcome__inner">
 			<p class="fcs-kicker"><?php esc_html_e( 'New here?', 'firstchurch' ); ?></p>
-			<h2 class="fcs-path__heading"><?php esc_html_e( 'Three easy first steps', 'firstchurch' ); ?></h2>
-			<div class="fcs-path__tiles">
-				<?php foreach ( $fcs_path_tiles as $i => $tile ) : ?>
-					<a class="fcs-path__tile" href="<?php echo esc_url( $tile['url'] ); ?>">
-						<span class="fcs-path__num" aria-hidden="true"><?php echo esc_html( $i + 1 ); ?></span>
-						<span class="fcs-path__body">
-							<span class="fcs-path__title"><?php echo esc_html( $tile['title'] ); ?></span>
-							<span class="fcs-path__copy"><?php echo esc_html( $tile['copy'] ); ?></span>
-						</span>
-						<span class="fcs-path__arrow" aria-hidden="true">→</span>
-					</a>
-				<?php endforeach; ?>
-			</div>
+			<h2><?php esc_html_e( 'You are welcome here.', 'firstchurch' ); ?></h2>
+			<p class="fcs-welcome__copy"><?php esc_html_e( 'Whether you’ve got your faith all figured out, you’re really not sure about God, or you’re anywhere in between — there’s a place for you at First Church. Come as you are on Sunday, or say hello first.', 'firstchurch' ); ?></p>
+			<ul class="fcs-btn-list fcs-btn-list--on-light">
+				<li><a class="is-primary" href="<?php echo esc_url( home_url( '/about/newcomers/' ) ); ?>"><?php esc_html_e( 'Plan your visit', 'firstchurch' ); ?></a></li>
+				<li><a href="<?php echo esc_url( home_url( '/connection-card/' ) ); ?>"><?php esc_html_e( 'Say hello', 'firstchurch' ); ?></a></li>
+			</ul>
 		</div>
 	</section>
 

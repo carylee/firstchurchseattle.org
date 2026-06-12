@@ -430,104 +430,59 @@
 	color: var(--fcs-gold-on-dark);
 }
 
-/* ---- "New here?" pathway (front-page.php) ---------------------------------- */
+/* ---- Welcome band (front-page.php) ------------------------------------------
+ * The unconditional welcome, set quietly on the brand-soft surface. */
 
-.fcs-path {
-	padding: 3.5rem 0 1rem;
+.fcs-welcome {
+	background: var(--fcs-surface-2);
+	border-bottom: 1px solid var(--fcs-border-soft);
+	padding: 3.75rem 1.5rem;
 }
 
-.fcs-path .fcs-kicker,
-.fcs-path__heading {
+.fcs-welcome__inner {
+	max-width: 42rem;
+	margin-inline: auto;
 	text-align: center;
 }
 
-.fcs-path__heading {
-	margin: 0 0 1.75rem;
+.fcs-welcome h2 {
+	margin: 0 0 0.75rem;
 	font-family: var(--font-display);
 	font-weight: 500;
-	font-size: clamp(1.5rem, 1.2rem + 1.2vw, 1.9rem);
-}
-
-.fcs-path__tiles {
-	display: grid;
-	gap: 1rem;
-	grid-template-columns: 1fr;
-}
-
-@media (min-width: 48rem) {
-	.fcs-path__tiles {
-		grid-template-columns: 1fr 1fr 1fr;
-	}
-}
-
-.fcs-path__tile {
-	display: flex;
-	gap: 0.9rem;
-	align-items: flex-start;
-	padding: 1.25rem;
-	border: 1px solid var(--fcs-border);
-	border-radius: 0.875rem;
-	background: var(--fcs-surface);
-	color: var(--fcs-text);
-	text-decoration: none;
-	box-shadow: 0 1px 4px rgb(112 51 78 / 0.06);
-	transition: box-shadow 0.15s ease-out, border-color 0.15s ease-out;
-}
-
-.fcs-path__tile:hover,
-.fcs-path__tile:focus-visible {
-	border-color: var(--fcs-accent);
-	box-shadow: 0 4px 14px rgb(112 51 78 / 0.14);
-	color: var(--fcs-text);
-	text-decoration: none;
-}
-
-.fcs-path__num {
-	flex: 0 0 auto;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 2rem;
-	height: 2rem;
-	border-radius: 999px;
-	background: var(--fcs-maroon);
-	color: var(--fcs-text-light);
-	font-weight: 700;
-	font-size: 0.9375rem;
-}
-
-.fcs-path__body {
-	display: block;
-}
-
-.fcs-path__title {
-	display: block;
-	font-family: var(--font-display);
-	font-weight: 600;
-	font-size: 1.0625rem;
+	font-size: clamp(1.6rem, 1.25rem + 1.5vw, 2.1rem);
 	color: var(--fcs-accent);
 }
 
-.fcs-path__copy {
-	display: block;
-	margin-top: 0.2rem;
-	font-size: 0.9rem;
-	line-height: 1.5;
+.fcs-welcome__copy {
+	margin: 0;
+	line-height: 1.7;
 	color: var(--fcs-text-soft);
 }
 
-.fcs-path__arrow {
-	margin-left: auto;
-	align-self: center;
+/* Button row on light surfaces: accent outline / accent fill. */
+.fcs-btn-list--on-light a {
+	border-color: var(--fcs-accent);
 	color: var(--fcs-accent);
-	opacity: 0;
-	transition: opacity 0.15s ease-out, transform 0.15s ease-out;
 }
 
-.fcs-path__tile:hover .fcs-path__arrow,
-.fcs-path__tile:focus-visible .fcs-path__arrow {
-	opacity: 1;
-	transform: translateX(2px);
+.fcs-btn-list--on-light a:hover,
+.fcs-btn-list--on-light a:focus-visible {
+	background-color: var(--fcs-maroon);
+	border-color: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
+
+.fcs-btn-list--on-light a.is-primary {
+	background-color: var(--fcs-maroon);
+	border-color: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
+
+.fcs-btn-list--on-light a.is-primary:hover,
+.fcs-btn-list--on-light a.is-primary:focus-visible {
+	background-color: var(--fcs-maroon-dark);
+	border-color: var(--fcs-maroon-dark);
+	color: var(--fcs-text-light);
 }
 
 /* ---- Featured story band (front-page.php) ----------------------------------
