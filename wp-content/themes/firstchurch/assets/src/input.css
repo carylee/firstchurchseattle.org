@@ -20,15 +20,17 @@
 @source "../../assets/js/**/*.js";
 
 @theme {
-  /* Brand */
-  --color-brand: #70334e;
-  --color-brand-dark: #5a2940;
-  --color-brand-deep: #4a2236;
-  --color-brand-soft: #faf6f8;
-  --color-brand-line: #ebe1e5;
-  --color-brand-ink: #2a1a22;
+  /* Brand — 2022 style-guide berry (see base.css for the sampled palette). */
+  --color-brand: #9c3a75;
+  --color-brand-dark: #7d2c5d;
+  --color-brand-deep: #5e2046;
+  --color-brand-soft: #faf4f8;
+  --color-brand-line: #ecdfe7;
+  --color-brand-ink: #2a1a24;
 
-  /* Type */
+  /* Type. The 2022 guide's primary face is Raleway; display + headings use
+     --font-display. --font-serif (Fraunces) is retained but currently unused
+     — it's the proposed guide *extension*, one token flip away. */
   --font-serif: "Fraunces", "Iowan Old Style", Palatino, Georgia, serif;
   --font-display: "Raleway", "Lato", system-ui, sans-serif;
   --font-sans: "Lato", system-ui, sans-serif;

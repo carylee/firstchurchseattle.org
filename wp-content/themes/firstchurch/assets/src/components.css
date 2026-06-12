@@ -349,7 +349,7 @@ a.fcs-rhythm-strip__title:focus {
   font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
-  box-shadow: 0 1px 2px #70334e2e;
+  box-shadow: 0 1px 2px #9c3a752e;
   transition: background-color .12s ease-out, transform .12s ease-out;
 }
 .btn-primary:hover,
@@ -387,7 +387,7 @@ a.fcs-rhythm-strip__title:focus {
   border: 1px solid var(--fcs-border);
   border-radius: 1rem;
   background-color: var(--fcs-surface-2);
-  box-shadow: 0 1px 3px #70334e0a;
+  box-shadow: 0 1px 3px #9c3a750a;
 }
 @media (min-width: 640px) {
   .card-action { padding: 1.75rem; }
@@ -401,10 +401,10 @@ a.fcs-rhythm-strip__title:focus {
   border: 1px solid var(--fcs-border);
   border-radius: .75rem;
   background-color: var(--fcs-surface-2);
-  box-shadow: 0 2px 12px #70334e14;
+  box-shadow: 0 2px 12px #9c3a7514;
   transition: box-shadow .18s ease-out, transform .18s ease-out;
 }
-.cta-tile:hover { box-shadow: 0 4px 18px #70334e24; }
+.cta-tile:hover { box-shadow: 0 4px 18px #9c3a7524; }
 
 /* The whole tile (image, title, body) clicks through to the button's target —
    the tile's single link stretches over it via a pseudo-element. The button

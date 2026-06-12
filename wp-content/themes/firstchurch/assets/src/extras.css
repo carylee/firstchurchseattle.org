@@ -28,7 +28,7 @@
 	position: relative;
 	clear: both;
 	margin: 3rem 0 0.75rem;
-	color: var(--fcs-accent, #70334e);
+	color: var(--fcs-accent, #9c3a75);
 }
 
 .fc-timeline .fc-tl-year:first-child {
@@ -45,7 +45,7 @@
 	width: 0.85rem;
 	height: 0.85rem;
 	border-radius: 50%;
-	background: var(--fcs-accent, #70334e);
+	background: var(--fcs-accent, #9c3a75);
 	border: 3px solid var(--fcs-surface, #ffffff);
 	box-sizing: content-box;
 }

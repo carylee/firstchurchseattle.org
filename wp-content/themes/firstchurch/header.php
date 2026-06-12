@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<a class="fcs-wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
 			First Church
-			<small><?php esc_html_e( 'Seattle · est. 1853', 'firstchurch' ); ?></small>
+			<small>First United Methodist Church <em>of</em> Seattle</small>
 		</a>
 
 		<nav class="fcs-nav" aria-label="<?php esc_attr_e( 'Primary', 'firstchurch' ); ?>">

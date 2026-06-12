@@ -319,16 +319,16 @@
 }
 
 .fcs-btn-list a.is-primary {
-	background-color: var(--fcs-gold-on-dark);
-	border-color: var(--fcs-gold-on-dark);
-	color: #3a1628;
+	background-color: #fff;
+	border-color: #fff;
+	color: var(--fcs-maroon-dark);
 }
 
 .fcs-btn-list a.is-primary:hover,
 .fcs-btn-list a.is-primary:focus-visible {
-	background-color: #efd27a;
-	border-color: #efd27a;
-	color: #3a1628;
+	background-color: #f7e9f1;
+	border-color: #f7e9f1;
+	color: var(--fcs-maroon-dark);
 }
 
 .fcs-btn-list--on-light a {
@@ -383,22 +383,22 @@
 }
 
 .fcs-mast .fcs-kicker {
-	color: var(--fcs-accent);
 	letter-spacing: 0.14em;
 }
 
 .fcs-mast h1 {
 	margin: 0.75rem 0 1.25rem;
-	font-family: var(--font-serif);
-	font-weight: 600;
-	font-size: clamp(3rem, 7.2vw, 5.4rem);
+	font-family: var(--font-display);
+	font-weight: 300;
+	font-size: clamp(3rem, 7.4vw, 5.6rem);
 	line-height: 1.04;
-	letter-spacing: -0.01em;
+	letter-spacing: -0.015em;
 	color: var(--fcs-text);
 }
 
 .fcs-mast h1 em {
 	font-style: italic;
+	font-weight: 400;
 	color: var(--fcs-accent);
 }
 
@@ -424,8 +424,10 @@
 /* ---- Happening-next ticker ---- */
 
 .fcs-ticker {
-	background: var(--fcs-text);
-	color: var(--fcs-surface);
+	/* Forest is a constant brand fill (like the berry), so the text is fixed
+	   white rather than scheme-flipped tokens. */
+	background: var(--fcs-forest);
+	color: rgb(255 255 255 / 0.95);
 	overflow-x: auto;
 	scrollbar-width: none;
 }
@@ -439,7 +441,7 @@
 }
 
 .fcs-ticker b {
-	color: var(--fcs-gold-on-dark);
+	color: var(--fcs-emerald-bright);
 	font-weight: 700;
 	margin-right: 0.3rem;
 }
@@ -449,7 +451,7 @@
 }
 
 .fcs-ticker a:hover {
-	color: var(--fcs-gold-on-dark);
+	color: var(--fcs-emerald-bright);
 	text-decoration: none;
 }
 
@@ -500,7 +502,7 @@
 
 .fcs-tile__lab b {
 	display: block;
-	font-family: var(--font-serif);
+	font-family: var(--font-display);
 	font-weight: 600;
 	font-size: 1.4rem;
 }
@@ -537,15 +539,16 @@
 
 .fcs-creed__big {
 	margin: 0;
-	font-family: var(--font-serif);
-	font-weight: 400;
-	font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+	font-family: var(--font-display);
+	font-weight: 300;
+	font-size: clamp(1.45rem, 2.7vw, 2rem);
 	line-height: 1.55;
 }
 
 .fcs-creed__big em {
 	font-style: italic;
-	color: var(--fcs-gold-on-dark);
+	font-weight: 400;
+	color: #f3cfe4; /* pale berry tint — olive reads muddy on the berry fill */
 }
 
 .fcs-creed .fcs-btn-list {
