@@ -2,14 +2,16 @@
  * First Church Seattle — site footer (.fcs-footer).
  *
  * Styles the theme's footer.php — a standard modern footer (identity +
- * worship time / contact / quick links + a bottom copyright bar). Deep brand
- * maroon, white text. Cross-viewport: one column on phones, three from
+ * worship time / contact / quick links + a bottom copyright bar). Mirrors
+ * the header chrome: paper surface with a 2px ink rule, token-driven so the
+ * dark scheme flips it. Cross-viewport: one column on phones, three from
  * 700px up.
  */
 
 .fcs-footer {
-	background: var(--fcs-maroon-dark);
-	color: rgba(255, 255, 255, 0.85);
+	background: var(--fcs-surface);
+	border-top: 2px solid var(--fcs-text);
+	color: var(--fcs-text-soft);
 	font-size: 0.9rem;
 	line-height: 1.6;
 }
@@ -32,18 +34,18 @@
 
 /* Links: quiet by default, brighten + underline on hover. */
 .fcs-footer a {
-	color: rgba(255, 255, 255, 0.85);
+	color: var(--fcs-text-soft);
 	text-decoration: none;
 }
 
 .fcs-footer a:hover,
 .fcs-footer a:focus {
-	color: #fff;
+	color: var(--fcs-text);
 	text-decoration: underline;
 }
 
 .fcs-footer a:focus-visible {
-	outline: 2px solid rgba(255, 255, 255, 0.7);
+	outline: 2px solid var(--fcs-accent);
 	outline-offset: 2px;
 	border-radius: 2px;
 }
@@ -54,13 +56,13 @@
 	margin: 0;
 	font-size: 1.25rem;
 	font-weight: 600;
-	color: #fff;
+	color: var(--fcs-text);
 }
 
 .fcs-footer__denom {
 	margin: 2px 0 14px;
 	font-size: 0.82rem;
-	color: rgba(255, 255, 255, 0.55);
+	color: var(--fcs-text-muted);
 }
 
 .fcs-footer__worship {
@@ -75,7 +77,7 @@
 	font-weight: 700;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
-	color: rgba(255, 255, 255, 0.55);
+	color: var(--fcs-text-muted);
 }
 
 /* -- Column 2: contact -- */
@@ -89,7 +91,7 @@
 
 .fcs-footer__mailing {
 	font-size: 0.8rem;
-	color: rgba(255, 255, 255, 0.55);
+	color: var(--fcs-text-muted);
 }
 
 /* -- Contact-column static map (footer.php) -- */
@@ -152,7 +154,7 @@
 	width: var(--fcs-tap-min);
 	height: var(--fcs-tap-min);
 	border-radius: 8px;
-	color: #fff;
+	color: var(--fcs-text);
 	opacity: 0.85;
 	transition: opacity 0.12s ease-out;
 }
@@ -160,7 +162,7 @@
 .fcs-footer__social a:hover,
 .fcs-footer__social a:focus {
 	opacity: 1;
-	background: rgba(255, 255, 255, 0.1);
+	background: rgb(0 0 0 / 0.06);
 }
 
 .fcs-footer__social svg {
@@ -171,7 +173,7 @@
 /* -- Bottom bar: copyright + privacy -- */
 
 .fcs-footer__bottom {
-	border-top: 1px solid rgba(255, 255, 255, 0.14);
+	border-top: 1px solid var(--fcs-border);
 }
 
 .fcs-footer__bottom-inner {
@@ -184,7 +186,7 @@
 	justify-content: space-between;
 	gap: 8px 24px;
 	font-size: 0.8rem;
-	color: rgba(255, 255, 255, 0.55);
+	color: var(--fcs-text-muted);
 }
 
 .fcs-footer__notice {
@@ -192,5 +194,5 @@
 }
 
 .fcs-footer__bottom a {
-	color: rgba(255, 255, 255, 0.55);
+	color: var(--fcs-text-muted);
 }
