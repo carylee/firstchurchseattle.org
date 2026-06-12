@@ -33,7 +33,7 @@ plugin) **and** replace the theme's *display* (child‑theme templates + CSS + a
 |---|---|---|---|
 | `ctc_sermon` (+ 5 taxonomies) | **Retired** | Sermon archive 301s to `/worship/live/` (`maranatha-child/inc/redirects.php`); YouTube history is the surface. No first‑party CPT needed. | — |
 | `ctc_event` | **Migrating** | `firstchurch-events` (`fce_event`, RRULE‑backed) + `single-fce_event.php`. Spine reads both during transition (`ops/docs/events-migration.md`). | `firstchurch-events` |
-| `ctc_person` (+ `ctc_person_group`) | **In flight (this doc's workstream)** | `firstchurch-people` (adopts the `ctc_person` type in place — zero data migration) + child display. See below. | `firstchurch-people` |
+| `ctc_person` (+ `ctc_person_group`) | **Re-owned** | `firstchurch-people` (adopts `ctc_person` in place — active displacement at init:5, zero data migration, no dependency on full CTC decommission) | `firstchurch-people` |
 | `ctc_location` | **To retire** | One record only — convert to a normal Page (address already rendered by `maranatha-child/inc/footer-map.php`). No CPT warranted. | follow‑up |
 | Base templates + base stylesheet (`header`/`footer`/`index`/`loop`/`single`/`archive`/`search` + `_*.scss`) | **Pending** | The big one: child must grow its own skeleton + self‑owned CSS before the parent can be dropped. | `maranatha-child` |
 | Customizer settings, banner, nav, fonts/icons (`ctfw_*`, `maranatha_*`) | **Pending** | Audit which are still read at runtime; fold the live ones into the child. | `maranatha-child` |
@@ -45,23 +45,28 @@ and no behaviour change. They flip on automatically the moment CTC stops registe
 
 ---
 
-## Workstream: `firstchurch-people`
+## Workstream: `firstchurch-people` ✅ Complete
 
-Replaces CTC's person type with a first‑party plugin, **adopting `ctc_person` in place** —
+Replaced CTC's person type with a first‑party plugin, **adopting `ctc_person` in place** —
 same post‑type name, same `ctc_person_group` taxonomy, same `_ctc_person_*` meta keys — so
 the ~9 existing staff posts, their group terms, headshots, and `/staff/<name>/` URLs keep
-working with **zero data migration**. (`ctc_location` is explicitly out of scope — see above.)
+working with **zero data migration**.
+
+The plugin uses **active displacement**: at init:5 it unhooks `ctc_register_post_type_person`
+and removes `ctc-people` theme support, then registers the type itself at init:20. This means
+the cutover is independent of full CTC decommission — ctc_event (rollback insurance),
+ctc_sermon (published-but-redirected), and ctc_location (pending) remain registered by CTC.
 
 ### What ships, and when it takes effect
 
 | Piece | File | Live effect on ship | Why |
 |---|---|---|---|
-| Type + taxonomy registration | `firstchurch-people.php` (`init`, priority 20) | **None until cutover** | Guarded `if ( ! post_type_exists('ctc_person') )`. CTC (priority 10) wins while active; we register only once CTC is gone, then `define( 'FCP_OWNS_PEOPLE', true )`. |
+| Type + taxonomy registration | `firstchurch-people.php` (`init`, priority 20) | **Immediate** | Displaces CTC at init:5; registers at init:20 when `post_type_exists('ctc_person')` is false. `define( 'FCP_OWNS_PEOPLE', true )`. |
 | Data accessor + writer | `inc/person.php` (`fcs_person_data()`, `fcs_write_person()`) | Additive/safe | Reads/writes the same `_ctc_person_*` meta. Decoupled from `ctfw_*`. |
-| Pure formatters (TDD) | `src/Person.php` | n/a | Phone→`tel:` link, social‑URL→icon mapping, pronoun/url sanitising. Unit‑tested WP‑free, like events' `src/`. |
-| Admin "Person details" metabox | `inc/admin.php` | **None until cutover** | Gated on `fcs_people_active()` so it doesn't double up with CTC's metabox. Staff keep CTC's editor until cutover. |
-| MCP `create-person` / `update-person` | `inc/mcp.php` | **Live immediately** | Writes existing `ctc_person` posts via `fcs_write_person()`. Closes the one content gap where agents couldn't help — safe alongside CTC. |
-| Child display (single + staff archive) | `maranatha-child/templates/{person-single,staff-archive}.php` + `inc/people-display.php` (swapped via `single_template`/`archive_template`, gated on `fcs_people_active()`) | **None until cutover** | Live `/staff/` stays on the theme's rendering until CTC/parent removal; our templates take over automatically at the flip. **Self-contained** — they bypass `loop.php` and the parent's `content-person-*` partials, so nothing depends on the parent surviving, and the partials need no edits. Styled with the child's existing Tailwind build (no new CSS). |
+| Pure formatters (TDD) | `src/Person.php` | n/a | Phone→`tel:` link, social‑URL→icon mapping, pronoun/url sanitising. Unit‑tested WP‑free. |
+| Admin "Person details" metabox | `inc/admin.php` | **Immediate** | Gated on `fcs_people_active()` — activates when plugin owns the type. |
+| MCP `create-person` / `update-person` | `inc/mcp.php` | **Always live** | Writes existing `ctc_person` posts via `fcs_write_person()`. |
+| Child display (single + staff archive) | `maranatha-child/templates/{person-single,staff-archive}.php` + `inc/people-display.php` | **Immediate** | Gated on `fcs_people_active()`; swapped via `single_template`/`archive_template`. **Self-contained** — bypass `loop.php` and the parent's `content-person-*` partials. Tailwind-styled. |
 
 **One flag governs every behaviour‑changing piece:** `fcs_people_active()` (true once
 `FCP_OWNS_PEOPLE` is defined, i.e. we registered the type because CTC no longer does). MCP is
@@ -69,26 +74,24 @@ deliberately *not* behind it.
 
 ### Ship + cutover checklist
 
-- [x] Plugin scaffolded, registration dormant‑guarded, accessor + writer, `src/Person.php` + tests.
+- [x] Plugin scaffolded, active displacement, accessor + writer, `src/Person.php` + tests.
 - [x] Admin metabox (gated), MCP abilities (live).
 - [x] Child display staged (gated, self‑contained templates that bypass the parent's person partials).
-- [x] Wired into `ops/deploy.sh` (mirror w/ `--delete`, exclude dev artifacts) — satisfies `check-deploy-coverage.sh`.
+- [x] Wired into `ops/deploy.sh` (mirror w/ `--delete`, exclude dev artifacts).
 - [x] CI: `firstchurch-people` PHPUnit job + composer‑audit matrix entry.
-- [ ] **Deploy** (merge to `main` → CD) and **activate on prod**:
-      `ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-people && wp rewrite flush'`.
-      (A fresh Claude Code web session has no `ssh firstchurch`; this is a human/CD step.)
-- [ ] Add the MCP abilities to the published allowlist in `wp-content/mu-plugins/firstchurch-mcp-abilities.php` if/when people authoring should be exposed to the read‑only MCP client. *(Self‑registered abilities work for the editor client today.)*
-- [ ] **At CTC removal (the cutover):** confirm `/staff/` and a profile (`/staff/<name>/`) still
-      resolve and render via the child templates; verify the rewrite slug (`staff`) and whether
-      `/staff/` is the CPT archive or a Page, and reconcile `has_archive` accordingly.
+- [x] **Menu:** old page link (ID 2127 → `/about/staff-2/`) replaced with custom link `/staff/`.
+- [x] **Redirect:** 301 `/about/staff-2/` → `/staff/`.
+- [x] **Old Staff Page (ID 65):** unpublished (draft) — CPT archive at `/staff/` takes over.
+- [x] **Deploy + activate on prod:** code deployed via CD; plugin activated; rewrites flushed.
 
-### Known unknowns to verify at cutover
+### Verified at cutover
 
-- **`/staff/` mechanism.** Live singles are at `/staff/<slug>/`. Whether `/staff/` itself is the
-  CPT archive or a WordPress Page determines `has_archive` / `rewrite['slug']` on our
-  registration. Verify against prod before the flip (the dormant guard makes this safe to defer).
-- **Pronouns.** Currently typed into name/position text on the live page. The plugin adds a
-  first‑class `_ctc_person_pronouns` field; backfilling existing staff is a content task (MCP).
+- **`/staff/` mechanism.** `/staff/` is the CPT archive (rewrite slug `staff`). The old Staff
+  Page (ID 65, slug `staff-2`, child of About at `/about/staff-2/`) used `page-templates/people.php`
+  and was linked from the menu. Resolved by unpublishing the page, repointing the menu item to
+  `/staff/`, and adding a 301 redirect.
+- **Pronouns.** The `_ctc_person_pronouns` field is available for backfilling via MCP. Existing
+  staff had pronouns inline in the post title (e.g. "Rev. Elizabeth Ingram Schindler [she/her]").
 
 ---
 

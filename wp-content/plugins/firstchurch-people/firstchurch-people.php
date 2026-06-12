@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: First Church People
- * Description: First-party staff/people directory — the in-progress replacement for Church Theme Content's person type. ADOPTS the ctc_person type in place (same post type, ctc_person_group taxonomy, and _ctc_person_* meta keys) so the existing staff posts, groups, headshots, and /staff/ URLs keep working with zero data migration. Registration stays DORMANT while CTC still registers ctc_person (no double-registration, no behaviour change); MCP authoring + the data accessor are live immediately. See ops/docs/theme-independence.md.
+ * Description: First-party staff/people directory — the replacement for Church Theme Content's person type. ADOPTS the ctc_person type in place (same post type, ctc_person_group taxonomy, and _ctc_person_* meta keys) so the existing staff posts, groups, headshots, and /staff/ URLs keep working with zero data migration. Actively displaces CTC's person registration at init:5 (removes ctc_register_post_type_person + ctc-people theme support) — no dependency on full CTC decommission. See ops/docs/theme-independence.md.
  * Version:     0.1.0
  * Author:      First Church Seattle
  *
@@ -25,24 +25,50 @@ const FCP_URLS     = '_ctc_person_urls';      // newline-separated social/web UR
 const FCP_PRONOUNS = '_ctc_person_pronouns';  // ours — CTC has no pronouns field
 
 /**
- * Register the person type + group taxonomy — but ONLY if nothing already has.
+ * Displace CTC's person registration before it fires.
  *
- * Church Theme Content registers ctc_person on `init` at the default priority
- * (10). We run at 20 and guard on post_type_exists(), so while CTC is active it
- * wins and we no-op (identical behaviour to today). Once CTC is deactivated at
- * the theme-independence cutover, our registration is the one that stands —
- * same name + slug + meta, so /staff/ URLs and existing posts are unaffected.
+ * Church Theme Content registers each post type (ctc_sermon, ctc_event,
+ * ctc_person, ctc_location) as a SEPARATE function hooked to `init` at
+ * priority 10. We unhook only ctc_register_post_type_person so the other
+ * three types are untouched — ctc_event (rollback insurance), ctc_sermon
+ * (150 published-but-redirected posts), and ctc_location (pending).
+ *
+ * We also remove ctc-people theme support so CTC's person metaboxes,
+ * single-template filters, and prev/next nav disable themselves — our
+ * plugin provides all of these. The parent's ctfw_person_data() reads
+ * _ctc_person_* meta keys (no theme-support gate), so legacy callers
+ * that still read person data remain safe.
+ *
+ * Runs at init:5 so it beats CTC's init:10 registration.
+ */
+add_action(
+	'init',
+	static function () {
+		remove_action( 'init', 'ctc_register_post_type_person' );
+		remove_theme_support( 'ctc-people' );
+	},
+	5
+);
+
+/**
+ * Register the person type + group taxonomy.
+ *
+ * CTC's registration was unhooked above at priority 5, so
+ * post_type_exists('ctc_person') is false and we own the type. Same name +
+ * slug + meta as CTC, so /staff/ URLs, single profile URLs, and existing
+ * posts are unaffected — zero data migration.
  *
  * FCP_OWNS_PEOPLE is the single signal the behaviour-changing pieces (admin
- * metabox, child display templates) gate on via fcs_people_active(). MCP
- * authoring deliberately does NOT gate on it — it writes the same meta on the
- * same posts whether CTC or we register the type.
+ * metabox, child display templates) gate on via fcs_people_active(). It is
+ * defined once we register the type. MCP authoring deliberately does NOT
+ * gate on it — it writes the same meta on the same posts whether CTC or we
+ * register the type.
  */
 add_action(
 	'init',
 	static function () {
 		if ( post_type_exists( FCP_CPT ) ) {
-			return; // CTC still owns it — stay dormant.
+			return;
 		}
 
 		register_post_type(
@@ -91,10 +117,10 @@ add_action(
 );
 
 /**
- * True once we (not Church Theme Content) own the person type. The behaviour-
- * changing surfaces — the admin metabox and the child display templates — gate
- * on this so the live site is untouched until the CTC cutover. Callers must run
- * after init:20 (admin metaboxes, template filters, frontend render all do).
+ * True once we own the person type (displaced CTC at init:5, registered at
+ * init:20). The behaviour-changing surfaces — the admin metabox and the child
+ * display templates — gate on this. Callers must run after init:20
+ * (admin metaboxes, template filters, frontend render all do).
  */
 function fcs_people_active(): bool {
 	return defined( 'FCP_OWNS_PEOPLE' ) && FCP_OWNS_PEOPLE;
