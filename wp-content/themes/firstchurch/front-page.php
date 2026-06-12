@@ -46,32 +46,37 @@ get_header();
 $fcs_hero       = fcs_front_hero();
 $fcs_hero_image = $fcs_hero['image_id'] ? wp_get_attachment_image_url( (int) $fcs_hero['image_id'], 'full' ) : '';
 
-// The three stable navigation bands.
+// The three stable navigation bands. Each carries the same washed background
+// photo the old widgets used (attachment IDs from the retired ctfw-section
+// instances; a missing attachment just renders the flat band).
 $fcs_bands = array(
 	array(
-		'variant' => 'dark',
-		'title'   => __( 'Worship at First Church', 'firstchurch' ),
-		'copy'    => __( 'Join us for an uplifting service, choral music, and a thought-provoking sermon every Sunday. Nursery and Children’s activities available.', 'firstchurch' ),
-		'links'   => array(
+		'variant'  => 'dark',
+		'title'    => __( 'Worship at First Church', 'firstchurch' ),
+		'copy'     => __( 'Join us for an uplifting service, choral music, and a thought-provoking sermon every Sunday. Nursery and Children’s activities available.', 'firstchurch' ),
+		'image_id' => 1669,
+		'links'    => array(
 			array( 'text' => __( 'Worship Livestream', 'firstchurch' ), 'url' => '/worship/live/' ),
 			array( 'text' => __( 'Prayer', 'firstchurch' ), 'url' => '/worship/prayer/' ),
 		),
 	),
 	array(
-		'variant' => 'light',
-		'title'   => __( 'News + Events', 'firstchurch' ),
-		'copy'    => __( 'There’s always a lot going on at First Church and in our community. Find more information about upcoming events and read our latest updates.', 'firstchurch' ),
-		'links'   => array(
+		'variant'  => 'light',
+		'title'    => __( 'News + Events', 'firstchurch' ),
+		'copy'     => __( 'There’s always a lot going on at First Church and in our community. Find more information about upcoming events and read our latest updates.', 'firstchurch' ),
+		'image_id' => 7641,
+		'links'    => array(
 			array( 'text' => __( 'Monthly Calendar', 'firstchurch' ), 'url' => '/events-calendar/' ),
 			array( 'text' => __( 'Upcoming Events', 'firstchurch' ), 'url' => '/upcoming-events/' ),
 			array( 'text' => __( 'News', 'firstchurch' ), 'url' => '/news/' ),
 		),
 	),
 	array(
-		'variant' => 'dark',
-		'title'   => __( 'Gatherings at First Church', 'firstchurch' ),
-		'copy'    => __( 'Gather to learn, to fellowship, to serve, or to make music! We have something for everyone.', 'firstchurch' ),
-		'links'   => array(
+		'variant'  => 'dark',
+		'title'    => __( 'Gatherings at First Church', 'firstchurch' ),
+		'copy'     => __( 'Gather to learn, to fellowship, to serve, or to make music! We have something for everyone.', 'firstchurch' ),
+		'image_id' => 2087,
+		'links'    => array(
 			array( 'text' => __( 'Learn + Grow', 'firstchurch' ), 'url' => '/gather/grow-learn/' ),
 			array( 'text' => __( 'Fellowship', 'firstchurch' ), 'url' => '/gather/fellowship/' ),
 			array( 'text' => __( 'Serve', 'firstchurch' ), 'url' => '/gather/serve/' ),
@@ -104,7 +109,11 @@ $fcs_bands = array(
 	<?php get_template_part( 'partials/home-breakfast-story' ); ?>
 
 	<?php foreach ( $fcs_bands as $band ) : ?>
+		<?php $fcs_band_img = ! empty( $band['image_id'] ) ? wp_get_attachment_image_url( (int) $band['image_id'], 'full' ) : ''; ?>
 		<section class="fcs-band fcs-band--<?php echo esc_attr( $band['variant'] ); ?>">
+			<?php if ( $fcs_band_img ) : ?>
+				<div class="fcs-band__image" style="background-image: url('<?php echo esc_url( $fcs_band_img ); ?>')" aria-hidden="true"></div>
+			<?php endif; ?>
 			<div class="fcs-band__content">
 				<h2><?php echo esc_html( $band['title'] ); ?></h2>
 				<p><?php echo esc_html( $band['copy'] ); ?></p>

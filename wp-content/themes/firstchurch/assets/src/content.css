@@ -239,3 +239,10 @@
 	background-color: var(--fcs-surface-2);
 	text-decoration: none;
 }
+
+/* A card grid that follows intro content (child-pages, blog, events
+   templates) gets clear separation from the prose above it. */
+.fcs-measure + .fcs-card-grid,
+.fcs-entry + .fcs-card-grid {
+	margin-top: 2.5rem;
+}

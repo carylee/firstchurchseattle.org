@@ -17,7 +17,7 @@ get_header();
 ?>
 <main id="fcs-content" class="fcs-main">
 	<?php while ( have_posts() ) : the_post(); ?>
-		<div class="fcs-container">
+		<div class="fcs-container--lg">
 			<div class="fcs-entry">
 				<?php the_content(); ?>
 			</div>
