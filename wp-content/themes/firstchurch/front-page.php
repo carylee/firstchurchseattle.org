@@ -107,7 +107,15 @@ if ( function_exists( 'happenings_section_items' ) && function_exists( 'happenin
 	<?php get_template_part( 'partials/home-breakfast-story' ); ?>
 
 	<?php if ( $fcs_featured ) : ?>
+		<?php
+		// Washed congregational photo behind the band — the same treatment
+		// (and attachment) the old homepage's Gatherings section used.
+		$fcs_feature_img = wp_get_attachment_image_url( 2087, 'full' );
+		?>
 		<section class="fcs-feature" aria-label="<?php esc_attr_e( 'Featured at First Church', 'firstchurch' ); ?>">
+			<?php if ( $fcs_feature_img ) : ?>
+				<div class="fcs-feature__image" style="background-image: url('<?php echo esc_url( $fcs_feature_img ); ?>')" aria-hidden="true"></div>
+			<?php endif; ?>
 			<div class="fcs-feature__content">
 				<p class="fcs-kicker fcs-kicker--on-dark"><?php esc_html_e( 'Featured at First Church', 'firstchurch' ); ?></p>
 				<h2>
