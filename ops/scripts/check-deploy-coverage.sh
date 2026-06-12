@@ -21,7 +21,6 @@ DEPLOY="ops/deploy.sh"
 
 # Tracked directories that are intentionally NOT deployed. Keep short + justified.
 NOT_DEPLOYED=(
-  "wp-content/themes/maranatha"          # vendored parent theme: pinned for drift detection, not ours to push
   "wp-content/mu-plugins/firstchurch-mcp" # dev-only test harness; WP never loads mu-plugin subdirs
 )
 

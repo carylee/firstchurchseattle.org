@@ -2,7 +2,7 @@
 
 **One repo, one place.** This directory is simultaneously:
 
-1. **The source of truth for our custom code** (child theme, connection-card plugin, MCP
+1. **The source of truth for our custom code** (the `firstchurch` theme, custom plugins, MCP
    mu-plugin, deploy/ops tooling) — git-tracked, deployed to production from here.
 2. **A full local mirror of the live site** running under **DDEV** — WordPress core, uploads,
    third-party plugins, and the database, refreshed from prod on demand.
@@ -86,7 +86,7 @@ Both directions honor one ownership model so they can't conflict — see `ops/sy
 
 | You want to… | Do this |
 |---|---|
-| Change the **theme / a custom plugin / the MCP mu-plugin** | Edit it in place under `wp-content/…` → preview live at `*.ddev.site` → commit → open a PR → **merge to `main` (CI/CD deploys; no manual step)**. **Theme changes go in `maranatha-child` only** — never edit the `maranatha` parent (see below). |
+| Change the **theme / a custom plugin / the MCP mu-plugin** | Edit it in place under `wp-content/…` → preview live at `*.ddev.site` → commit → open a PR → **merge to `main` (CI/CD deploys; no manual step)**. **The theme is `firstchurch`** — first-party and standalone (no parent). |
 | Edit **content** (events, posts, sermons, announcements) | That's data, edited on prod via the MCP server; `ddev pull-prod --db-only` to pull it down |
 | **Refresh** your local copy of prod | `ddev pull-prod` |
 | Run **wp-cli** locally | `ddev wp <args>` |
@@ -96,18 +96,19 @@ Both directions honor one ownership model so they can't conflict — see `ops/sy
 directly on prod. The pull excludes tracked code, so a direct-prod edit won't come back and
 the next deploy will overwrite it. (This is the drift the old two-repo setup suffered.)
 
-**Never edit the `maranatha` parent theme.** It's a third-party theme (ChurchThemes.com),
-vendored into git only to pin the exact version the site runs and to catch drift — not
-because it's ours to change. Every theme customization belongs in `maranatha-child`
-(override templates, enqueue CSS/JS, hook filters there). Editing `maranatha` directly would
-be silently lost the next time the parent theme is updated. If the child theme can't express
-a change, add a hook/override rather than patching the parent.
+**The theme is fully ours.** `wp-content/themes/firstchurch/` is a standalone first-party
+theme (classic PHP templates, one Tailwind-built stylesheet from `assets/src/`, self-hosted
+fonts, native ES-module islands). It replaced the third-party Maranatha parent + child pair
+in 2026 (see `ops/docs/theme-independence.md` for the record and the cutover runbook).
+Styles are edited in `assets/src/*.css` and compiled with `./build-css.sh` (run it inside
+the web container: `ddev exec "cd wp-content/themes/firstchurch && ./build-css.sh"`) —
+`assets/tailwind.css` is a built artifact, never committed.
 
 **Commits:** prefer small, self-contained commits, one per milestone. The test is
 cherry-pickability — could someone lift this commit onto another branch on its own and have
 it make sense? If so, it's the right size. Commit each distinct fix/feature separately rather
 than batching unrelated changes; keep plugin version bumps with the change that needs them.
-(The child theme has no version to bump — its assets cache-bust by file mtime.)
+(The theme has no version to bump — its assets cache-bust by file mtime.)
 
 ## What's tracked vs. mirrored
 
@@ -117,8 +118,7 @@ firstchurchseattle.org/                 ← git repo + DDEV project
 ├── .ddev/                              ← tracked (config + the pull-prod command)
 ├── ops/                               ← tracked — see below
 ├── wp-content/
-│   ├── themes/maranatha/               ← TRACKED  (vendored parent theme — DO NOT EDIT)
-│   ├── themes/maranatha-child/         ← TRACKED  (our theme — all changes go here)
+│   ├── themes/firstchurch/             ← TRACKED  (our standalone theme)
 │   ├── plugins/firstchurch-connection-card/  ← TRACKED
 │   ├── mu-plugins/firstchurch-mcp-abilities.php, sso.php  ← TRACKED
 │   └── …core/uploads/third-party…      ← mirrored from prod, gitignored

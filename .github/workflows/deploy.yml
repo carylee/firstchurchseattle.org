@@ -52,9 +52,9 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: wp-content/themes/maranatha-child/package-lock.json
+          cache-dependency-path: wp-content/themes/firstchurch/package-lock.json
       - name: Compile Tailwind from source (prod serves this build)
-        run: wp-content/themes/maranatha-child/build-css.sh
+        run: wp-content/themes/firstchurch/build-css.sh
 
       - name: Configure SSH
         env:

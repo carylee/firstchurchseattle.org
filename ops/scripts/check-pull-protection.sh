@@ -21,10 +21,9 @@ cd "$REPO"
 EXCLUDE="ops/sync/pull-exclude.txt"
 
 # Tracked paths that are intentionally NOT protected — the pull overwrites them
-# on purpose. Keep short + justified.
-PULLED_ON_PURPOSE=(
-  "wp-content/themes/maranatha"   # vendored parent theme: pulled so upstream drift shows in git status
-)
+# on purpose. Keep short + justified. (None right now; the old vendored
+# maranatha parent theme was the last entry, untracked when it was retired.)
+PULLED_ON_PURPOSE=()
 
 is_exempt() {
   local path="$1" e

@@ -37,15 +37,15 @@ REMOTE="firstchurch:public_html/wp-content"
 # deploy must build it first (./build-css.sh, needs Node) or pull it (ddev
 # pull-prod). Refuse rather than let the theme's --delete mirror (below) wipe
 # prod's copy and leave the site unstyled.
-TW="wp-content/themes/maranatha-child/assets/tailwind.css"
+TW="wp-content/themes/firstchurch/assets/tailwind.css"
 if [ -z "$DRY" ] && [ ! -f "$TW" ]; then
   echo "ERROR: $TW is missing — it's built, not committed." >&2
-  echo "  Build it:  wp-content/themes/maranatha-child/build-css.sh   (needs Node)" >&2
+  echo "  Build it:  wp-content/themes/firstchurch/build-css.sh   (needs Node)" >&2
   echo "  or pull it: ddev pull-prod --files-only" >&2
   exit 1
 fi
 
-# Theme + plugin are fully ours -> mirror with --delete. The child theme now
+# Theme + plugin are fully ours -> mirror with --delete. The theme now
 # carries a dev-only JS toolchain (Node modules, Vitest/Playwright tests, config)
 # that must NOT ship to prod — prod runs no build step. Exclude those, the same
 # way the TDD'd plugins exclude their Composer/PHPUnit artifacts. The built
@@ -55,8 +55,8 @@ rsync -av $DRY --delete \
   --exclude='playwright-report/' --exclude='test-results/' --exclude='coverage/' \
   --exclude='package.json' --exclude='package-lock.json' \
   --exclude='biome.json' --exclude='vitest.config.js' --exclude='playwright.config.js' \
-  -e "$RSH" wp-content/themes/maranatha-child/ \
-  "$REMOTE/themes/maranatha-child/"
+  -e "$RSH" wp-content/themes/firstchurch/ \
+  "$REMOTE/themes/firstchurch/"
 # connection-card is fully ours, but (like breeze-forms below) its working tree
 # carries dev-only artifacts (Composer deps, PHPUnit cache/config, tests) that
 # must NOT ship to prod. Mirror with --delete but exclude those.

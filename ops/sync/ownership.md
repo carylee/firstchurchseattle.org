@@ -10,7 +10,7 @@ Every path under the repo (= the WordPress root) is exactly one of three classes
 
 | Class | What | Examples | Git? | Push? | Pull? |
 |------|------|----------|:----:|:----:|:----:|
-| **A — Owned code** | We author it; git is the source of truth | `wp-content/themes/maranatha-child/`, `wp-content/plugins/firstchurch-connection-card/`, `wp-content/plugins/firstchurch-breeze-forms/`, `wp-content/mu-plugins/firstchurch-*.php`, `bulletin/index.php`, `ops/` | **tracked** | ✅ deploy | ❌ excluded (git leads) |
+| **A — Owned code** | We author it; git is the source of truth | `wp-content/themes/firstchurch/`, `wp-content/plugins/firstchurch-connection-card/`, `wp-content/plugins/firstchurch-breeze-forms/`, `wp-content/mu-plugins/firstchurch-*.php`, `bulletin/index.php`, `ops/` | **tracked** | ✅ deploy | ❌ excluded (git leads) |
 | **B — Prod-authoritative** | WordPress core, third-party, content | WP core, `wp-content/uploads/`, 3rd-party plugins/themes, the database, `paxchristiyoga.org/` & other prod subdirs | gitignored | ❌ never | ✅ mirrored |
 | **C — Local-only archives** | Pre-WP geology, irreplaceable | *(removed from the tree)* — now in `../archive/legacy-site/` | — | — | — |
 

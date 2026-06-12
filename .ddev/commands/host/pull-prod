@@ -62,7 +62,7 @@ if [ "$DO_FILES" = 1 ]; then
   # fresh copy. Pull just that one file so local dev shows the same CSS as prod
   # without needing Node. (When you're actively editing styles, run ./build-css.sh
   # locally instead — the next pull would overwrite it.) Single file, no --delete.
-  TW="wp-content/themes/maranatha-child/assets/tailwind.css"
+  TW="wp-content/themes/firstchurch/assets/tailwind.css"
   echo "==> Tailwind: pull prod's built tailwind.css ${DRY:+(dry run)}"
   rsync -ptz $DRY -e "$RSH" "${SSH_HOST}:${REMOTE_WP}/${TW}" "${REPO}/${TW}" \
     || echo "    (skipped: prod has no tailwind.css yet — run ./build-css.sh locally)"

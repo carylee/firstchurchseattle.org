@@ -33,16 +33,16 @@
 /wp-content/*
 !/wp-content/themes/
 /wp-content/themes/*
-# maranatha: vendored parent theme — tracked to pin the version, but NEVER edited
-# directly. All theme changes go in maranatha-child. See CLAUDE.md.
-!/wp-content/themes/maranatha/
-!/wp-content/themes/maranatha-child/
+# firstchurch: our standalone theme. (The old maranatha parent + maranatha-child
+# pair was retired in 2026 — any maranatha dirs are mirrored prod leftovers
+# until deleted there, and are ignored like other third-party themes.)
+!/wp-content/themes/firstchurch/
 # ...but never its Tailwind build artifacts. assets/tailwind.css is a BUILT file
 # (source of truth: assets/src/input.css) — NOT committed. CD compiles it on the
 # runner and ships it; locally, `ddev pull-prod` rsyncs prod's copy down (or run
 # ./build-css.sh when editing styles). node_modules is likewise generated.
-/wp-content/themes/maranatha-child/node_modules/
-/wp-content/themes/maranatha-child/assets/tailwind.css
+/wp-content/themes/firstchurch/node_modules/
+/wp-content/themes/firstchurch/assets/tailwind.css
 !/wp-content/plugins/
 /wp-content/plugins/*
 !/wp-content/plugins/firstchurch-connection-card/
@@ -86,10 +86,10 @@ wp-config-ddev.php
 /wp-content/plugins/*/vendor/
 /wp-content/plugins/*/.phpunit.cache/
 
-# Dev-only JS toolchain artifacts in the child theme (Node modules, test output).
+# Dev-only JS toolchain artifacts in the theme (Node modules, test output).
 # The committed source (assets/js/, tests/, e2e/, *.config.js) IS tracked; these
 # generated dirs are not. They're also excluded from deploy in ops/deploy.sh.
-/wp-content/themes/maranatha-child/node_modules/
-/wp-content/themes/maranatha-child/playwright-report/
-/wp-content/themes/maranatha-child/test-results/
-/wp-content/themes/maranatha-child/coverage/
+/wp-content/themes/firstchurch/node_modules/
+/wp-content/themes/firstchurch/playwright-report/
+/wp-content/themes/firstchurch/test-results/
+/wp-content/themes/firstchurch/coverage/
