@@ -31,8 +31,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="fcs-header__inner">
 
 		<a class="fcs-wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
-			First Church
-			<small>First United Methodist Church <em>of</em> Seattle</small>
+			<picture>
+				<source srcset="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/logo-white.svg' ); ?>" media="(prefers-color-scheme: dark)">
+				<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/logo-black.svg' ); ?>" alt="" width="2009" height="517">
+			</picture>
 		</a>
 
 		<nav class="fcs-nav" aria-label="<?php esc_attr_e( 'Primary', 'firstchurch' ); ?>">

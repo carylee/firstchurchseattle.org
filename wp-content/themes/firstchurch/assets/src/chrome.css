@@ -17,28 +17,17 @@
 	border-bottom: 2px solid var(--fcs-text);
 }
 
-/* The brand lockup, set as live text in the logo's grotesque (guide: logo
-   black on light / white on dark — var(--fcs-text) flips it per scheme; both
-   lines one colour, second line legible). */
+/* The brand lockup (assets/logo-{black,white}.svg; a <picture> in header.php
+   swaps the variant with the colour scheme — guide: black on light, white on
+   dark). The SVG carries both lines, wordmark + denomination. */
 .fcs-wordmark {
-	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-	font-weight: 700;
-	font-size: 1.45rem;
-	letter-spacing: -0.02em;
-	line-height: 1.05;
-	color: var(--fcs-text);
-	text-decoration: none;
+	display: inline-flex;
+	flex: 0 0 auto;
 }
-.fcs-wordmark:hover { color: var(--fcs-text); text-decoration: none; }
-.fcs-wordmark small {
+.fcs-wordmark img {
 	display: block;
-	font-weight: 400;
-	font-size: 0.58rem;
-	letter-spacing: 0.015em;
-	color: var(--fcs-text);
-}
-.fcs-wordmark small em {
-	font-style: italic;
+	width: auto;
+	height: 2.6rem;
 }
 
 .fcs-header__inner {
