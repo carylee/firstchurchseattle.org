@@ -20,7 +20,7 @@
  *
  * 2 and 3 fail soft to nothing if the spine plugin is inactive.
  *
- * @package Maranatha_Child
+ * @package FirstChurch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -52,30 +52,30 @@ if ( function_exists( 'happenings_event_occurrences' ) ) {
 }
 ?>
 
-<section class="maranatha-home-section fcs-visit" aria-label="<?php esc_attr_e( 'Visit First Church', 'maranatha-child' ); ?>">
+<section class="fcs-visit" aria-label="<?php esc_attr_e( 'Visit First Church', 'firstchurch' ); ?>">
 	<div class="fcs-visit__inner">
 
 		<div class="fcs-visit__details">
 			<h2 class="fcs-visit__heading">
-				<?php esc_html_e( 'This Sunday at First Church', 'maranatha-child' ); ?>
+				<?php esc_html_e( 'This Sunday at First Church', 'firstchurch' ); ?>
 				<span class="fcs-visit__date"><?php echo esc_html( wp_date( 'F j', $fcs_sunday->getTimestamp() ) ); ?></span>
 			</h2>
-			<p class="fcs-visit__time"><?php esc_html_e( 'Worship Sundays at 10:30 am — in person and live on YouTube.', 'maranatha-child' ); ?></p>
+			<p class="fcs-visit__time"><?php esc_html_e( 'Worship Sundays at 10:30 am — in person and live on YouTube.', 'firstchurch' ); ?></p>
 			<address class="fcs-visit__address">
 				<a href="https://maps.google.com/?q=180+Denny+Way,+Seattle,+WA+98109" target="_blank" rel="noopener noreferrer">180 Denny Way, Seattle, WA 98109</a>
 			</address>
-			<p class="fcs-visit__parking"><?php esc_html_e( 'Free parking in our garage — enter on Warren Ave N, between the church and garage.', 'maranatha-child' ); ?></p>
+			<p class="fcs-visit__parking"><?php esc_html_e( 'Free parking in our garage — enter on Warren Ave N, between the church and garage.', 'firstchurch' ); ?></p>
 		</div>
 
 		<div class="fcs-visit__actions">
-			<a class="fcs-visit__btn fcs-visit__btn--primary" href="<?php echo esc_url( home_url( '/about/newcomers/' ) ); ?>"><?php esc_html_e( 'Plan Your Visit', 'maranatha-child' ); ?></a>
-			<a class="fcs-visit__btn" href="<?php echo esc_url( home_url( '/worship/live/' ) ); ?>"><?php esc_html_e( 'Watch Live', 'maranatha-child' ); ?></a>
-			<a class="fcs-visit__btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=180+Denny+Way%2C+Seattle%2C+WA+98109" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get Directions', 'maranatha-child' ); ?></a>
+			<a class="fcs-visit__btn fcs-visit__btn--primary" href="<?php echo esc_url( home_url( '/about/newcomers/' ) ); ?>"><?php esc_html_e( 'Plan Your Visit', 'firstchurch' ); ?></a>
+			<a class="fcs-visit__btn" href="<?php echo esc_url( home_url( '/worship/live/' ) ); ?>"><?php esc_html_e( 'Watch Live', 'firstchurch' ); ?></a>
+			<a class="fcs-visit__btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=180+Denny+Way%2C+Seattle%2C+WA+98109" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get Directions', 'firstchurch' ); ?></a>
 		</div>
 
 		<?php if ( ! empty( $fcs_sunday_items ) ) : ?>
 		<div class="fcs-visit__schedule">
-			<h3 class="fcs-visit__schedule-heading"><?php esc_html_e( 'The day at a glance', 'maranatha-child' ); ?></h3>
+			<h3 class="fcs-visit__schedule-heading"><?php esc_html_e( 'The day at a glance', 'firstchurch' ); ?></h3>
 			<ul class="fcs-visit__schedule-list">
 				<?php foreach ( $fcs_sunday_items as $fcs_sunday_item ) : ?>
 					<?php
@@ -119,10 +119,10 @@ if ( function_exists( 'happenings_event_items' )
 	if ( ! empty( $fcs_home_items ) ) :
 		?>
 
-<section class="maranatha-home-section fcs-home-happenings" aria-label="<?php esc_attr_e( 'Coming up at First Church', 'maranatha-child' ); ?>">
+<section class="fcs-home-happenings" aria-label="<?php esc_attr_e( 'Coming up at First Church', 'firstchurch' ); ?>">
 	<div class="fcs-home-happenings__inner">
 
-		<h2 class="fcs-home-happenings__heading"><?php esc_html_e( 'Coming up at First Church', 'maranatha-child' ); ?></h2>
+		<h2 class="fcs-home-happenings__heading"><?php esc_html_e( 'Coming up at First Church', 'firstchurch' ); ?></h2>
 
 		<div class="fcs-card-grid fcs-card-grid--three">
 			<?php
@@ -133,7 +133,7 @@ if ( function_exists( 'happenings_event_items' )
 		</div>
 
 		<p class="fcs-home-happenings__more">
-			<a href="<?php echo esc_url( home_url( '/engage/' ) ); ?>"><?php esc_html_e( 'See everything happening →', 'maranatha-child' ); ?></a>
+			<a href="<?php echo esc_url( home_url( '/engage/' ) ); ?>"><?php esc_html_e( 'See everything happening →', 'firstchurch' ); ?></a>
 		</p>
 
 	</div>
