@@ -61,7 +61,17 @@ function fcbf_intake_register_cpt(): void
             'show_ui'         => true,
             'show_in_menu'    => true,
             'show_in_rest'    => false,
-            'menu_icon'       => 'dashicons-inbox',
+            // Dashicons ships no "inbox" glyph, so the old `dashicons-inbox`
+            // class rendered blank in the admin menu (every other item had an
+            // icon, Intake had none). Inline an SVG inbox/tray icon as a data
+            // URI instead — guaranteed to render, tinted to the admin menu's
+            // default icon color (#a7aaad).
+            'menu_icon'       => 'data:image/svg+xml;base64,' . base64_encode(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#a7aaad">'
+                . '<path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 '
+                . '2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12h-4c0 1.66-1.35 3-3 3s-3-1.34-3-3H5V5h14v10z"/>'
+                . '</svg>'
+            ),
             'menu_position'   => 26,
             'capability_type' => 'post',
             'map_meta_cap'    => true,
