@@ -33,7 +33,7 @@ person type. The other three CTC types remain registered by CTC until their own 
 `fcs_people_active()` gates the behaviour-changing surfaces:
 
 - **Admin "Person details" metabox** (`inc/admin.php`) — active once we own the type.
-- **Child display templates** (in `maranatha-child`) — `/staff/` archive and single profiles
+- **Child display templates** (in the `firstchurch` theme) — `/staff/` archive and single profiles
   render via `staff-archive.php` / `person-single.php` automatically.
 
 **MCP authoring is always live** — it was never gated.

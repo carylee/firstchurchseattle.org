@@ -103,7 +103,7 @@ firstchurchseattle.org/                 ← git repo + DDEV project
 ├── .ddev/                              ← tracked (config + the pull-prod command)
 ├── ops/                               ← tracked tooling (see below)
 ├── wp-content/
-│   ├── themes/maranatha-child/         ← TRACKED  — our child theme
+│   ├── themes/firstchurch/             ← TRACKED  — our standalone theme
 │   ├── plugins/firstchurch-connection-card/  ← TRACKED — website → Breeze form bridge
 │   ├── plugins/firstchurch-breeze-forms/      ← TRACKED — [breeze_form] shortcode
 │   ├── mu-plugins/firstchurch-mcp-abilities.php, sso.php  ← TRACKED
@@ -117,7 +117,7 @@ firstchurchseattle.org/                 ← git repo + DDEV project
 
 | Path | What it is |
 |---|---|
-| `wp-content/themes/maranatha-child/` | Child theme of [Maranatha](https://churchthemes.com/themes/maranatha) — mobile UX, layout polish, the `/worship/live/` template, announcements CTA. See its [README](./wp-content/themes/maranatha-child/README.md). |
+| `wp-content/themes/firstchurch/` | Standalone first-party theme — templates, one Tailwind-built stylesheet, self-hosted fonts, ES-module islands. See its [README](./wp-content/themes/firstchurch/README.md). |
 | `wp-content/plugins/firstchurch-connection-card/` | Connection-card form on the live site, bridged to the church's Breeze ChMS (form 320238) — native in-theme rendering + submission ("Mode 3"). |
 | `wp-content/plugins/firstchurch-breeze-forms/` | Surfaces any Breeze form via the `[breeze_form]` shortcode — a themed button or a responsive embed, pointing at the public Breeze URL (no credentials, no render-time calls). See its [README](./wp-content/plugins/firstchurch-breeze-forms/README.md). |
 | `wp-content/mu-plugins/firstchurch-mcp-abilities.php` | The site's MCP server — content CRUD (events, sermons, announcements, posts, pages, media, redirects) for AI agents. |
@@ -198,5 +198,5 @@ defaults, share with an explicit internal port: `ddev tailscale share --port=80`
 
 - [`CLAUDE.md`](./CLAUDE.md) — the same model in instruction form, for AI coding agents.
 - [`ops/sync/ownership.md`](./ops/sync/ownership.md) — the authoritative push/pull boundary.
-- [`wp-content/themes/maranatha-child/README.md`](./wp-content/themes/maranatha-child/README.md)
+- [`wp-content/themes/firstchurch/README.md`](./wp-content/themes/firstchurch/README.md)
   — theme internals + Tailwind build.

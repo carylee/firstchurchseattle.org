@@ -1,99 +1,97 @@
-# Maranatha Child — First Church Seattle
+# First Church Seattle — the theme
 
-WordPress child theme of [Maranatha](https://churchthemes.com/themes/maranatha) v2.6.
-Adds the site-specific mobile UX, layout polish, and the custom `/worship/live/`
-page template for [firstchurchseattle.org](https://firstchurchseattle.org).
+Standalone first-party WordPress theme for
+[firstchurchseattle.org](https://firstchurchseattle.org). No parent theme, no
+jQuery, one compiled stylesheet, self-hosted fonts, native ES-module islands.
+(It grew out of — and in 2026 fully replaced — the third-party Maranatha parent
++ child pair; the record and cutover runbook are in
+`ops/docs/theme-independence.md`.)
 
 ## What's here
 
 ```
-maranatha-child/
+firstchurch/
 ├── style.css                       # WP theme metadata (frontmatter only)
-├── functions.php                   # enqueues, skip-link, parent-style fix
-├── inc/                            # one PHP file per concern (kept out of functions.php)
-│   ├── scripts.php                 # enqueue first-party JS as ES modules (Script Modules API)
-│   └── …                           # font-optimization, footer-map, sermon-structured-data, …
-├── partials/
-│   └── header-banner.php           # override: clean compact maroon banner
-├── page-templates/
-│   └── page-worship-live.php       # Template Name: Worship Live (Custom)
+├── functions.php                   # asset versioning, inc/ autoload, stylesheet enqueue, skip link
+├── front-page.php                  # homepage: hero (fcs_front_hero option) + bands
+├── page.php · single.php · index.php · 404.php
+├── single-fce_event.php            # event detail (Happenings spine)
+├── header.php                      # <head> + sticky header (nav/search/mobile) + banner
+├── footer.php                      # 3-column footer, inline-SVG socials, © bar
+├── inc/                            # one PHP file per concern (autoloaded alphabetically)
+│   ├── setup.php                   # theme supports, menu location, content width
+│   ├── scripts.php                 # ES-module islands via the Script Modules API
+│   ├── theme-compat.php            # shared template tags (fcs_page_title, fcs_has_content)
+│   └── …                           # announcements-cta, redirects, schema, static-map, people-display, …
+├── partials/                       # card, header-banner, staff-directory, home sections
+├── page-templates/                 # blog, child-pages, people, width-*, events (spine), worship-live
+├── templates/                      # firstchurch-people display (staff archive + profile)
 ├── assets/
-│   ├── mobile.css                  # hand-written CSS (drawer, tap targets, polish)
-│   ├── tailwind.css                # BUILT Tailwind v4 output (gitignored; built on deploy / pulled)
-│   ├── src/input.css               # Tailwind v4 source (the source of truth)
+│   ├── src/                        # THE stylesheet source (Tailwind v4): input → base/chrome/
+│   │                               #   footer/components/content/home/events/extras
+│   ├── tailwind.css                # BUILT output (gitignored; built on deploy / pulled)
+│   ├── fonts/                      # self-hosted Raleway (variable) + Lato woff2
+│   ├── logo-white.png · map.webp   # brand/static assets shipped with the theme
+│   ├── editor.css                  # minimal block-editor styles
 │   ├── happenings-block.js         # classic block-editor script (global wp.*)
-│   └── js/                         # first-party ES modules (buildless — see below)
-│       ├── boot.js                 # entry module: runs the islands on DOM-ready
-│       └── islands/                # progressive-enhancement islands
-│           ├── skip-link.js        # injects the #main-content focus target
-│           └── worship-live.js     # Sunday "Live now / Next service" status line
+│   └── js/                         # buildless ES modules
+│       ├── boot.js                 # entry: runs the islands on DOM-ready
+│       └── islands/                # nav (header), skip-link, worship-live
 ├── tests/                          # Vitest unit tests (run in CI)
 ├── e2e/                            # Playwright specs (LOCAL ONLY — need DDEV)
-├── package.json / package-lock.json # pinned dev toolchain: Tailwind 4.3.0 + Biome/Vitest/Playwright
+├── package.json / package-lock.json # pinned dev toolchain: Tailwind + Biome/Vitest/Playwright
 ├── biome.json · vitest.config.js · playwright.config.js
 └── build-css.sh                    # ./build-css.sh [--watch]
 ```
 
 > Everything from `package.json` down (the JS toolchain, `tests/`, `e2e/`,
 > config) is **dev-only** and excluded from deploy in `ops/deploy.sh` —
-> production runs no build step. The runtime assets that ship are `assets/js/**`,
-> `assets/mobile.css`, and `assets/tailwind.css` (that last one is built on
-> deploy, not committed — see below).
+> production runs no build step. Everything else in `assets/` ships, including
+> the built `assets/tailwind.css` (compiled on deploy, not committed).
 
-## Quickstart (development)
+## CSS
 
-The Tailwind toolchain is pinned in `package.json` (no manually-downloaded
-binary). You need Node; `build-css.sh` installs deps on first run.
+`assets/tailwind.css` is **built, not committed** (gitignored). Source of truth
+is `assets/src/` — `input.css` declares the design tokens (`@theme`) and imports
+the part files; `base.css` holds the `--fcs-*` semantic palette (light + dark
+via `prefers-color-scheme`), fonts, and element defaults. Build:
 
 ```sh
-# Build once (runs `npm ci` automatically if node_modules is missing)
-./build-css.sh
-
-# Or watch + rebuild during development
-./build-css.sh --watch
+./build-css.sh           # once   (host Node too old? use:
+./build-css.sh --watch   # watch   ddev exec "cd wp-content/themes/firstchurch && ./build-css.sh")
 ```
 
-`assets/tailwind.css` is **built, not committed** (it's gitignored). Its source of
-truth is `assets/src/input.css`. How each environment gets the compiled file:
+How each environment gets the compiled file:
 
 - **Production:** the CD workflow (`.github/workflows/deploy.yml`) runs
   `build-css.sh` on the runner and rsyncs the result up — HostGator has no Node.
-- **Local dev:** `ddev pull-prod` rsyncs prod's built `tailwind.css` down, so the
-  mirror shows the same CSS with no Node. When you're **editing styles**, run
-  `./build-css.sh --watch` locally instead (it overwrites that file; the next pull
-  would replace it with prod's).
+- **Local dev:** `ddev pull-prod` rsyncs prod's built copy down, so the mirror
+  shows the same CSS with no Node. When **editing styles**, build locally
+  instead (the next pull replaces your local artifact with prod's).
 
-CI's `tailwind builds` job just verifies `input.css` still compiles —
-there's no committed artifact to diff against. (`node_modules/` and `tailwind.css`
-are both gitignored.)
+Conventions: every colour routes through the `--fcs-*` tokens (dark mode is one
+token flip, no per-component dark rules); components are plain CSS classes
+(`fcs-…`); Tailwind utilities are used directly in template markup and scanned
+from `**/*.php` + `assets/**/*.js`.
 
 ## First-party JavaScript (buildless ES modules)
 
-Our front-end JS is **native ES modules**, loaded via the WordPress Script
-Modules API (`wp_register_script_module` / `wp_enqueue_script_module` in
-`inc/scripts.php`). There is **no bundler** — the browser loads the modules
-directly and WordPress prints the import map + cache-busted (`?ver=`) URLs and
-defers them. Like the Tailwind flow, **nothing is built on prod.**
-
-The pattern is small **progressive-enhancement islands**. Each island is a
-module that self-guards on the markup it needs (e.g. its `[data-island="…"]`
-slot), so `boot.js` can call them unconditionally and an island simply no-ops on
-pages that don't use it. Markup ships working without JS; islands enhance it.
+Front-end JS is **native ES modules** via the WordPress Script Modules API
+(`inc/scripts.php`). No bundler; WordPress prints the import map + mtime-versioned
+URLs and defers them. The pattern is **progressive-enhancement islands**: each
+module self-guards on the markup it needs, so `boot.js` calls them
+unconditionally and an island no-ops where its slot is absent.
 
 **Add an island:**
 
 1. Write `assets/js/islands/<name>.js` exporting a `mount…(doc, …)` function
-   that guards on its slot. Put any pure logic in the same file and export it so
-   it's unit-testable without a DOM.
+   that guards on its slot; export pure logic for unit testing.
 2. Register it in `inc/scripts.php` as `@firstchurch/<name>` and add it to the
    `@firstchurch/boot` dependency array (that's what puts it in the import map
-   with a versioned URL — keep imports inside `assets/js/` going through the
-   registered specifier, not relative paths, so nothing ships unversioned).
+   with a versioned URL).
 3. Import + call it in `assets/js/boot.js`.
 
-No version bump needed — `?ver=` comes from the file's mtime (`fcs_asset_version()`).
-
-**Dev toolchain** (one-time `npm install`; dev-only, never shipped):
+**Dev toolchain** (dev-only, never shipped):
 
 ```sh
 npm install          # Vitest, Playwright, Biome
@@ -105,66 +103,33 @@ npm run e2e          # Playwright specs against DDEV   — LOCAL ONLY
 ```
 
 **Testing split:** pure logic and DOM-shaping → **Vitest** (`tests/`, in CI).
-Real-browser behavior → **Playwright** (`e2e/`). Playwright is **local-only**: it
-needs a running WordPress, which CI deliberately does not provision, so start
-DDEV first (`ddev start`) and point at it (defaults to
-`https://firstchurchseattle.ddev.site:8843`; override with `PLAYWRIGHT_BASE_URL`).
+Real-browser behavior → **Playwright** (`e2e/`), local-only against DDEV
+(defaults to `https://firstchurchseattle.ddev.site:8843`; override with
+`PLAYWRIGHT_BASE_URL`). The Playwright browser must run on the **host** — the
+DDEV container lacks the browser's system libraries.
 
-The block-editor script `assets/happenings-block.js` is a separate, **classic**
-script (not a module): it depends on the global `wp` the editor provides. It's
-lint-gated by Biome; smoke-test editor changes by hand in DDEV (the editor needs
-admin auth, so it isn't part of automated CI).
+The block-editor script `assets/happenings-block.js` is a separate **classic**
+script (depends on the editor's global `wp`); smoke-test editor changes by hand.
 
-## Deploying to production
+## Content the theme reads
 
-Production runs no build step of its own. The normal path is **CI/CD — merge to
-`main` and the deploy workflow ships this directory**, compiling
-`assets/tailwind.css` on the runner first (see the Tailwind section above). You
-don't scp it or commit the compiled CSS.
+- **`fcs_front_hero` option** — the homepage hero (title/content/image/links).
+  It's content, not code (seasonal notices live there). Seeded once by
+  `ops/bin/seed-front-hero.php`; edit via wp-cli (`wp option patch …`).
+- **Happenings spine** (`firstchurch-happenings`) — events lists/calendar/cards.
+- **`firstchurch-people`** — staff directory + profiles.
+All reads fail soft if a plugin is inactive.
 
-Manual fallback (`ops/deploy.sh`, e.g. a hotfix when CI is down): build
-`./build-css.sh` first — `tailwind.css` is gitignored, and the script refuses to
-mirror a missing one (so its `--delete` can't wipe prod's copy).
+## Deploying
 
-First-time-only wp-admin steps:
-
-- Appearance → Themes → activate "Maranatha Child".
-- For `/worship/live/`: Pages → Worship Live → Page Attributes → Template →
-  "Worship Live (Custom)".
-
-Subsequent edits need no version bump — assets cache-bust by file mtime (see
-Versioning below); hard-refresh once to bust any CDN/page-cache.
-
-## Important non-obvious things
-
-1. **Parent style enqueue fix**. The parent Maranatha enqueues its main
-   stylesheet under the handle `maranatha-style` using `get_stylesheet_uri()`
-   — which when a child is active resolves to the CHILD's empty style.css,
-   not the parent's 6500-line one. Without the dequeue/re-enqueue in
-   `functions.php`, the site loads completely unstyled.
-
-2. **Tailwind utilities are unlayered on purpose**. The default Tailwind v4
-   setup uses `@import "tailwindcss/utilities.css" layer(utilities)`, but
-   unlayered parent-theme rules (`h1`, `a`, `p` element selectors) always
-   beat layered rules — meaning utility classes silently lose. Our
-   `assets/src/input.css` imports utilities WITHOUT a layer wrapper so they
-   participate in normal cascade.
-
-3. **Component CSS (`.btn-primary` / `.cta-tile` / `.card-action`) is plain
-   CSS, not `@utility`**. Same reason as above — `@utility` puts rules
-   inside `@layer utilities`, which loses to unlayered parent styles.
-
-4. **Banner top padding clears the fixed parent header**. `partials/header-banner.php`
-   uses `pt-24 sm:pt-32` to push the `<h1>` below the parent theme's
-   `position: fixed` `#maranatha-header-top` (which is ~80–135 px tall).
+Merge to `main` → CI/CD ships this directory (compiling `tailwind.css` on the
+runner). Manual fallback `ops/deploy.sh` requires a local build first — the
+script refuses to mirror a missing `tailwind.css` so `--delete` can't wipe
+prod's copy.
 
 ## Versioning
 
-Asset `?ver=` strings come from each file's mtime via `fcs_asset_version()` in
-`functions.php` — there is no version constant to bump. Deploys rsync with
-timestamps from a fresh CI checkout, so every shipped file gets a new `?ver=`
-and browsers/Cloudflare refetch; local edits under DDEV bust the same way. This
-also closes the old `tailwind.css` gap: a markup-only change that adds a new
-utility class still gets a fresh `?ver=`, because CI rebuilds `tailwind.css`
-(new mtime) on every deploy. The `asset version bump` CI guard exempts this
-theme accordingly (`ops/scripts/check-asset-version-bump.sh`).
+Asset `?ver=` strings come from each file's mtime via `fcs_asset_version()` —
+no version constant to bump. Deploys rsync timestamps from a fresh CI checkout,
+so every shipped file gets a new `?ver=`; the `asset version bump` CI guard
+exempts this theme accordingly.

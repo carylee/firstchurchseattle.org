@@ -78,7 +78,7 @@ Without the two required constants the button hides behind a one-line hint; noth
 ## Depends on
 
 - **firstchurch-happenings** (the spine) — the timely sections are empty without it.
-- The theme's **`firstchurch/happenings`** block (maranatha-child) — the composing block.
+- The theme's **`firstchurch/happenings`** block (firstchurch theme) — the composing block.
 
 ## Deploy / activation
 

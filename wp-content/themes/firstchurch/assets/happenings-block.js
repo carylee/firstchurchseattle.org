@@ -22,10 +22,10 @@
 
 	registerBlockType('firstchurch/happenings', {
 		apiVersion: 3,
-		title: __('Happenings', 'maranatha-child'),
+		title: __('Happenings', 'firstchurch'),
 		description: __(
 			'Show a section of the Happenings feed (Featured, Upcoming events, Weekly rhythms, Groups, or Recent announcements).',
-			'maranatha-child',
+			'firstchurch',
 		),
 		icon: 'megaphone',
 		category: 'widgets',
@@ -49,7 +49,7 @@
 				a.section === 'featured'
 					? null
 					: el(c.ToggleControl, {
-							label: __('Hide items already featured', 'maranatha-child'),
+							label: __('Hide items already featured', 'firstchurch'),
 							checked: !!a.excludeFeatured,
 							onChange: (v) => set({ excludeFeatured: v }),
 						});
@@ -57,14 +57,14 @@
 			const windowControl =
 				a.section === 'events' || a.section === 'rhythms' || a.section === 'groups'
 					? el(c.RangeControl, {
-							label: __('Look ahead (weeks)', 'maranatha-child'),
+							label: __('Look ahead (weeks)', 'firstchurch'),
 							value: a.weeks,
 							min: 1,
 							max: 52,
 							onChange: (v) => set({ weeks: v }),
 						})
 					: el(c.RangeControl, {
-							label: __('Look back (days)', 'maranatha-child'),
+							label: __('Look back (days)', 'firstchurch'),
 							value: a.days,
 							min: 1,
 							max: 365,
@@ -76,28 +76,28 @@
 				{},
 				el(
 					c.PanelBody,
-					{ title: __('Happenings', 'maranatha-child'), initialOpen: true },
+					{ title: __('Happenings', 'firstchurch'), initialOpen: true },
 					el(c.SelectControl, {
-						label: __('Section', 'maranatha-child'),
+						label: __('Section', 'firstchurch'),
 						value: a.section,
 						options: [
-							{ label: __('Featured (by weight)', 'maranatha-child'), value: 'featured' },
-							{ label: __('Upcoming events (one-offs)', 'maranatha-child'), value: 'events' },
-							{ label: __('Weekly rhythms (strip)', 'maranatha-child'), value: 'rhythms' },
-							{ label: __('Groups & gatherings', 'maranatha-child'), value: 'groups' },
-							{ label: __('Recent announcements', 'maranatha-child'), value: 'announcements' },
+							{ label: __('Featured (by weight)', 'firstchurch'), value: 'featured' },
+							{ label: __('Upcoming events (one-offs)', 'firstchurch'), value: 'events' },
+							{ label: __('Weekly rhythms (strip)', 'firstchurch'), value: 'rhythms' },
+							{ label: __('Groups & gatherings', 'firstchurch'), value: 'groups' },
+							{ label: __('Recent announcements', 'firstchurch'), value: 'announcements' },
 						],
 						onChange: (v) => set({ section: v }),
 					}),
 					el(c.RangeControl, {
-						label: __('How many', 'maranatha-child'),
+						label: __('How many', 'firstchurch'),
 						value: a.count,
 						min: 1,
 						max: 12,
 						onChange: (v) => set({ count: v }),
 					}),
 					el(c.TextControl, {
-						label: __('Heading (optional)', 'maranatha-child'),
+						label: __('Heading (optional)', 'firstchurch'),
 						value: a.heading,
 						onChange: (v) => set({ heading: v }),
 					}),
