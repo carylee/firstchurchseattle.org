@@ -132,12 +132,6 @@ function happenings_item_by_id(string $id): ?array
     }
 
     if ($parsed['prefix'] === 'event') {
-        // Both event backends share the `event-<postId>` id space (post ids are
-        // unique across types). Dispatch by the post's actual type so deck pins
-        // and the event single page resolve CTC and lean fce events alike.
-        if ($post->post_type === 'ctc_event') {
-            return happenings_event_to_item($post);
-        }
         if ($post->post_type === 'fce_event' && function_exists('fce_event_item')) {
             return fce_event_item($post->ID);
         }

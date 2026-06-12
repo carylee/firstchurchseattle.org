@@ -78,7 +78,7 @@ add_action(
 				'execute_callback'    => static function ( $input ) {
 					$id   = (int) ( $input['id'] ?? 0 );
 					$post = get_post( $id );
-					if ( ! $post || ! in_array( $post->post_type, array( 'ctc_event', 'fce_event' ), true ) ) {
+					if ( ! $post || $post->post_type !== 'fce_event' ) {
 						return new WP_Error( 'not_found', 'Event not found.' );
 					}
 					fcmcp_apply_recurrence( $id, $input['recurrence'] ?? array() );

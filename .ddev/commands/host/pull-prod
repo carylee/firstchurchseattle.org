@@ -135,8 +135,7 @@ if [ -z "$DRY" ]; then
   {
     echo "pulled_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     [ "$DO_FILES" = 1 ] && echo "wp_version=$(ddev wp core version 2>/dev/null || echo '?')"
-    [ "$DO_DB" = 1 ] && echo "events=$(ddev wp post list --post_type=ctc_event --post_status=publish --format=count 2>/dev/null || echo '?')"
-    [ "$DO_DB" = 1 ] && echo "sermons=$(ddev wp post list --post_type=ctc_sermon --post_status=publish --format=count 2>/dev/null || echo '?')"
+    [ "$DO_DB" = 1 ] && echo "events=$(ddev wp post list --post_type=fce_event --post_status=publish --format=count 2>/dev/null || echo '?')"
   } > "$stamp"
   echo "==> Done. Stamp: $stamp"; cat "$stamp"
 fi
