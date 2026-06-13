@@ -124,6 +124,9 @@ function fccd_needs_you_now(): array {
 
 /** Extract a Breeze form id from a breezechms.com/form/<id> URL ('' if none). */
 function fccd_breeze_form_id( string $url ): string {
+	if ( function_exists( 'fcbf_breeze_form_id_from_url' ) ) {
+		return fcbf_breeze_form_id_from_url( $url );
+	}
 	return preg_match( '#breezechms\.com/form/([A-Za-z0-9]+)#', $url, $m ) ? $m[1] : '';
 }
 

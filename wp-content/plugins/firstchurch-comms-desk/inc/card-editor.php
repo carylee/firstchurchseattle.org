@@ -139,24 +139,14 @@ function fccd_rest_breeze_forms( WP_REST_Request $req ) {
 	return new WP_REST_Response( array( 'forms' => $forms ), 200 );
 }
 
-/** Embed a Breeze form on an event by appending the [breeze_form] shortcode. */
+/** Embed a Breeze form on an event (reuses the shared breeze-forms helper). */
 function fccd_rest_breeze_embed( WP_REST_Request $req ) {
 	$p    = (array) $req->get_json_params();
 	$post = fccd_editable_post( $p['draft_id'] ?? 0 );
-	$fid  = preg_replace( '/[^A-Za-z0-9]/', '', (string) ( $p['form_id'] ?? '' ) );
-	if ( ! $post || '' === $fid ) {
+	$fid  = (string) ( $p['form_id'] ?? '' );
+	if ( ! $post || '' === $fid || ! function_exists( 'fcbf_embed_breeze_form' ) ) {
 		return new WP_REST_Response( array( 'error' => 'Invalid request.' ), 400 );
 	}
-	$shortcode = '[breeze_form id="' . $fid . '" mode="embed"]';
-	if ( false === strpos( (string) $post->post_content, 'breeze_form id="' . $fid . '"' ) ) {
-		wp_update_post( array(
-			'ID'           => $post->ID,
-			'post_content' => rtrim( (string) $post->post_content ) . "\n\n" . $shortcode . "\n",
-		) );
-	}
-	// Record it as the event's registration form too, if not already set.
-	if ( '' === (string) get_post_meta( $post->ID, '_fce_registration_url', true ) ) {
-		update_post_meta( $post->ID, '_fce_registration_url', 'https://firstchurchseattle.breezechms.com/form/' . $fid );
-	}
+	fcbf_embed_breeze_form( $post->ID, $fid );
 	return new WP_REST_Response( array( 'ok' => true ), 200 );
 }
