@@ -20,13 +20,27 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/** Option holding a live, admin-edited override of the house voice. */
+const FCMCP_VOICE_OPTION = 'fc_church_voice';
+
 /**
- * The canonical First Church Seattle house voice — the single source of truth
- * fed as the system instruction to every AI call here. Derived from the 2026
- * First Church Weekly News corpus (../enews/STYLE_GUIDE_2026.md) and the intake
- * extraction prompt that used to live in the firstchurchnews worker.
+ * The canonical First Church Seattle house voice — the single source of truth fed
+ * as the system instruction to every AI call here, and exposed as the
+ * guide-church-voice MCP resource. Returns the live admin-edited override if one
+ * is saved, otherwise the built-in default. Edit it at Tools → Church Voice.
  */
 function fc_church_voice(): string {
+	$custom = trim( (string) get_option( FCMCP_VOICE_OPTION, '' ) );
+	return '' !== $custom ? $custom : fcmcp_church_voice_default();
+}
+
+/**
+ * The built-in default house voice — the seed shipped in code and the fallback
+ * whenever no override is saved (so the voice is never empty and survives a DB
+ * loss / ddev pull-prod). Derived from the 2026 First Church Weekly News corpus
+ * (../enews/STYLE_GUIDE_2026.md) and the firstchurchnews extraction prompt.
+ */
+function fcmcp_church_voice_default(): string {
 	return <<<'MD'
 You write for First United Methodist Church of Seattle ("First Church"), a
 progressive Christian congregation (firstchurchseattle.org). The house voice is
