@@ -1,13 +1,14 @@
 /* Carousel card edit screen: a live preview that re-renders the card (via the
- * shared FCCarCard) as you change the title, layout, body/prompt/details, QR
+ * shared renderer) as you change the title, layout, body/prompt/details, QR
  * link, background color, or featured image — and shows only the fields the
  * chosen layout actually uses. WYSIWYG authoring for the standing cards. */
+import { buildStageEl } from '@fccar/stage';
+
 ( function ( $ ) {
 	'use strict';
 
-	var Card = window.FCCarCard;
 	var $thumb = $( '#fccar-edit-thumb' );
-	if ( ! Card || ! $thumb.length ) { return; }
+	if ( ! $thumb.length ) { return; }
 
 	function val( id ) { var el = document.getElementById( id ); return el ? el.value : ''; }
 
@@ -36,7 +37,7 @@
 
 	function paint() {
 		$thumb.empty();
-		var stage = Card.buildStage( buildItem(), {} );
+		var stage = buildStageEl( buildItem(), {} );
 		$thumb.append( stage );
 		var w = $thumb.width() || 480;
 		stage.style.transform = 'scale(' + ( w / 1280 ) + ')';

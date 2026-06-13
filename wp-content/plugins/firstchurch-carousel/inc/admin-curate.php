@@ -90,14 +90,20 @@ add_action( 'admin_enqueue_scripts', static function ( $hook ) {
 	wp_enqueue_style( 'fccar-card', $base . 'card.css', array(), FCCAR_VERSION );
 	wp_enqueue_style( 'fccar-curate', $base . 'curate.css', array( 'fccar-card' ), FCCAR_VERSION );
 
-	// Thumbnails render through the same FCCarCard module the live page uses
-	// (which needs the QR lib); curate.js drives the grid + drag + editor.
+	// Thumbnails render through the same shared renderer the live page uses
+	// (@church/carousel-card, built to card-render.mjs). The QR lib and jQuery
+	// stay classic globals — the ESM modules read window.qrcode / window.jQuery;
+	// curate.js (an ESM module) drives the grid + drag + editor.
 	wp_enqueue_script( 'fccar-qrcode', $base . 'vendor/qrcode-generator.js', array(), FCCAR_VERSION, true );
-	wp_enqueue_script( 'fccar-card-render', $base . 'card-render.js', array( 'fccar-qrcode' ), FCCAR_VERSION, true );
-	wp_enqueue_script( 'fccar-curate', $base . 'curate.js', array( 'jquery', 'jquery-ui-sortable', 'fccar-card-render' ), FCCAR_VERSION, true );
+	wp_enqueue_script( 'jquery-ui-sortable' ); // pulls jquery in as a dependency
+	wp_register_script_module( '@fccar/card', $base . 'card-render.mjs', array(), FCCAR_VERSION );
+	wp_register_script_module( '@fccar/stage', $base . 'card-stage.mjs', array( '@fccar/card' ), FCCAR_VERSION );
+	wp_enqueue_script_module( 'fccar-curate', $base . 'curate.js', array( '@fccar/stage' ), FCCAR_VERSION );
 
 	$view = fccar_curate_view();
-	wp_localize_script( 'fccar-curate', 'FCCAR', array(
+	// Script modules can't be localized; hand the boot data to window.FCCAR via an
+	// inline classic script that runs before the (deferred) module executes.
+	wp_add_inline_script( 'fccar-qrcode', 'window.FCCAR = ' . wp_json_encode( array(
 		'deck'        => $view['deck'],
 		'available'   => $view['available'],
 		'restUrl'     => esc_url_raw( rest_url( 'firstchurch/v1/carousel/deck' ) ),
@@ -106,7 +112,7 @@ add_action( 'admin_enqueue_scripts', static function ( $hook ) {
 		'layouts'     => FCCAR_LAYOUTS,
 		'adminPostUrl' => esc_url_raw( admin_url( 'post.php' ) ),
 		'nonce'       => wp_create_nonce( 'wp_rest' ),
-	) );
+	) ) . ';', 'before' );
 } );
 
 function fccar_render_curate_page(): void {

@@ -1,17 +1,18 @@
 /*
  * Live carousel player. Renders the resolved feed (window.FCCAR.items) via the
- * shared card renderer (card-render.js), scales a fixed 1280×720 stage to the
+ * shared card renderer (card-render.mjs), scales a fixed 1280×720 stage to the
  * viewport, fades through black from card to card, and silently re-pulls the
- * feed for freshness. Card layouts + QR live in FCCarCard so the curation
+ * feed for freshness. Card layouts + QR live in the shared renderer so the curation
  * screen's thumbnails render identically. See ops/docs/carousel-source-of-truth.md.
  */
+import { buildStageEl } from '@fccar/stage';
+
 ( function () {
 	'use strict';
 
 	var FCCAR = window.FCCAR || { items: [], seconds: 7, variant: 'preservice' };
 	var deck  = document.getElementById( 'fccar-deck' );
 	var empty = document.getElementById( 'fccar-empty' );
-	var Card  = window.FCCarCard;
 
 	var state = { items: [], idx: 0, timer: null, sig: '' };
 
@@ -21,7 +22,7 @@
 		deck.innerHTML = '';
 		empty.hidden = state.items.length > 0;
 		state.items.forEach( function ( it ) {
-			deck.appendChild( Card.buildStage( it, { campaign: FCCAR.campaign } ) );
+			deck.appendChild( buildStageEl( it, { campaign: FCCAR.campaign } ) );
 		} );
 		state.idx = 0;
 		show( 0 );

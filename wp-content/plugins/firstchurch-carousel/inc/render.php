@@ -108,8 +108,11 @@ function fccar_render_page( array $items, string $variant, int $seconds ): void 
 	</div>
 	<script>window.FCCAR = <?php echo wp_json_encode( $boot ); ?>;</script>
 	<script src="<?php echo esc_url( $base . '/assets/vendor/qrcode-generator.js?v=' . $ver ); ?>"></script>
-	<script src="<?php echo esc_url( $base . '/assets/card-render.js?v=' . $ver ); ?>"></script>
-	<script src="<?php echo esc_url( $base . '/assets/carousel.js?v=' . $ver ); ?>"></script>
+	<script type="importmap"><?php echo wp_json_encode( array( 'imports' => array(
+		'@fccar/card'  => $base . '/assets/card-render.mjs?v=' . $ver,
+		'@fccar/stage' => $base . '/assets/card-stage.mjs?v=' . $ver,
+	) ) ); ?></script>
+	<script type="module" src="<?php echo esc_url( $base . '/assets/carousel.js?v=' . $ver ); ?>"></script>
 </body>
 </html>
 	<?php
