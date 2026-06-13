@@ -68,6 +68,19 @@ function fcbf_intake_normalize_category(string $cat): string
 }
 
 /**
+ * A backdating publication date: the given YYYY-MM-DD if it's strictly in the
+ * past, else '' (no backdate). Guards against passing a FUTURE date, which the
+ * create-* functions would treat as "schedule to auto-publish" instead of draft.
+ */
+function fcbf_intake_backdate(string $date): string
+{
+    if (!preg_match('/^(\d{4}-\d{2}-\d{2})/', $date, $m)) {
+        return '';
+    }
+    return ($m[1] < gmdate('Y-m-d')) ? $m[1] : '';
+}
+
+/**
  * Conservative dedup: is there already an event with the same date and an
  * (essentially) identical title? Returns the existing event id, or 0.
  * Deliberately strict — showing two is better than wrongly merging two.
@@ -170,12 +183,26 @@ function fcbf_intake_process_item(int $post_id): array
             if ($ev['category'] === '') {
                 unset($ev['category']);
             }
+            // Backdate a PAST event's post to its event date so it reads as
+            // historical. Never set a FUTURE date here — that would schedule the
+            // post to auto-publish later instead of drafting it now.
+            $ev['date'] = fcbf_intake_backdate((string) ($ev['start_date'] ?? ''));
+            if ('' === $ev['date']) {
+                unset($ev['date']);
+            }
             $res = fcmcp_create_event($ev);
             if (!is_wp_error($res) && !empty($res['id'])) {
                 $drafts[] = (int) $res['id'];
             }
         } elseif ('announcement' === $kind && is_array($intent['announcement'] ?? null) && function_exists('fcmcp_create_announcement')) {
-            $res = fcmcp_create_announcement($intent['announcement']);
+            $ann = $intent['announcement'];
+            // Backdate an old announcement to when it was submitted, so historical
+            // news sits at its real moment rather than reading as today's news.
+            $ann['date'] = fcbf_intake_backdate($received);
+            if ('' === $ann['date']) {
+                unset($ann['date']);
+            }
+            $res = fcmcp_create_announcement($ann);
             if (!is_wp_error($res) && !empty($res['id'])) {
                 $drafts[] = (int) $res['id'];
             }

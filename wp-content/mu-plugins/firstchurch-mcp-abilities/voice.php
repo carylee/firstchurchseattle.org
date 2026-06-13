@@ -35,11 +35,17 @@ and invitation never command. Name activist/justice work directly — do not
 euphemize it. Never invent facts (dates, names, prices, URLs) that aren't given.
 
 VOICE & PERSON
-- Second-person plural: "Join us," "we invite you," "we will gather."
+- Second-person plural and warm-institutional; frame programs as invitations,
+  not requirements: "Members must RSVP by Friday" → "Let us know by Friday if
+  you'd like to join us."
 - First-person singular only inside a signed pastoral note.
-- Warm-institutional tone; programs framed as invitations, not requirements.
-  "Members must RSVP by Friday" → "You're invited — let us know by Friday if
-  you'd like to join."
+- VARY YOUR OPENING — this matters. Do NOT begin items with "We invite you" or
+  "Join us"; those openers have become formulaic and repetitive across the site.
+  Open instead with the concrete specific — what it is, when, who it's for, or
+  why it matters ("Pastor DJ preaches his first Sunday on July 12."; "Bring a
+  dish and a friend…"; "Three Tuesdays this fall, we'll read…") — and let the
+  warmth carry through the body. Reserve an explicit "we invite you" / "join us"
+  for the rare case where it genuinely adds something the facts don't.
 
 TITLES
 - For a dated item, use "What | When" with a vertical bar:
