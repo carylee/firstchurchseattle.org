@@ -65,8 +65,13 @@ function fcmcp_apply_post_date( array $postarr, $input ): array {
 	return $postarr;
 }
 
-function fcmcp_event_to_array( WP_Post $post ): array {
-	return array(
+/**
+ * Serialize an event. Pass $full=true to include the body copy (description +
+ * excerpt) — list endpoints omit it to stay lean; get-event requests it so a
+ * read round-trips losslessly into update-event.
+ */
+function fcmcp_event_to_array( WP_Post $post, bool $full = false ): array {
+	$out = array(
 		'id'               => $post->ID,
 		'title'            => get_the_title( $post ),
 		'status'           => $post->post_status,
@@ -83,6 +88,15 @@ function fcmcp_event_to_array( WP_Post $post ): array {
 		'url'              => (string) get_permalink( $post ),
 		'edit_url'         => (string) get_edit_post_link( $post->ID, 'raw' ),
 	);
+	if ( $full ) {
+		// Raw, verbatim — the exact string update-event would persist (no wpautop,
+		// shortcode/oEmbed/block rendering, or sanitization) so a read → write of
+		// an unchanged `description` is a true no-op. `description` mirrors the
+		// create/update write key; `excerpt` is the manual excerpt only.
+		$out['excerpt']     = (string) $post->post_excerpt;
+		$out['description'] = (string) $post->post_content;
+	}
+	return $out;
 }
 
 function fcmcp_post_to_array( WP_Post $post ): array {

@@ -199,6 +199,39 @@ if (!function_exists('wp_set_object_terms')) {
     }
 }
 
+if (!function_exists('wp_get_post_terms')) {
+    function wp_get_post_terms($id, $taxonomy = '', $args = array())
+    {
+        // The serializer only ever asks for 'slugs'; wp_set_object_terms stored
+        // exactly the slugs it was given, so echo them back.
+        return $GLOBALS['fcmcp_test']['object_terms'][(int) $id][$taxonomy] ?? array();
+    }
+}
+
+if (!function_exists('get_permalink')) {
+    function get_permalink($post = 0)
+    {
+        $p = get_post($post);
+        return $p ? 'https://example.test/?p=' . $p->ID : '';
+    }
+}
+
+if (!function_exists('get_the_post_thumbnail_url')) {
+    function get_the_post_thumbnail_url($post = null, $size = 'post-thumbnail')
+    {
+        $p = get_post($post);
+        return $p ? (string) ($GLOBALS['fcmcp_test']['meta'][$p->ID]['_thumbnail_url'] ?? '') : '';
+    }
+}
+
+if (!function_exists('get_edit_post_link')) {
+    function get_edit_post_link($id = 0, $context = 'display')
+    {
+        $p = get_post($id);
+        return $p ? 'https://example.test/wp-admin/post.php?post=' . $p->ID . '&action=edit' : '';
+    }
+}
+
 /* ------------------------------- Terms ----------------------------------- */
 
 if (!function_exists('get_term_by')) {

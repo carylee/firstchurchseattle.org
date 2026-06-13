@@ -137,7 +137,7 @@ add_action(
 			'firstchurch/get-event',
 			array(
 				'label'               => 'Get event',
-				'description'         => 'Get full detail for one event by ID. Read-only.',
+				'description'         => 'Get full detail for one event by ID, including the raw body (description) and manual excerpt — verbatim, so it round-trips into update-event. Read-only.',
 				'category'            => 'firstchurch',
 				'input_schema'        => array(
 					'type'                 => 'object',
@@ -153,7 +153,7 @@ add_action(
 					if ( 'publish' !== $post->post_status && ! current_user_can( 'edit_post', $post->ID ) ) {
 						return new WP_Error( 'forbidden', 'Not permitted to view this event.' );
 					}
-					return fcmcp_event_to_array( $post );
+					return fcmcp_event_to_array( $post, true );
 				},
 				'permission_callback' => $can_read,
 				'meta'                => array_merge( $mcp_public, array( 'annotations' => array( 'readonly' => true, 'idempotent' => true ) ) ),
