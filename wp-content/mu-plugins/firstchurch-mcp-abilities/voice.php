@@ -158,13 +158,15 @@ function fcmcp_rewrite_in_voice( $input = array() ) {
 	if ( '' === $text ) {
 		return new WP_Error( 'missing_text', 'Provide text to rewrite.' );
 	}
-	$kind = (string) ( $input['kind'] ?? '' ); // optional hint: title|body|announcement
+	$kind = (string) ( $input['kind'] ?? '' ); // optional hint: title|body|announcement|selection
 	$hint = '' !== $kind ? " This text is a(n) {$kind}." : '';
 
 	$out = fcmcp_voice_generate(
-		"Rewrite the following in the First Church house voice, preserving every fact "
-		. "(dates, names, prices, links) exactly while changing only register and phrasing.{$hint} "
-		. "Return ONLY the rewritten text, no preamble.\n\n---\n{$text}"
+		"Rewrite the passage below in the First Church house voice. Preserve every fact "
+		. "(dates, names, prices, links) exactly; change only register and phrasing. Do NOT "
+		. "add a title, heading, or preamble, and do NOT wrap it in quotes. Return ONLY the "
+		. "rewritten passage, matching the input's format — plain text in, plain text out; "
+		. "keep any inline links.{$hint}\n\n---\n{$text}"
 	);
 	if ( is_wp_error( $out ) ) {
 		return $out;
