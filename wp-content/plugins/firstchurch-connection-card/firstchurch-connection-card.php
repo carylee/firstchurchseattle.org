@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Connection Card
  * Description: Server-side bridge that posts the Check-in & Connection Card to Breeze (form 320238).
- * Version:     0.3.1
+ * Version:     0.3.2
  * Author:      First Church Seattle
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-const FCC_VERSION     = '0.3.1';
+const FCC_VERSION     = '0.3.2';
 const FCC_BREEZE_BASE = 'https://firstchurchseattle.breezechms.com';
 const FCC_FORM_ID     = '320238';
 const FCC_FORM_SLUG   = '603d6c';
