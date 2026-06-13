@@ -271,14 +271,12 @@ the photos and their consent constraints). Start there before sourcing any new i
 - **Copy drift** — the worship logistics line now exists in three slightly different forms
   (masthead meta, footer, `fcs_front_hero`). Pick a canonical wording and align on ship.
 
-## 9. When this ships — the prod checklist
+## 9. When this ships
 
-1. Merge `design/option-c` → `main` (CI builds `tailwind.css`, deploys via `ops/deploy.sh`).
-2. **Remove the "Give" item from the prod menu** (it's still in the live menu; the theme no
-   longer expects it there).
-3. Re-verify photo releases for any guest-visible Shared Breakfast / minor images (§7).
-4. Align the canonical worship-logistics wording across masthead/footer/hero option (§8).
-5. Screenshot-verify prod light + dark, desktop + mobile, against the Tailscale reference.
+Ship readiness, the **content that must be migrated on prod** to make the live site match
+this branch (the 4-door menu that exists only locally, the `fcs_front_hero` seasonal line,
+the `/gather/*` tile targets vs. the IA plan), and the cutover checklist all live in the
+operational companion: **[`option-c-launch.md`](./option-c-launch.md)**.
 
 ---
 
