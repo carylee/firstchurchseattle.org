@@ -31,6 +31,7 @@ require_once __DIR__ . '/inc/intake-reader.php';
 require_once __DIR__ . '/inc/intake-email.php';
 require_once __DIR__ . '/inc/intake-process.php';
 require_once __DIR__ . '/inc/intake-mcp.php';
+require_once __DIR__ . '/inc/intake-admin.php';
 
 // Mode 3: native in-theme rendering + server-side submission to Breeze.
 require_once __DIR__ . '/inc/native-submit.php';
