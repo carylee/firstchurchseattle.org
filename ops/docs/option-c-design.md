@@ -248,8 +248,11 @@ From the style guide, and they gate launch:
 - The kids photos flagged earlier still need a consent check before public use.
 - Lists of same-titled people: **women first** (guide rule; applies to the staff directory).
 
-Photo provenance, the labeled inventory (1,434 images → 628 labeled → hero candidates), and
-the contact-sheet/agent labeling method are in `~/church/theme-refs/photo-audit/`.
+The full photo discovery work — a 2026-06-12 inventory of the comms Dropbox (1,434 images →
+628 AI-labeled via 26 fanned-out Haiku agents → 195 hero candidates), the labeling schema,
+and the **26 images flagged `identifiable-children`** plus the breakfast-guest consent rule —
+is documented in **`~/church/theme-refs/photo-audit/README.md`** (kept out of the repo with
+the photos and their consent constraints). Start there before sourcing any new imagery.
 
 ---
 
