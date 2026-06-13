@@ -65,8 +65,13 @@ function fcmcp_apply_post_date( array $postarr, $input ): array {
 	return $postarr;
 }
 
-function fcmcp_event_to_array( WP_Post $post ): array {
-	return array(
+/**
+ * Serialize an event. Pass $full=true to include the body copy (description +
+ * excerpt) — list endpoints omit it to stay lean; get-event requests it so a
+ * read round-trips losslessly into update-event.
+ */
+function fcmcp_event_to_array( WP_Post $post, bool $full = false ): array {
+	$out = array(
 		'id'               => $post->ID,
 		'title'            => get_the_title( $post ),
 		'status'           => $post->post_status,
@@ -83,6 +88,15 @@ function fcmcp_event_to_array( WP_Post $post ): array {
 		'url'              => (string) get_permalink( $post ),
 		'edit_url'         => (string) get_edit_post_link( $post->ID, 'raw' ),
 	);
+	if ( $full ) {
+		// Raw, verbatim — the exact string update-event would persist (no wpautop,
+		// shortcode/oEmbed/block rendering, or sanitization) so a read → write of
+		// an unchanged `description` is a true no-op. `description` mirrors the
+		// create/update write key; `excerpt` is the manual excerpt only.
+		$out['excerpt']     = (string) $post->post_excerpt;
+		$out['description'] = (string) $post->post_content;
+	}
+	return $out;
 }
 
 function fcmcp_post_to_array( WP_Post $post ): array {
@@ -133,7 +147,7 @@ function fcmcp_recurrence_schema(): array {
 		'description'          => 'Recurrence rule. Omit or set frequency=none for a one-time event.',
 		'properties'           => array(
 			'frequency'     => array( 'type' => 'string', 'enum' => array( 'none', 'weekly', 'monthly', 'yearly' ) ),
-			'interval'      => array( 'type' => 'integer', 'minimum' => 1, 'description' => 'Repeat every N weeks/months (default 1).' ),
+			'interval'      => array( 'type' => 'integer', 'minimum' => 1, 'description' => 'Repeat every N weeks/months/years (default 1).' ),
 			'end_date'      => array( 'type' => 'string', 'description' => 'YYYY-MM-DD when recurrence stops (optional).' ),
 			'weekly_days'   => array( 'type' => 'array', 'items' => array( 'type' => 'string', 'enum' => array( 'SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA' ) ), 'description' => 'Weekly only: which weekdays. Omit to repeat on the start date\'s weekday.' ),
 			'monthly_type'  => array( 'type' => 'string', 'enum' => array( 'day', 'week' ), 'description' => 'Monthly only: same day-of-month (day) or specific week(s) (week).' ),
@@ -200,12 +214,13 @@ function fcmcp_apply_recurrence( int $post_id, $rec ): void {
 		return;
 	}
 
+	// `_fce_weekly_interval` is the shared "every N" meta for all frequencies
+	// (weekly/monthly/yearly), mirroring firstchurch-events' fce_write_event.
 	$interval = max( 1, (int) ( $rec['interval'] ?? 1 ) );
-	update_post_meta( $post_id, '_fce_weekly_interval', '1' );
+	update_post_meta( $post_id, '_fce_weekly_interval', (string) $interval );
 	update_post_meta( $post_id, '_fce_monthly_type', 'day' );
 
 	if ( 'weekly' === $freq ) {
-		update_post_meta( $post_id, '_fce_weekly_interval', (string) $interval );
 		$days = array();
 		$src  = $rec['weekly_days'] ?? $rec['weekdays'] ?? array();
 		foreach ( (array) $src as $d ) {
@@ -218,7 +233,6 @@ function fcmcp_apply_recurrence( int $post_id, $rec ): void {
 	}
 
 	if ( 'monthly' === $freq ) {
-		update_post_meta( $post_id, '_fce_weekly_interval', (string) $interval );
 		$mtype = ( isset( $rec['monthly_type'] ) && 'week' === $rec['monthly_type'] ) ? 'week' : 'day';
 		$weeks = array();
 		$src   = $rec['monthly_weeks'] ?? array();
@@ -245,12 +259,11 @@ function fcmcp_recurrence_to_array( int $post_id ): array {
 		return $out;
 	}
 	$out['end_date'] = (string) get_post_meta( $post_id, '_fce_end_date', true );
+	$out['interval'] = max( 1, (int) get_post_meta( $post_id, '_fce_weekly_interval', true ) );
 	if ( 'weekly' === $freq ) {
-		$out['interval'] = (int) get_post_meta( $post_id, '_fce_weekly_interval', true );
-		$d               = (string) get_post_meta( $post_id, '_fce_weekly_days', true );
+		$d                  = (string) get_post_meta( $post_id, '_fce_weekly_days', true );
 		$out['weekly_days'] = '' !== $d ? explode( ',', $d ) : array();
 	} elseif ( 'monthly' === $freq ) {
-		$out['interval']     = (int) get_post_meta( $post_id, '_fce_weekly_interval', true );
 		$out['monthly_type'] = (string) get_post_meta( $post_id, '_fce_monthly_type', true );
 		$w                   = (string) get_post_meta( $post_id, '_fce_monthly_week', true );
 		$out['monthly_weeks'] = '' !== $w ? explode( ',', $w ) : array();

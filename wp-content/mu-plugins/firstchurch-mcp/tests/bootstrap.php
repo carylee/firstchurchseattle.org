@@ -153,6 +153,14 @@ if (!function_exists('get_post')) {
     }
 }
 
+if (!function_exists('get_the_title')) {
+    function get_the_title($post = 0)
+    {
+        $p = get_post($post);
+        return $p ? (string) ($p->post_title ?? '') : '';
+    }
+}
+
 if (!function_exists('get_post_type')) {
     function get_post_type($post = null)
     {
@@ -188,6 +196,39 @@ if (!function_exists('wp_set_object_terms')) {
     {
         $GLOBALS['fcmcp_test']['object_terms'][(int) $id][$taxonomy] = (array) $terms;
         return (array) $terms;
+    }
+}
+
+if (!function_exists('wp_get_post_terms')) {
+    function wp_get_post_terms($id, $taxonomy = '', $args = array())
+    {
+        // The serializer only ever asks for 'slugs'; wp_set_object_terms stored
+        // exactly the slugs it was given, so echo them back.
+        return $GLOBALS['fcmcp_test']['object_terms'][(int) $id][$taxonomy] ?? array();
+    }
+}
+
+if (!function_exists('get_permalink')) {
+    function get_permalink($post = 0)
+    {
+        $p = get_post($post);
+        return $p ? 'https://example.test/?p=' . $p->ID : '';
+    }
+}
+
+if (!function_exists('get_the_post_thumbnail_url')) {
+    function get_the_post_thumbnail_url($post = null, $size = 'post-thumbnail')
+    {
+        $p = get_post($post);
+        return $p ? (string) ($GLOBALS['fcmcp_test']['meta'][$p->ID]['_thumbnail_url'] ?? '') : '';
+    }
+}
+
+if (!function_exists('get_edit_post_link')) {
+    function get_edit_post_link($id = 0, $context = 'display')
+    {
+        $p = get_post($id);
+        return $p ? 'https://example.test/wp-admin/post.php?post=' . $p->ID . '&action=edit' : '';
     }
 }
 
@@ -364,6 +405,47 @@ function fcmcp_test_set_user(int $id, array $roles): object
     $user = (object) array('ID' => $id, 'roles' => $roles);
     $GLOBALS['fcmcp_test']['users'][$id] = $user;
     return $user;
+}
+
+/* ------------------------- firstchurch-events seam ----------------------- *
+ * The occurrence-expansion ability delegates to firstchurch-events' fce_rrule()
+ * and fce_occurrences_between(). Load that plugin's *pure* RRULE engine (the
+ * same files its own bootstrap requires) and provide faithful glue shims, so the
+ * expansion path is exercised end-to-end against the real recurrence code rather
+ * than a hand-rolled fake. The shims read the same meta the MCP writer stores.
+ * ------------------------------------------------------------------------- */
+$fce = __DIR__ . '/../../../plugins/firstchurch-events';
+require_once $fce . '/lib/rrule/RRuleInterface.php';
+require_once $fce . '/lib/rrule/RRuleTrait.php';
+require_once $fce . '/lib/rrule/RfcParser.php';
+require_once $fce . '/lib/rrule/RRule.php';
+require_once $fce . '/lib/rrule/RSet.php';
+require_once $fce . '/src/Recurrence.php';
+require_once $fce . '/src/Occurrences.php';
+unset($fce);
+
+if (!function_exists('fce_occurrences_between')) {
+    function fce_occurrences_between(string $dtstart, string $rrule, \DateTimeInterface $from, \DateTimeInterface $to, array $skip = array()): array
+    {
+        return \FirstChurch\Events\Occurrences::between($dtstart, $rrule, $from, $to, $skip);
+    }
+}
+
+if (!function_exists('fce_rrule')) {
+    // Mirror firstchurch-events' fce_recurrence_fields() → Recurrence::toRrule().
+    function fce_rrule(int $post_id): string
+    {
+        $fields = array(
+            'start'           => (string) get_post_meta($post_id, '_fce_dtstart', true),
+            'recurrence'      => (string) get_post_meta($post_id, '_fce_recurrence', true),
+            'weekly_interval' => (int) get_post_meta($post_id, '_fce_weekly_interval', true),
+            'weekly_days'     => (string) get_post_meta($post_id, '_fce_weekly_days', true),
+            'monthly_type'    => (string) get_post_meta($post_id, '_fce_monthly_type', true),
+            'monthly_week'    => (string) get_post_meta($post_id, '_fce_monthly_week', true),
+            'end_date'        => (string) get_post_meta($post_id, '_fce_end_date', true),
+        );
+        return (string) (\FirstChurch\Events\Recurrence::toRrule($fields) ?? '');
+    }
 }
 
 /* ------------------------------------------------------------------------- *

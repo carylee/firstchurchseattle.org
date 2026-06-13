@@ -90,7 +90,17 @@ final class RecurrenceTest extends TestCase
         $out = fcmcp_recurrence_to_array(5);
         $this->assertSame('yearly', $out['frequency']);
         $this->assertSame('2030-01-01', $out['end_date']);
-        $this->assertArrayNotHasKey('interval', $out, 'yearly carries no interval in output');
+        $this->assertSame(1, $out['interval'], 'yearly defaults to every 1 year');
+    }
+
+    public function testYearlyEveryOtherRoundTrip(): void
+    {
+        fcmcp_apply_recurrence(5, array('frequency' => 'yearly', 'interval' => 2));
+        $this->assertSame('2', get_post_meta(5, '_fce_weekly_interval', true), 'interval persists for yearly');
+
+        $out = fcmcp_recurrence_to_array(5);
+        $this->assertSame('yearly', $out['frequency']);
+        $this->assertSame(2, $out['interval']);
     }
 
     public function testClearClearsRecurrence(): void
