@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church MCP Abilities
  * Description: Read + draft-first write WordPress Abilities for events (fce_event), announcements, people (ctc_person), carousel cards, e-news, redirects, and navigation menus — exposed to AI via the MCP Adapter. Supports the draft-first workflow, recurrence, featured images, stock photo search/import, intake triage, deployment auditing (restore from trash + who/what/when audit log), content-health audits, plus MCP resources (content guide, taxonomy vocabulary) and prompts (editorial workflows).
- * Version:     0.9.0
+ * Version:     0.9.1
  * Author:      First Church Seattle
  */
 
