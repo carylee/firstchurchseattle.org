@@ -62,6 +62,27 @@
 			return;
 		}
 
+		// Dismiss (e.g. a revision with no new info)
+		if ( btn.classList.contains( 'fccd-dismiss' ) ) {
+			var card3 = btn.closest( '.fccd-card' );
+			var itemId3 = card3 && parseInt( card3.getAttribute( 'data-item' ), 10 );
+			if ( ! itemId3 ) {
+				return;
+			}
+			btn.disabled = true;
+			setStatus( card3.querySelector( '.fccd-card-status' ), 'Dismissing…' );
+			apiFetch( { path: '/firstchurch/v1/comms-desk/dismiss', method: 'POST', data: { item_id: itemId3 } } )
+				.then( function () {
+					card3.classList.add( 'fccd-card--done' );
+					setStatus( card3.querySelector( '.fccd-card-status' ), 'Dismissed', 'ok' );
+				} )
+				.catch( function ( err ) {
+					btn.disabled = false;
+					setStatus( card3.querySelector( '.fccd-card-status' ), 'Failed: ' + ( err && err.message ? err.message : 'error' ), 'err' );
+				} );
+			return;
+		}
+
 		// Add a thing — toggle composer
 		if ( btn.hasAttribute( 'data-fccd-addthing' ) ) {
 			var box = doc.querySelector( '.fccd-addthing' );

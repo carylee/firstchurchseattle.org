@@ -250,13 +250,21 @@ function fcmcp_intake_classify( $input = array() ) {
 		'required'             => array( 'class', 'target', 'confidence', 'reason' ),
 		'additionalProperties' => false,
 	);
-	$system = "You triage inbound requests for a church website. Decide whether an item is "
-		. "PUBLICITY (the wider congregation/public should see it on the website — a service, "
-		. "class, concert, potluck, volunteer ask, giving drive, news) or INTERNAL (a room "
-		. "booking or working meeting not meant for the public — 'team meeting', 'committee "
-		. "meeting', 'choir rehearsal', 'prayer shawl meeting'). Then pick the best website "
-		. "target: a dated 'event', an undated 'announcement', 'both', or 'none' (internal). "
-		. "Return strict JSON.";
+	$system = "You triage inbound requests for a church website. Most of these arrive via the "
+		. "public Event Request Form, so BIAS TOWARD PUBLICITY — when unsure, choose publicity.\n\n"
+		. "PUBLICITY = anything the congregation or public is invited to or should see: worship "
+		. "services and liturgies (e.g. Sunday worship, Maundy Thursday, Good Friday, Easter), "
+		. "concerts, classes, retreats, potlucks, youth/children events, volunteer asks, giving "
+		. "drives, news. Judge by the EVENT ITSELF — IGNORE internal logistics in the submission "
+		. "(staff attending, AV/Zoom needs, catering/Duuna, room, headcount, parking); those do "
+		. "NOT make an event internal. A worship service is ALWAYS publicity even if staff and AV "
+		. "are involved.\n\n"
+		. "INTERNAL = only when the item itself is a working/coordination gathering with no public "
+		. "audience: a committee/team/staff/board/SPRC meeting, a rehearsal, or a pure room "
+		. "booking. If real people outside the organizing group would want to attend, it is "
+		. "PUBLICITY, not internal.\n\n"
+		. "Then pick the best website target: a dated 'event', an undated 'announcement', 'both', "
+		. "or 'none' (only for genuinely internal items). Return strict JSON.";
 	return fcmcp_voice_generate( $text, $schema, array( 'system' => $system, 'temperature' => 0.1 ) );
 }
 

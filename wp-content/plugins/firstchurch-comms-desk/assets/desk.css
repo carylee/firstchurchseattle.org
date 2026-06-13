@@ -19,6 +19,8 @@
 .fccd-pill { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; padding: 1px 8px; border-radius: 10px; vertical-align: middle; margin-right: 6px; }
 .fccd-pill--event { background: #e7f0fb; color: #0a4b8c; }
 .fccd-pill--announcement { background: #f0e9fb; color: #5a2ca0; }
+.fccd-pill--rev { background: #fcf3e7; color: #8a5a0a; }
+.fccd-card--rev { border-left-color: #dba617; }
 
 .fccd-prov { font-size: 12px; color: #646970; margin: 8px 0; }
 .fccd-prov-note { display: block; font-style: italic; margin-top: 2px; }

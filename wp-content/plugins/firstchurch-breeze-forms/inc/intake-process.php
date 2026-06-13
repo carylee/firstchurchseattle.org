@@ -199,6 +199,7 @@ function fcbf_intake_process_item(int $post_id): array
 
     // 3. Create a draft per intent (dedup events conservatively).
     $drafts = [];
+    $dup_of = 0; // an existing event this item duplicates — surfaced as a revision
     $conf   = 1.0;
     foreach ($intents as $intent) {
         $kind = (string) ($intent['kind'] ?? '');
@@ -208,7 +209,9 @@ function fcbf_intake_process_item(int $post_id): array
             $ev = $intent['event'];
             $dup = fcbf_intake_find_duplicate_event((string) ($ev['title'] ?? ''), (string) ($ev['start_date'] ?? ''));
             if ($dup > 0) {
-                $notes = trim($notes . " (Skipped a likely duplicate of event #{$dup}.)");
+                // Not a reject — a re-submission that may carry richer info. Hold the
+                // link and surface it as a possible revision of the existing event.
+                $dup_of = $dup;
                 continue;
             }
             $ev['category'] = fcbf_intake_normalize_category((string) ($ev['category'] ?? ''));
@@ -242,13 +245,21 @@ function fcbf_intake_process_item(int $post_id): array
     }
 
     if (!$drafts) {
-        // Everything deduped away or failed — leave a note, don't loop forever.
-        fcbf_intake_ability_set_status([
-            'id'     => $post_id,
-            'status' => 'dismissed',
-            'note'   => 'No new draft created' . ($notes !== '' ? ' — ' . $notes : '.'),
-        ]);
-        return ['id' => $post_id, 'action' => 'dismissed', 'detail' => $notes ?: 'no draft created', 'drafts' => []];
+        if ($dup_of > 0) {
+            // A re-submission of an event already on the site. Surface it as a
+            // possible revision (it may carry richer info) — linked, NOT dismissed.
+            fcbf_intake_ability_set_status([
+                'id'          => $post_id,
+                'status'      => 'drafted',
+                'linked_post' => $dup_of,
+                'note'        => trim('Possible revision of event #' . $dup_of . ' — review whether this submission adds info. ' . $notes),
+                'confidence'  => $conf,
+            ]);
+            update_post_meta($post_id, FCBF_INTAKE_DUP_OF, $dup_of);
+            return ['id' => $post_id, 'action' => 'revision', 'detail' => 'possible revision of #' . $dup_of, 'drafts' => []];
+        }
+        // Genuinely nothing draftable — park it (don't loop forever).
+        return fcbf_intake_attempt_failure($post_id, 'extraction produced no usable draft' . ($notes !== '' ? ' — ' . $notes : ''));
     }
 
     // 4. Mark drafted, link the first draft, carry notes + confidence.
