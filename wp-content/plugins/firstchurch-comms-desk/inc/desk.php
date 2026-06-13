@@ -34,6 +34,7 @@ add_action( 'admin_menu', static function () {
 function fccd_enqueue_desk_assets(): void {
 	$base = plugin_dir_url( dirname( __FILE__ ) );
 	$dir  = plugin_dir_path( dirname( __FILE__ ) );
+	wp_enqueue_media(); // the rich card's "choose from media library" picker (wp.media)
 	wp_enqueue_style( 'fccd-desk', $base . 'assets/desk.css', array(), (string) @filemtime( $dir . 'assets/desk.css' ) );
 	wp_enqueue_script( 'fccd-desk', $base . 'assets/desk.js', array( 'wp-api-fetch' ), (string) @filemtime( $dir . 'assets/desk.js' ), true );
 }
@@ -98,17 +99,32 @@ function fccd_needs_you_now(): array {
 		if ( ! in_array( $linked->post_status, array( 'draft', 'pending' ), true ) ) {
 			continue;
 		}
-		$cards[] = array_merge( $base, array(
-			'type'       => 'review',
-			'draft_id'   => $linked_id,
-			'kind'       => ( 'fce_event' === $linked->post_type ) ? 'event' : 'announcement',
-			'title'      => get_the_title( $linked ),
-			'excerpt'    => wp_trim_words( wp_strip_all_tags( $linked->post_content ), 40 ),
-			'edit_url'   => (string) get_edit_post_link( $linked_id, 'raw' ),
-			'start_date' => ( 'fce_event' === $linked->post_type ) ? (string) get_post_meta( $linked_id, '_fce_dtstart', true ) : '',
+		$is_event = ( 'fce_event' === $linked->post_type );
+		$reg_url  = $is_event ? (string) get_post_meta( $linked_id, '_fce_registration_url', true ) : '';
+		$cards[]  = array_merge( $base, array(
+			'type'        => 'review',
+			'draft_id'    => $linked_id,
+			'kind'        => $is_event ? 'event' : 'announcement',
+			'title'       => get_the_title( $linked ),
+			'excerpt'     => wp_trim_words( wp_strip_all_tags( $linked->post_content ), 40 ),
+			'edit_url'    => (string) get_edit_post_link( $linked_id, 'raw' ),
+			'start_date'  => $is_event ? (string) get_post_meta( $linked_id, '_fce_dtstart', true ) : '',
+			'photo'       => (string) ( get_the_post_thumbnail_url( $linked_id, 'medium' ) ?: '' ),
+			// announcement CTA
+			'cta_text'    => $is_event ? '' : (string) get_post_meta( $linked_id, 'fcs_cta_text', true ),
+			'cta_url'     => $is_event ? '' : (string) get_post_meta( $linked_id, 'fcs_cta_url', true ),
+			// event Breeze sign-up form
+			'reg_url'     => $reg_url,
+			'breeze_form' => fccd_breeze_form_id( $reg_url ),
+			'has_embed'   => $is_event ? ( false !== strpos( (string) $linked->post_content, 'breeze_form id=' ) ) : false,
 		) );
 	}
 	return $cards;
+}
+
+/** Extract a Breeze form id from a breezechms.com/form/<id> URL ('' if none). */
+function fccd_breeze_form_id( string $url ): string {
+	return preg_match( '#breezechms\.com/form/([A-Za-z0-9]+)#', $url, $m ) ? $m[1] : '';
 }
 
 /* ---- Render ---- */
@@ -194,6 +210,10 @@ function fccd_render_card( array $c ): void {
 	}
 	echo '</div>';
 
+	if ( ! $is_rev ) {
+		fccd_render_card_edit( $c );
+	}
+
 	/* meta line — event date, submitted date, source, confidence (trust at a glance) */
 	echo '<div class="fccd-prov">';
 	$bits = array();
@@ -227,6 +247,53 @@ function fccd_render_card( array $c ): void {
 	}
 	echo '<span class="fccd-card-status"></span>';
 	echo '</div>';
+	echo '</div>';
+}
+
+/** The in-card editing controls: photo, CTA (announcements), Breeze form (events). */
+function fccd_render_card_edit( array $c ): void {
+	echo '<div class="fccd-edit">';
+
+	/* Photo — preview if present; otherwise media-library or stock pickers. */
+	echo '<div class="fccd-photo">';
+	if ( '' !== $c['photo'] ) {
+		echo '<img class="fccd-photo-thumb" src="' . esc_url( $c['photo'] ) . '" alt="" />';
+		echo '<button type="button" class="button-link fccd-photo-media">Change photo</button>';
+	} else {
+		echo '<span class="fccd-photo-none">No photo &mdash; </span>';
+		echo '<button type="button" class="button button-small fccd-photo-media">Media library</button> ';
+		echo '<button type="button" class="button button-small fccd-photo-stock-toggle">Stock photos</button>';
+	}
+	echo '<div class="fccd-stock" hidden><input type="text" class="fccd-stock-q" placeholder="Search stock photos&hellip;" /> <button type="button" class="button button-small fccd-stock-go">Search</button><div class="fccd-stock-results"></div></div>';
+	echo '</div>';
+
+	/* CTA — announcements only. */
+	if ( 'announcement' === $c['kind'] ) {
+		echo '<div class="fccd-cta">';
+		echo '<label>Button label <input type="text" class="fccd-cta-text" value="' . esc_attr( $c['cta_text'] ) . '" placeholder="e.g. Sign Up Here" /></label> ';
+		echo '<label>Button link <input type="url" class="fccd-cta-url" value="' . esc_attr( $c['cta_url'] ) . '" placeholder="https://&hellip;" /></label> ';
+		echo '<button type="button" class="button button-small fccd-cta-save">Save CTA</button>';
+		echo '</div>';
+	}
+
+	/* Breeze sign-up form — events only. */
+	if ( 'event' === $c['kind'] ) {
+		echo '<div class="fccd-breeze">';
+		if ( '' !== $c['breeze_form'] ) {
+			echo 'Breeze sign-up form <code>#' . esc_html( $c['breeze_form'] ) . '</code> &mdash; ';
+			if ( $c['has_embed'] ) {
+				echo '<span class="fccd-ok">&#10003; embedded on the page</span>';
+			} else {
+				echo '<button type="button" class="button button-small button-primary fccd-breeze-embed" data-form="' . esc_attr( $c['breeze_form'] ) . '">Embed it on the page</button>';
+			}
+		} else {
+			echo 'No sign-up form. <button type="button" class="button button-small fccd-breeze-suggest">Suggest a form</button>';
+			echo '<div class="fccd-breeze-list" hidden></div>';
+		}
+		echo ' <span class="fccd-edit-status"></span>';
+		echo '</div>';
+	}
+
 	echo '</div>';
 }
 
