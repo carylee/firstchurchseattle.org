@@ -27,8 +27,31 @@ add_action(
 			'permission_callback' => $can,
 			'callback'            => 'fccd_rest_needs_info',
 		) );
+		register_rest_route( 'firstchurch/v1', '/comms-desk/dismiss', array(
+			'methods'             => 'POST',
+			'permission_callback' => $can,
+			'callback'            => 'fccd_rest_dismiss',
+		) );
 	}
 );
+
+/** Dismiss an intake item (e.g. a revision that adds nothing new). */
+function fccd_rest_dismiss( WP_REST_Request $req ) {
+	$p       = $req->get_json_params();
+	$item_id = is_array( $p ) ? (int) ( $p['item_id'] ?? 0 ) : 0;
+	if ( ! $item_id || ! function_exists( 'fcbf_intake_ability_set_status' ) ) {
+		return new WP_REST_Response( array( 'error' => 'Bad request.' ), 400 );
+	}
+	$r = fcbf_intake_ability_set_status( array(
+		'id'     => $item_id,
+		'status' => 'dismissed',
+		'note'   => 'Dismissed from the Comms Desk by ' . wp_get_current_user()->user_login . '.',
+	) );
+	if ( is_wp_error( $r ) ) {
+		return new WP_REST_Response( array( 'error' => $r->get_error_message() ), 400 );
+	}
+	return new WP_REST_Response( array( 'ok' => true ), 200 );
+}
 
 /** Approve & publish: flip the linked draft to published. */
 function fccd_rest_approve( WP_REST_Request $req ) {

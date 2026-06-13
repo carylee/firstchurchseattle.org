@@ -62,26 +62,51 @@ function fccd_needs_you_now(): array {
 
 	$cards = array();
 	foreach ( $q->posts as $item ) {
-		$draft_id = (int) get_post_meta( $item->ID, FCBF_INTAKE_LINKED, true );
-		$draft    = $draft_id ? get_post( $draft_id ) : null;
-		if ( ! $draft || ! in_array( $draft->post_status, array( 'draft', 'pending' ), true ) ) {
-			continue; // already published / gone — not awaiting review
+		$dup_of    = (int) get_post_meta( $item->ID, FCBF_INTAKE_DUP_OF, true );
+		$linked_id = (int) get_post_meta( $item->ID, FCBF_INTAKE_LINKED, true );
+		$linked    = $linked_id ? get_post( $linked_id ) : null;
+		if ( ! $linked ) {
+			continue;
 		}
 		$contact = json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_CONTACT, true ), true );
 		$conf    = get_post_meta( $item->ID, FCBF_INTAKE_CONFIDENCE, true );
-		$cards[] = array(
+		$base    = array(
 			'item_id'    => $item->ID,
-			'draft_id'   => $draft_id,
-			'kind'       => ( 'fce_event' === $draft->post_type ) ? 'event' : 'announcement',
-			'title'      => get_the_title( $draft ),
-			'excerpt'    => wp_trim_words( wp_strip_all_tags( $draft->post_content ), 40 ),
 			'source'     => (string) get_post_meta( $item->ID, FCBF_INTAKE_SOURCE, true ),
 			'from'       => is_array( $contact ) && ! empty( $contact['email'] ) ? $contact['email'] : '',
 			'confidence' => ( '' !== (string) $conf ) ? (float) $conf : null,
+			'submitted'  => substr( (string) get_post_meta( $item->ID, FCBF_INTAKE_CREATED_ON, true ), 0, 10 ),
 			'note'       => (string) get_post_meta( $item->ID, FCBF_INTAKE_NOTE, true ),
-			'edit_url'   => (string) get_edit_post_link( $draft_id, 'raw' ),
-			'start_date' => ( 'fce_event' === $draft->post_type ) ? (string) get_post_meta( $draft_id, '_fce_dtstart', true ) : '',
 		);
+
+		if ( $dup_of > 0 ) {
+			// A possible revision of an event already on the site (any status) —
+			// the re-submission may carry richer info to merge in.
+			$cards[] = array_merge( $base, array(
+				'type'         => 'revision',
+				'event_id'     => $dup_of,
+				'title'        => get_the_title( $dup_of ),
+				'event_status' => get_post_status( $dup_of ),
+				'event_url'    => (string) get_edit_post_link( $dup_of, 'raw' ),
+				'submission'   => wp_trim_words( wp_strip_all_tags( (string) get_post_field( 'post_content', $item->ID ) ), 50 ),
+				'start_date'   => (string) get_post_meta( $dup_of, '_fce_dtstart', true ),
+			) );
+			continue;
+		}
+
+		// Normal review card — only while the drafted post still awaits publish.
+		if ( ! in_array( $linked->post_status, array( 'draft', 'pending' ), true ) ) {
+			continue;
+		}
+		$cards[] = array_merge( $base, array(
+			'type'       => 'review',
+			'draft_id'   => $linked_id,
+			'kind'       => ( 'fce_event' === $linked->post_type ) ? 'event' : 'announcement',
+			'title'      => get_the_title( $linked ),
+			'excerpt'    => wp_trim_words( wp_strip_all_tags( $linked->post_content ), 40 ),
+			'edit_url'   => (string) get_edit_post_link( $linked_id, 'raw' ),
+			'start_date' => ( 'fce_event' === $linked->post_type ) ? (string) get_post_meta( $linked_id, '_fce_dtstart', true ) : '',
+		) );
 	}
 	return $cards;
 }
@@ -148,33 +173,58 @@ function fccd_quick_link( string $url, string $label ): void {
 }
 
 function fccd_render_card( array $c ): void {
-	echo '<div class="fccd-card" data-item="' . (int) $c['item_id'] . '" data-draft="' . (int) $c['draft_id'] . '" data-kind="' . esc_attr( $c['kind'] ) . '">';
+	$is_rev = ( 'revision' === ( $c['type'] ?? 'review' ) );
+
+	echo '<div class="fccd-card' . ( $is_rev ? ' fccd-card--rev' : '' ) . '" data-item="' . (int) $c['item_id'] . '"';
+	if ( ! $is_rev ) {
+		echo ' data-draft="' . (int) $c['draft_id'] . '" data-kind="' . esc_attr( $c['kind'] ) . '"';
+	}
+	echo '>';
+
 	echo '<div class="fccd-card-main">';
-	echo '<span class="fccd-pill fccd-pill--' . esc_attr( $c['kind'] ) . '">' . esc_html( ucfirst( $c['kind'] ) ) . '</span> ';
-	echo '<strong class="fccd-card-title">' . esc_html( $c['title'] ) . '</strong>';
-	echo '<p class="fccd-card-excerpt">' . esc_html( $c['excerpt'] ) . '</p>';
+	if ( $is_rev ) {
+		echo '<span class="fccd-pill fccd-pill--rev">&#8635; Possible revision</span> ';
+		echo '<strong class="fccd-card-title">' . esc_html( $c['title'] ) . '</strong>';
+		echo '<p class="fccd-card-excerpt">Already on the site as <a href="' . esc_url( $c['event_url'] ) . '">event #' . (int) $c['event_id'] . '</a> (' . esc_html( $c['event_status'] ) . '). This newer submission may add info:</p>';
+		echo '<p class="fccd-card-excerpt"><em>' . esc_html( $c['submission'] ) . '</em></p>';
+	} else {
+		echo '<span class="fccd-pill fccd-pill--' . esc_attr( $c['kind'] ) . '">' . esc_html( ucfirst( $c['kind'] ) ) . '</span> ';
+		echo '<strong class="fccd-card-title">' . esc_html( $c['title'] ) . '</strong>';
+		echo '<p class="fccd-card-excerpt">' . esc_html( $c['excerpt'] ) . '</p>';
+	}
 	echo '</div>';
 
-	/* provenance — trust at a glance */
+	/* meta line — event date, submitted date, source, confidence (trust at a glance) */
 	echo '<div class="fccd-prov">';
 	$bits = array();
-	if ( '' !== $c['source'] ) {
-		$bits[] = 'from ' . esc_html( $c['source'] ) . ( '' !== $c['from'] ? ' · ' . esc_html( $c['from'] ) : '' );
+	if ( ! empty( $c['start_date'] ) ) {
+		$bits[] = '<strong>Event ' . esc_html( $c['start_date'] ) . '</strong>';
 	}
-	if ( null !== $c['confidence'] ) {
-		$bits[] = 'AI confidence ' . esc_html( round( $c['confidence'] * 100 ) . '%' );
+	if ( ! empty( $c['submitted'] ) ) {
+		$bits[] = 'submitted ' . esc_html( $c['submitted'] );
 	}
-	echo '<span class="fccd-prov-meta">' . implode( ' · ', $bits ) . '</span>';
-	if ( '' !== $c['note'] ) {
+	if ( '' !== ( $c['source'] ?? '' ) ) {
+		$bits[] = 'via ' . esc_html( $c['source'] ) . ( '' !== $c['from'] ? ' (' . esc_html( $c['from'] ) . ')' : '' );
+	}
+	if ( null !== ( $c['confidence'] ?? null ) ) {
+		$bits[] = 'confidence ' . esc_html( round( $c['confidence'] * 100 ) . '%' );
+	}
+	echo '<span class="fccd-prov-meta">' . implode( ' &middot; ', $bits ) . '</span>'; // phpcs:ignore — bits are individually escaped
+	if ( ! $is_rev && '' !== ( $c['note'] ?? '' ) ) {
 		echo '<span class="fccd-prov-note">' . esc_html( $c['note'] ) . '</span>';
 	}
 	echo '</div>';
 
 	/* actions */
 	echo '<div class="fccd-actions">';
-	echo '<button type="button" class="button button-primary fccd-approve">Approve &amp; publish</button> ';
-	echo '<a href="' . esc_url( $c['edit_url'] ) . '" class="button">Tweak in editor</a> ';
-	echo '<button type="button" class="button fccd-needsinfo">Needs info</button>';
+	if ( $is_rev ) {
+		echo '<a href="' . esc_url( $c['event_url'] ) . '" class="button button-primary">Open event to update</a> ';
+		echo '<button type="button" class="button fccd-dismiss">No new info</button>';
+	} else {
+		echo '<button type="button" class="button button-primary fccd-approve">Approve &amp; publish</button> ';
+		echo '<a href="' . esc_url( $c['edit_url'] ) . '" class="button">Tweak in editor</a> ';
+		echo '<button type="button" class="button fccd-needsinfo">Needs info</button>';
+	}
 	echo '<span class="fccd-card-status"></span>';
 	echo '</div>';
 	echo '</div>';
