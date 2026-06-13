@@ -161,6 +161,29 @@ add_action(
 		);
 
 		wp_register_ability(
+			'firstchurch/list-event-occurrences',
+			array(
+				'label'               => 'List event occurrences',
+				'description'         => 'Expand a recurring event into its concrete dates within a window (default: the next 12 months from today). Answers "when does this actually happen?" — a one-off returns its single date, and cancelled dates (skip_dates / EXDATE) are removed. Read-only.',
+				'category'            => 'firstchurch',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'id'        => array( 'type' => 'integer' ),
+						'from_date' => array( 'type' => 'string', 'description' => 'YYYY-MM-DD window start; defaults to today.' ),
+						'to_date'   => array( 'type' => 'string', 'description' => 'YYYY-MM-DD window end; defaults to one year after from_date (capped at three years out).' ),
+						'limit'     => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 200, 'default' => 25, 'description' => 'Max occurrences to return; truncated=true signals more remain in the window.' ),
+					),
+					'required'             => array( 'id' ),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => 'fcmcp_list_event_occurrences',
+				'permission_callback' => $can_read,
+				'meta'                => array_merge( $mcp_public, array( 'annotations' => array( 'readonly' => true, 'idempotent' => true ) ) ),
+			)
+		);
+
+		wp_register_ability(
 			'firstchurch/list-event-categories',
 			array(
 				'label'               => 'List event categories',
@@ -446,5 +469,87 @@ function fcmcp_update_event( $input ) {
 		$result['image_warning'] = $img->get_error_message();
 	}
 	$result['event'] = fcmcp_event_to_array( get_post( $id ) );
+	return $result;
+}
+
+/**
+ * Resolve the [from, to, limit] for an occurrence expansion. Pure (no WP) so the
+ * window defaulting/clamping is unit-testable: from defaults to $today, to to one
+ * year out, the window is capped at three years to bound an open-ended RRULE, and
+ * limit is clamped to 1..200.
+ */
+function fcmcp_occurrence_window( array $input, string $today ): array {
+	$from = fcmcp_sanitize_date( $input['from_date'] ?? '' ) ?: $today;
+	$to   = fcmcp_sanitize_date( $input['to_date'] ?? '' );
+	if ( '' === $to ) {
+		$to = gmdate( 'Y-m-d', (int) strtotime( $from . ' +1 year' ) );
+	}
+	$max_to = gmdate( 'Y-m-d', (int) strtotime( $from . ' +3 years' ) );
+	if ( $to > $max_to ) {
+		$to = $max_to;
+	}
+	if ( $to < $from ) {
+		$to = $from;
+	}
+	$limit = max( 1, min( 200, (int) ( $input['limit'] ?? 25 ) ) );
+	return array( 'from' => $from, 'to' => $to, 'limit' => $limit );
+}
+
+/**
+ * Expand one event into concrete dates within a window — delegates the RRULE math
+ * to firstchurch-events (fce_rrule + fce_occurrences_between, the same seam the
+ * calendar grid uses) rather than re-implementing recurrence here.
+ */
+function fcmcp_list_event_occurrences( $input ) {
+	$id   = (int) ( $input['id'] ?? 0 );
+	$post = get_post( $id );
+	if ( ! $post || FCMCP_EVENT_CPT !== $post->post_type ) {
+		return new WP_Error( 'not_found', 'Event not found.' );
+	}
+	if ( 'publish' !== $post->post_status && ! current_user_can( 'edit_post', $post->ID ) ) {
+		return new WP_Error( 'forbidden', 'Not permitted to view this event.' );
+	}
+	if ( ! function_exists( 'fce_rrule' ) || ! function_exists( 'fce_occurrences_between' ) ) {
+		return new WP_Error( 'unavailable', 'Occurrence expansion requires the firstchurch-events plugin.' );
+	}
+
+	$win    = fcmcp_occurrence_window( (array) $input, current_time( 'Y-m-d' ) );
+	$result = array(
+		'id'          => $id,
+		'title'       => get_the_title( $post ),
+		'from'        => $win['from'],
+		'to'          => $win['to'],
+		'recurrence'  => fcmcp_recurrence_to_array( $id ),
+		'count'       => 0,
+		'truncated'   => false,
+		'occurrences' => array(),
+	);
+
+	$dtstart = (string) get_post_meta( $id, FCMCP_META_DTSTART, true );
+	if ( '' === $dtstart ) {
+		return $result; // No start date — nothing to expand.
+	}
+
+	$rrule = fce_rrule( $id );
+	$skip  = array_values( array_filter( array_map( 'trim', explode( ',', (string) get_post_meta( $id, FCMCP_META_SKIP, true ) ) ) ) );
+	$time  = (string) get_post_meta( $id, FCMCP_META_TIME, true );
+
+	$occ = fce_occurrences_between(
+		$dtstart,
+		$rrule,
+		new DateTimeImmutable( $win['from'] ),
+		new DateTimeImmutable( $win['to'] . ' 23:59:59' ),
+		$skip
+	);
+
+	$result['truncated'] = count( $occ ) > $win['limit'];
+	foreach ( array_slice( $occ, 0, $win['limit'] ) as $o ) {
+		$date                    = $o->format( 'Y-m-d' );
+		$result['occurrences'][] = array(
+			'date'  => $date,
+			'start' => '' !== $time ? $date . ' ' . $time : null,
+		);
+	}
+	$result['count'] = count( $result['occurrences'] );
 	return $result;
 }
