@@ -268,6 +268,72 @@ add_action(FCBF_INTAKE_PROCESS_HOOK, static function (): void {
     fcbf_intake_process_run(20);
 });
 
+/**
+ * One-time backfill: re-stamp drafts created BEFORE backdating existed to their
+ * historical date. Mirrors the live processor — an event backdates to its event
+ * date (_fce_dtstart), an announcement to its intake submission date. Safe and
+ * idempotent: only touches its own draft/pending linked posts, only sets
+ * strictly-past dates (never schedules a future one), and skips a draft already
+ * on its target date. Pass dry_run to preview.
+ *
+ * @return array{scanned:int,updated:int,skipped:int,items:array<int,array<string,mixed>>}
+ */
+function fcbf_intake_backfill_dates(int $limit = 200, bool $dry_run = false): array
+{
+    $q = new WP_Query([
+        'post_type'      => FCBF_INTAKE_CPT,
+        'post_status'    => ['publish', 'pending', 'draft', 'private'],
+        'posts_per_page' => max(1, min(500, $limit)),
+        'no_found_rows'  => true,
+        'meta_query'     => [
+            'relation' => 'AND',
+            ['key' => FCBF_INTAKE_STATUS, 'value' => 'drafted'],
+            ['key' => FCBF_INTAKE_LINKED, 'compare' => 'EXISTS'],
+        ],
+    ]);
+
+    $out = ['scanned' => 0, 'updated' => 0, 'skipped' => 0, 'items' => []];
+    foreach ($q->posts as $item) {
+        $out['scanned']++;
+        $draft_id = (int) get_post_meta($item->ID, FCBF_INTAKE_LINKED, true);
+        $draft    = $draft_id ? get_post($draft_id) : null;
+        $note     = static function (string $r) use (&$out, $item, $draft_id): void {
+            $out['skipped']++;
+            $out['items'][] = ['item' => $item->ID, 'draft' => $draft_id ?: null, 'result' => $r];
+        };
+
+        if (!$draft) { $note('no linked draft'); continue; }
+        if (!in_array($draft->post_status, ['draft', 'pending'], true)) {
+            $note('skip (' . $draft->post_status . ' — left alone)');
+            continue;
+        }
+
+        if ('fce_event' === $draft->post_type) {
+            $target = fcbf_intake_backdate((string) get_post_meta($draft_id, '_fce_dtstart', true));
+            $src    = 'event date';
+        } else {
+            $target = fcbf_intake_backdate((string) get_post_meta($item->ID, FCBF_INTAKE_CREATED_ON, true));
+            $src    = 'submission date';
+        }
+        if ('' === $target) { $note('skip (no past date)'); continue; }
+
+        $current = substr((string) $draft->post_date, 0, 10);
+        if ($current === $target) { $note('already ' . $target); continue; }
+
+        if (!$dry_run) {
+            $r = wp_update_post(fcmcp_apply_post_date(['ID' => $draft_id], ['date' => $target]), true);
+            if (is_wp_error($r)) { $note('error: ' . $r->get_error_message()); continue; }
+        }
+        $out['updated']++;
+        $out['items'][] = [
+            'item'   => $item->ID,
+            'draft'  => $draft_id,
+            'result' => ($dry_run ? 'WOULD set ' : 'set ') . $current . ' -> ' . $target . " ({$src})",
+        ];
+    }
+    return $out;
+}
+
 /* ---- Manual trigger as an MCP ability (drain the queue on demand) ---- */
 
 add_filter(
@@ -275,7 +341,7 @@ add_filter(
     static function ($config) {
         if (is_array($config)) {
             $existing        = isset($config['tools']) && is_array($config['tools']) ? $config['tools'] : [];
-            $config['tools'] = array_values(array_unique(array_merge($existing, ['firstchurch/process-intake'])));
+            $config['tools'] = array_values(array_unique(array_merge($existing, ['firstchurch/process-intake', 'firstchurch/backfill-intake-dates'])));
         }
         return $config;
     }
@@ -302,6 +368,28 @@ add_action(
                 ],
                 'execute_callback'    => static function ($input = []) {
                     return fcbf_intake_process_run((int) ($input['limit'] ?? 20));
+                },
+                'permission_callback' => static fn (): bool => current_user_can('edit_posts'),
+                'meta'                => ['mcp' => ['public' => true]],
+            ]
+        );
+
+        wp_register_ability(
+            'firstchurch/backfill-intake-dates',
+            [
+                'label'               => 'Backfill intake draft dates',
+                'description'         => 'One-time: re-stamp already-created drafts to their historical publication date (events to their event date, announcements to their submission date) for items drafted before backdating existed. Idempotent; only touches draft/pending posts and strictly-past dates. Pass dry_run to preview.',
+                'category'            => 'firstchurch',
+                'input_schema'        => [
+                    'type'                 => 'object',
+                    'properties'           => [
+                        'limit'   => ['type' => 'integer', 'minimum' => 1, 'maximum' => 500, 'default' => 200],
+                        'dry_run' => ['type' => 'boolean', 'default' => false, 'description' => 'Preview changes without applying them.'],
+                    ],
+                    'additionalProperties' => false,
+                ],
+                'execute_callback'    => static function ($input = []) {
+                    return fcbf_intake_backfill_dates((int) ($input['limit'] ?? 200), (bool) ($input['dry_run'] ?? false));
                 },
                 'permission_callback' => static fn (): bool => current_user_can('edit_posts'),
                 'meta'                => ['mcp' => ['public' => true]],
