@@ -228,6 +228,12 @@ function fcbf_intake_process_item(int $post_id): array
             $res = fcmcp_create_event($ev);
             if (!is_wp_error($res) && !empty($res['id'])) {
                 $drafts[] = (int) $res['id'];
+                // If the event has a Breeze sign-up form, embed it on the page by
+                // default (the coordinator can adjust on the Comms Desk card).
+                $fid = fcbf_breeze_form_id_from_url((string) ($ev['registration_url'] ?? ''));
+                if ('' !== $fid) {
+                    fcbf_embed_breeze_form((int) $res['id'], $fid);
+                }
             }
         } elseif ('announcement' === $kind && is_array($intent['announcement'] ?? null) && function_exists('fcmcp_create_announcement')) {
             $ann = $intent['announcement'];
