@@ -20,13 +20,27 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/** Option holding a live, admin-edited override of the house voice. */
+const FCMCP_VOICE_OPTION = 'fc_church_voice';
+
 /**
- * The canonical First Church Seattle house voice — the single source of truth
- * fed as the system instruction to every AI call here. Derived from the 2026
- * First Church Weekly News corpus (../enews/STYLE_GUIDE_2026.md) and the intake
- * extraction prompt that used to live in the firstchurchnews worker.
+ * The canonical First Church Seattle house voice — the single source of truth fed
+ * as the system instruction to every AI call here, and exposed as the
+ * guide-church-voice MCP resource. Returns the live admin-edited override if one
+ * is saved, otherwise the built-in default. Edit it at Tools → Church Voice.
  */
 function fc_church_voice(): string {
+	$custom = trim( (string) get_option( FCMCP_VOICE_OPTION, '' ) );
+	return '' !== $custom ? $custom : fcmcp_church_voice_default();
+}
+
+/**
+ * The built-in default house voice — the seed shipped in code and the fallback
+ * whenever no override is saved (so the voice is never empty and survives a DB
+ * loss / ddev pull-prod). Derived from the 2026 First Church Weekly News corpus
+ * (../enews/STYLE_GUIDE_2026.md) and the firstchurchnews extraction prompt.
+ */
+function fcmcp_church_voice_default(): string {
 	return <<<'MD'
 You write for First United Methodist Church of Seattle ("First Church"), a
 progressive Christian congregation (firstchurchseattle.org). The house voice is
@@ -158,13 +172,15 @@ function fcmcp_rewrite_in_voice( $input = array() ) {
 	if ( '' === $text ) {
 		return new WP_Error( 'missing_text', 'Provide text to rewrite.' );
 	}
-	$kind = (string) ( $input['kind'] ?? '' ); // optional hint: title|body|announcement
+	$kind = (string) ( $input['kind'] ?? '' ); // optional hint: title|body|announcement|selection
 	$hint = '' !== $kind ? " This text is a(n) {$kind}." : '';
 
 	$out = fcmcp_voice_generate(
-		"Rewrite the following in the First Church house voice, preserving every fact "
-		. "(dates, names, prices, links) exactly while changing only register and phrasing.{$hint} "
-		. "Return ONLY the rewritten text, no preamble.\n\n---\n{$text}"
+		"Rewrite the passage below in the First Church house voice. Preserve every fact "
+		. "(dates, names, prices, links) exactly; change only register and phrasing. Do NOT "
+		. "add a title, heading, or preamble, and do NOT wrap it in quotes. Return ONLY the "
+		. "rewritten passage, matching the input's format — plain text in, plain text out; "
+		. "keep any inline links.{$hint}\n\n---\n{$text}"
 	);
 	if ( is_wp_error( $out ) ) {
 		return $out;
