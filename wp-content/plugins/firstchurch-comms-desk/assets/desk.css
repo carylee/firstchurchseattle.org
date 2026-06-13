@@ -30,6 +30,23 @@
 .fccd-card-status.is-ok { color: #00a32a; }
 .fccd-card-status.is-err { color: #d63638; }
 
+/* rich-card editing controls */
+.fccd-edit { margin: 10px 0; padding: 10px 12px; background: #f6f7f7; border-radius: 6px; font-size: 13px; }
+.fccd-edit > div { margin: 6px 0; }
+.fccd-photo-thumb { height: 60px; width: auto; border-radius: 4px; vertical-align: middle; margin-right: 8px; }
+.fccd-photo-none { color: #646970; }
+.fccd-stock { margin-top: 8px; }
+.fccd-stock-q { width: 280px; max-width: 60%; }
+.fccd-stock-results { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.fccd-stock-pick { padding: 0; border: 2px solid transparent; border-radius: 4px; cursor: pointer; background: none; line-height: 0; }
+.fccd-stock-pick:hover { border-color: #2271b1; }
+.fccd-stock-pick img { height: 64px; width: 96px; object-fit: cover; border-radius: 2px; }
+.fccd-cta label { margin-right: 10px; }
+.fccd-cta input { min-width: 180px; }
+.fccd-breeze code { background: #fff; padding: 1px 5px; border-radius: 3px; }
+.fccd-breeze-list { margin-top: 6px; }
+.fccd-edit-status.is-ok, .fccd-ok { color: #00a32a; }
+
 .fccd-loose ul { margin: 4px 0 10px 18px; }
 .fccd-week, .fccd-recent { margin-left: 4px; }
 .fccd-muted { color: #646970; }
