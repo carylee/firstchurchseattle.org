@@ -222,6 +222,10 @@ function fcbf_intake_ability_set_status($input)
     }
 
     update_post_meta($post->ID, FCBF_INTAKE_STATUS, $status);
+    if ('new' === $status) {
+        // Re-queued by a human — clear the failure counter so it gets a fresh run.
+        delete_post_meta($post->ID, FCBF_INTAKE_ATTEMPTS);
+    }
     if (isset($input['linked_post'])) {
         $linked = (int) $input['linked_post'];
         if ($linked > 0) {

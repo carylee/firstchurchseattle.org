@@ -21,6 +21,36 @@ if (!defined('ABSPATH')) {
 /** Cron hook that processes the intake queue. */
 const FCBF_INTAKE_PROCESS_HOOK = 'fcbf_intake_process_event';
 
+/** Park an item after this many failed extraction attempts (≈ this × 15 min). */
+const FCBF_INTAKE_MAX_ATTEMPTS = 4;
+
+/**
+ * Record a failed extraction attempt and decide the item's fate. Used only for
+ * failures that already SPENT an extraction call (bad model output, or a
+ * successful-but-empty extraction) — these won't fix themselves, so after
+ * FCBF_INTAKE_MAX_ATTEMPTS we park the item as dismissed (with a note, reversible)
+ * instead of re-spending AI on it every cron pass. (Pure classify failures — a
+ * down/unset Connector — are cheap and self-healing, so they are NOT counted and
+ * keep retrying.)
+ *
+ * @return array{id:int,action:string,detail:string,drafts:array<int,int>}
+ */
+function fcbf_intake_attempt_failure(int $post_id, string $reason): array
+{
+    $n = (int) get_post_meta($post_id, FCBF_INTAKE_ATTEMPTS, true) + 1;
+    update_post_meta($post_id, FCBF_INTAKE_ATTEMPTS, $n);
+
+    if ($n >= FCBF_INTAKE_MAX_ATTEMPTS) {
+        fcbf_intake_ability_set_status([
+            'id'     => $post_id,
+            'status' => 'dismissed',
+            'note'   => sprintf('Auto-dismissed after %d attempts — %s. Needs a human (set status back to new to retry).', $n, $reason),
+        ]);
+        return ['id' => $post_id, 'action' => 'dismissed', 'detail' => "gave up after {$n}: {$reason}", 'drafts' => []];
+    }
+    return ['id' => $post_id, 'action' => 'error', 'detail' => sprintf('%s (attempt %d/%d, will retry)', $reason, $n, FCBF_INTAKE_MAX_ATTEMPTS), 'drafts' => []];
+}
+
 /** Flatten one intake item into a single text blob for the AI. */
 function fcbf_intake_item_text(WP_Post $post): string
 {
@@ -157,12 +187,14 @@ function fcbf_intake_process_item(int $post_id): array
         'attachment_urls' => fcbf_intake_item_attachments($post_id),
     ]);
     if (is_wp_error($extract)) {
-        return ['id' => $post_id, 'action' => 'error', 'detail' => 'extract: ' . $extract->get_error_message(), 'drafts' => []];
+        // We spent an extraction call (e.g. unparseable model output) — count it
+        // toward the give-up limit so a persistently bad item doesn't loop.
+        return fcbf_intake_attempt_failure($post_id, 'extract: ' . $extract->get_error_message());
     }
     $intents = is_array($extract['intents'] ?? null) ? $extract['intents'] : [];
     $notes   = trim((string) ($extract['notes'] ?? ''));
     if (!$intents) {
-        return ['id' => $post_id, 'action' => 'error', 'detail' => 'no intents produced', 'drafts' => []];
+        return fcbf_intake_attempt_failure($post_id, 'extraction produced no usable draft');
     }
 
     // 3. Create a draft per intent (dedup events conservatively).
