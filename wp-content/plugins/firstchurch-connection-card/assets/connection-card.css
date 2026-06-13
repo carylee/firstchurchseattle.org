@@ -1,20 +1,28 @@
 /**
  * Check-in & Connection Card — front-end styles.
  *
- * Designed to live inside the Maranatha child theme's visual language:
- * brand maroon (#70334e), soft card surface (#faf6f8 / #ebe1e5), 12px
- * radius, pill buttons, ≥44px tap targets on mobile. All rules are
- * scoped under .fcc-form so dropping this on any page can't bleed into
- * the rest of the theme.
+ * Inherits the active theme's design tokens (the firstchurch theme's --fcs-*
+ * custom properties) so the form re-skins — including dark mode — with the
+ * rest of the site; each --fcc-* falls back to the original Maranatha-era
+ * value when the plugin runs under a theme that doesn't define --fcs-*.
+ *
+ * Following the theme's own split: brand "fill" tokens (button backgrounds,
+ * control accents) stay constant across schemes; the "accent" token (brand as
+ * text/outline) lightens in dark mode so it stays legible. All rules are
+ * scoped under .fcc-form so dropping this on any page can't bleed into the
+ * rest of the theme.
  */
 
 .fcc-form {
-	--fcc-maroon: #70334e;
-	--fcc-maroon-dark: #5a2940;
-	--fcc-surface: #faf6f8;
-	--fcc-border: #ebe1e5;
-	--fcc-text: #1f1f1f;
-	--fcc-text-muted: #5f5560;
+	--fcc-maroon: var(--fcs-maroon, #70334e);        /* brand FILL (button bg, control accent) */
+	--fcc-maroon-dark: var(--fcs-maroon-dark, #5a2940);
+	--fcc-accent: var(--fcs-accent, #70334e);        /* brand as TEXT/outline — lightens in dark */
+	--fcc-surface: var(--fcs-surface-2, #faf6f8);    /* the card panel */
+	--fcc-field-bg: var(--fcs-surface, #fff);        /* inputs, sit a step back from the card */
+	--fcc-on-fill: var(--fcs-text-light, #fff);      /* text printed on a brand fill */
+	--fcc-border: var(--fcs-border, #ebe1e5);
+	--fcc-text: var(--fcs-text, #1f1f1f);
+	--fcc-text-muted: var(--fcs-text-muted, #5f5560);
 	--fcc-danger: #b3261e;
 	--fcc-success: #2f6f3f;
 	--fcc-radius: 12px;
@@ -35,7 +43,7 @@
 	margin: 0 0 8px;
 	font-size: 24px;
 	font-weight: 600;
-	color: var(--fcc-maroon);
+	color: var(--fcc-accent);
 	letter-spacing: 0.01em;
 }
 
@@ -73,9 +81,9 @@
 	padding: 6px 14px;
 	min-height: 36px;
 	background: transparent;
-	border: 1px solid var(--fcc-maroon);
+	border: 1px solid var(--fcc-accent);
 	border-radius: 999px;
-	color: var(--fcc-maroon);
+	color: var(--fcc-accent);
 	font: inherit;
 	font-size: 0.9em;
 	font-weight: 600;
@@ -86,7 +94,7 @@
 .fcc-form__welcome-reset:hover,
 .fcc-form__welcome-reset:focus-visible {
 	background: var(--fcc-maroon);
-	color: #fff;
+	color: var(--fcc-on-fill);
 	outline: none;
 }
 
@@ -106,7 +114,7 @@
 }
 
 .fcc-required {
-	color: var(--fcc-maroon);
+	color: var(--fcc-accent);
 	margin-left: 2px;
 }
 
@@ -128,7 +136,7 @@
 	padding: 10px 12px;
 	font: inherit;
 	color: var(--fcc-text);
-	background: #fff;
+	background: var(--fcc-field-bg);
 	border: 1px solid var(--fcc-border);
 	border-radius: 8px;
 	box-sizing: border-box;
@@ -144,7 +152,7 @@
 .fcc-form input:focus,
 .fcc-form textarea:focus {
 	outline: none;
-	border-color: var(--fcc-maroon);
+	border-color: var(--fcc-accent);
 	box-shadow: 0 0 0 3px rgba(112, 51, 78, 0.18);
 }
 
@@ -246,7 +254,7 @@
 	padding: 0;
 	border: 1px dashed var(--fcc-border);
 	border-radius: 8px;
-	background: #fff;
+	background: var(--fcc-field-bg);
 }
 
 .fcc-details summary {
@@ -329,7 +337,7 @@
 	padding: 12px 28px;
 	min-height: var(--fcc-tap-min);
 	background: var(--fcc-maroon);
-	color: #fff;
+	color: var(--fcc-on-fill);
 	border: 1px solid var(--fcc-maroon);
 	border-radius: 999px;
 	font: inherit;
@@ -344,7 +352,7 @@
 .fcc-submit:focus {
 	background: var(--fcc-maroon-dark);
 	border-color: var(--fcc-maroon-dark);
-	color: #fff;
+	color: var(--fcc-on-fill);
 	outline: none;
 }
 

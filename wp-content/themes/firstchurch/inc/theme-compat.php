@@ -65,3 +65,26 @@ function fcs_has_content(): bool {
 		|| preg_match( '/wp\:/', $content )
 	);
 }
+
+/**
+ * The small gold context line above the banner title: section (parent page),
+ * post date for articles, or content type for archives. Empty string = none.
+ *
+ * @return string
+ */
+function fcs_banner_kicker(): string {
+	if ( is_singular( 'post' ) ) {
+		return __( 'News', 'firstchurch' ) . ' · ' . get_the_date();
+	}
+	if ( is_page() ) {
+		$parent = wp_get_post_parent_id( get_the_ID() );
+		return $parent ? (string) get_the_title( $parent ) : '';
+	}
+	if ( is_search() ) {
+		return __( 'Search', 'firstchurch' );
+	}
+	if ( is_archive() ) {
+		return __( 'Archive', 'firstchurch' );
+	}
+	return '';
+}

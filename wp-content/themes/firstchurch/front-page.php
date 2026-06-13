@@ -1,15 +1,16 @@
 <?php
 /**
- * Front page.
+ * Front page — "The Open Table".
  *
- * Section order preserves the old homepage: hero → visit card + This Sunday +
- * happenings strip → Shared Breakfast story → three navigation bands
- * (Worship / News + Events / Gatherings).
+ * Editorial homepage: typographic masthead on the cream canvas, a
+ * happening-next ticker fed by the Happenings spine, a photo mosaic of the
+ * church's five doors (Worship / Shared Breakfast / Music / Pride /
+ * Community — photos ship with the theme in assets/home/), and the candle
+ * welcome as a closing creed band.
  *
- * The hero's copy is content, not code — it changes (seasonal notices like
- * Pride Sunday), so it lives in the `fcs_front_hero` option (seeded from the
- * old widget by ops/bin/seed-front-hero.php; editable via wp-cli/MCP). The
- * three bands are stable navigation copy and live here in the template.
+ * The masthead identity line and the seasonal notice come from the
+ * `fcs_front_hero` option (seeded by ops/bin/seed-front-hero.php; editable
+ * via wp-cli/MCP) so agents can update them without code.
  *
  * @package FirstChurch
  */
@@ -19,21 +20,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Hero data: option with a safe hardcoded fallback so the front page can
- * never render an empty hero.
+ * Hero/notice content: option with a safe fallback.
  *
  * @return array{title:string,content:string,image_id:int,links:array<int,array{text:string,url:string}>}
  */
 function fcs_front_hero(): array {
 	$defaults = array(
 		'title'    => __( 'Serving the Heart of the City', 'firstchurch' ),
-		'content'  => '<p>' . __( 'A progressive, inclusive United Methodist community in downtown Seattle — all are welcome, no exceptions.', 'firstchurch' ) . '</p>'
-			. '<p><strong>' . __( 'Worship Sundays · 10:30 am · 180 Denny Way · in person &amp; live on YouTube', 'firstchurch' ) . '</strong></p>',
+		'content'  => '',
 		'image_id' => 0,
-		'links'    => array(
-			array( 'text' => __( 'Plan Your Visit', 'firstchurch' ), 'url' => '/about/newcomers/' ),
-			array( 'text' => __( 'Watch Live', 'firstchurch' ), 'url' => '/worship/live/' ),
-		),
+		'links'    => array(),
 	);
 
 	$opt = get_option( 'fcs_front_hero' );
@@ -41,90 +37,166 @@ function fcs_front_hero(): array {
 	return is_array( $opt ) ? array_merge( $defaults, $opt ) : $defaults;
 }
 
+/**
+ * The next few happenings for the ticker: deduped occurrences from the
+ * spine, soonest first.
+ *
+ * @param int $count Items wanted.
+ * @return array<int,array{date:string,title:string,url:string}>
+ */
+function fcs_ticker_items( int $count = 4 ): array {
+	if ( ! function_exists( 'happenings_event_occurrences' ) ) {
+		return array();
+	}
+
+	$today = current_time( 'Y-m-d' );
+	$until = gmdate( 'Y-m-d', strtotime( $today . ' +35 days' ) );
+	$seen  = array();
+	$out   = array();
+
+	foreach ( happenings_event_occurrences( $today, $until ) as $occ ) {
+		if ( 'rhythm' === ( $occ['kind'] ?? '' ) ) {
+			continue; // weekly fixtures stay out of the news ticker.
+		}
+		$key = $occ['url'] ?: $occ['title'];
+		if ( isset( $seen[ $key ] ) ) {
+			continue;
+		}
+		$seen[ $key ] = true;
+		$out[]        = array(
+			'date'  => date_i18n( 'M j', strtotime( $occ['date'] ) ),
+			'title' => (string) $occ['title'],
+			'url'   => (string) $occ['url'],
+		);
+		if ( count( $out ) >= $count ) {
+			break;
+		}
+	}
+
+	return $out;
+}
+
 get_header();
 
-$fcs_hero       = fcs_front_hero();
-$fcs_hero_image = $fcs_hero['image_id'] ? wp_get_attachment_image_url( (int) $fcs_hero['image_id'], 'full' ) : '';
+$fcs_hero   = fcs_front_hero();
+$fcs_notice = trim( wp_strip_all_tags( $fcs_hero['content'] ) );
+// The option's content carries the standing identity line + any seasonal
+// notice; the masthead sets its own identity copy, so surface only a line
+// that mentions something dated/seasonal (heuristic: a month name).
+$fcs_seasonal = '';
+foreach ( preg_split( '/(?<=[.!?])\s+/', $fcs_notice ) ?: array() as $fcs_sentence ) {
+	if ( preg_match( '/January|February|March|April|May|June|July|August|September|October|November|December/', $fcs_sentence )
+		&& ! preg_match( '/^Worship Sundays/', $fcs_sentence ) ) {
+		$fcs_seasonal = trim( $fcs_sentence );
+		break;
+	}
+}
 
-// The three stable navigation bands. Each carries the same washed background
-// photo the old widgets used (attachment IDs from the retired ctfw-section
-// instances; a missing attachment just renders the flat band).
-$fcs_bands = array(
+$fcs_theme_uri = get_stylesheet_directory_uri();
+
+$fcs_tiles = array(
 	array(
-		'variant'  => 'dark',
-		'title'    => __( 'Worship at First Church', 'firstchurch' ),
-		'copy'     => __( 'Join us for an uplifting service, choral music, and a thought-provoking sermon every Sunday. Nursery and Children’s activities available.', 'firstchurch' ),
-		'image_id' => 1669,
-		'links'    => array(
-			array( 'text' => __( 'Worship Livestream', 'firstchurch' ), 'url' => '/worship/live/' ),
-			array( 'text' => __( 'Prayer', 'firstchurch' ), 'url' => '/worship/prayer/' ),
-		),
+		'class' => 'is-worship',
+		'img'   => $fcs_theme_uri . '/assets/home/tile-worship.jpg',
+		'title' => __( 'Worship with us', 'firstchurch' ),
+		'sub'   => __( 'Sundays 10:30 am — sanctuary & livestream', 'firstchurch' ),
+		'url'   => '/worship/live/',
 	),
 	array(
-		'variant'  => 'light',
-		'title'    => __( 'News + Events', 'firstchurch' ),
-		'copy'     => __( 'There’s always a lot going on at First Church and in our community. Find more information about upcoming events and read our latest updates.', 'firstchurch' ),
-		'image_id' => 7641,
-		'links'    => array(
-			array( 'text' => __( 'Monthly Calendar', 'firstchurch' ), 'url' => '/events-calendar/' ),
-			array( 'text' => __( 'Upcoming Events', 'firstchurch' ), 'url' => '/upcoming-events/' ),
-			array( 'text' => __( 'News', 'firstchurch' ), 'url' => '/news/' ),
-		),
+		'class' => 'is-breakfast',
+		'img'   => $fcs_theme_uri . '/assets/home/tile-breakfast.jpg',
+		'title' => __( 'Shared Breakfast', 'firstchurch' ),
+		'sub'   => __( '15,000 hot meals a year, every Sunday since 1997', 'firstchurch' ),
+		'url'   => '/gather/serve/shared-breakfast/',
 	),
 	array(
-		'variant'  => 'dark',
-		'title'    => __( 'Gatherings at First Church', 'firstchurch' ),
-		'copy'     => __( 'Gather to learn, to fellowship, to serve, or to make music! We have something for everyone.', 'firstchurch' ),
-		'image_id' => 2087,
-		'links'    => array(
-			array( 'text' => __( 'Learn + Grow', 'firstchurch' ), 'url' => '/gather/grow-learn/' ),
-			array( 'text' => __( 'Fellowship', 'firstchurch' ), 'url' => '/gather/fellowship/' ),
-			array( 'text' => __( 'Serve', 'firstchurch' ), 'url' => '/gather/serve/' ),
-		),
+		'class' => 'is-music',
+		'img'   => $fcs_theme_uri . '/assets/home/tile-music.jpg',
+		'title' => __( 'Music', 'firstchurch' ),
+		'sub'   => __( 'a sanctuary that sings', 'firstchurch' ),
+		'url'   => '/gather/music/',
+	),
+	array(
+		'class' => 'is-pride',
+		'img'   => $fcs_theme_uri . '/assets/home/tile-pride.jpg',
+		'title' => __( 'Pride + Faith', 'firstchurch' ),
+		'sub'   => __( 'Reconciling — all means all', 'firstchurch' ),
+		'url'   => '/gather/pride-at-first-church/',
+	),
+	array(
+		'class' => 'is-community',
+		'img'   => $fcs_theme_uri . '/assets/home/tile-community.jpg',
+		'title' => __( 'Community', 'firstchurch' ),
+		'sub'   => __( 'kids, classes, fellowship & serving', 'firstchurch' ),
+		'url'   => '/gather/',
 	),
 );
+
+$fcs_ticker = fcs_ticker_items();
 
 ?>
 <main id="fcs-home" class="fcs-home">
 
-	<section class="fcs-hero" aria-label="<?php esc_attr_e( 'Welcome', 'firstchurch' ); ?>">
-		<?php if ( $fcs_hero_image ) : ?>
-			<div class="fcs-hero__image" style="background-image: url('<?php echo esc_url( $fcs_hero_image ); ?>')" aria-hidden="true"></div>
+	<section class="fcs-mast" aria-label="<?php esc_attr_e( 'Welcome', 'firstchurch' ); ?>">
+		<p class="fcs-kicker"><?php esc_html_e( 'A progressive, inclusive church in downtown Seattle', 'firstchurch' ); ?></p>
+		<h1><?php esc_html_e( 'Whoever you are,', 'firstchurch' ); ?><br><em><?php esc_html_e( 'wherever you find yourself today.', 'firstchurch' ); ?></em></h1>
+		<p class="fcs-mast__bless">
+			<?php esc_html_e( 'May this community be a place of', 'firstchurch' ); ?>
+			<em><?php esc_html_e( 'companionship and healing', 'firstchurch' ); ?></em>
+			<?php esc_html_e( 'for you.', 'firstchurch' ); ?>
+		</p>
+		<p class="fcs-mast__meta">
+			<strong><?php esc_html_e( 'Worship Sundays · 10:30 am · 180 Denny Way & YouTube', 'firstchurch' ); ?></strong>
+			· <?php esc_html_e( 'doubts welcome · kids welcome · childcare provided · free parking', 'firstchurch' ); ?>
+		</p>
+		<?php if ( $fcs_seasonal ) : ?>
+			<p class="fcs-mast__notice"><?php echo esc_html( $fcs_seasonal ); ?></p>
 		<?php endif; ?>
-		<div class="fcs-hero__content">
-			<h1><?php echo esc_html( $fcs_hero['title'] ); ?></h1>
-			<div class="fcs-hero__copy"><?php echo wp_kses_post( $fcs_hero['content'] ); ?></div>
-			<?php if ( ! empty( $fcs_hero['links'] ) ) : ?>
-				<ul class="fcs-pill-list">
-					<?php foreach ( $fcs_hero['links'] as $i => $link ) : ?>
-						<li><a class="<?php echo 0 === $i ? 'is-primary' : ''; ?>" href="<?php echo esc_url( $link['url'] ); ?>"><?php echo esc_html( $link['text'] ); ?></a></li>
-					<?php endforeach; ?>
-				</ul>
-			<?php endif; ?>
-		</div>
 	</section>
 
-	<?php get_template_part( 'partials/home-visit-happenings' ); ?>
-
-	<?php get_template_part( 'partials/home-breakfast-story' ); ?>
-
-	<?php foreach ( $fcs_bands as $band ) : ?>
-		<?php $fcs_band_img = ! empty( $band['image_id'] ) ? wp_get_attachment_image_url( (int) $band['image_id'], 'full' ) : ''; ?>
-		<section class="fcs-band fcs-band--<?php echo esc_attr( $band['variant'] ); ?>">
-			<?php if ( $fcs_band_img ) : ?>
-				<div class="fcs-band__image" style="background-image: url('<?php echo esc_url( $fcs_band_img ); ?>')" aria-hidden="true"></div>
-			<?php endif; ?>
-			<div class="fcs-band__content">
-				<h2><?php echo esc_html( $band['title'] ); ?></h2>
-				<p><?php echo esc_html( $band['copy'] ); ?></p>
-				<ul class="fcs-pill-list">
-					<?php foreach ( $band['links'] as $link ) : ?>
-						<li><a href="<?php echo esc_url( $link['url'] ); ?>"><?php echo esc_html( $link['text'] ); ?></a></li>
-					<?php endforeach; ?>
-				</ul>
+	<?php if ( $fcs_ticker ) : ?>
+		<div class="fcs-ticker" role="list" aria-label="<?php esc_attr_e( 'Coming up', 'firstchurch' ); ?>">
+			<div class="fcs-ticker__in">
+				<span role="listitem"><b><?php esc_html_e( 'This Sunday', 'firstchurch' ); ?></b> <?php esc_html_e( 'Breakfast 7:30 · Worship 10:30', 'firstchurch' ); ?></span>
+				<?php foreach ( $fcs_ticker as $t ) : ?>
+					<span role="listitem"><b><?php echo esc_html( $t['date'] ); ?></b>
+						<?php if ( $t['url'] ) : ?><a href="<?php echo esc_url( $t['url'] ); ?>"><?php echo esc_html( $t['title'] ); ?></a><?php else : ?><?php echo esc_html( $t['title'] ); ?><?php endif; ?>
+					</span>
+				<?php endforeach; ?>
 			</div>
-		</section>
-	<?php endforeach; ?>
+		</div>
+	<?php endif; ?>
+
+	<section class="fcs-mosaic" aria-label="<?php esc_attr_e( 'Life at First Church', 'firstchurch' ); ?>">
+		<?php foreach ( $fcs_tiles as $tile ) : ?>
+			<a class="fcs-tile <?php echo esc_attr( $tile['class'] ); ?>" href="<?php echo esc_url( home_url( $tile['url'] ) ); ?>" style="background-image:url('<?php echo esc_url( $tile['img'] ); ?>')">
+				<span class="fcs-tile__lab">
+					<b><?php echo esc_html( $tile['title'] ); ?></b>
+					<span><?php echo esc_html( $tile['sub'] ); ?></span>
+				</span>
+			</a>
+		<?php endforeach; ?>
+	</section>
+
+	<?php
+	// The candle welcome, closing the page as a creed band — adapted for the
+	// web from the community-candle liturgy spoken here 2024–2026. The
+	// masthead opens the welcome ("Whoever you are, wherever you find
+	// yourself today"); this band finishes the sentence.
+	?>
+	<section class="fcs-creed" aria-label="<?php esc_attr_e( 'Our welcome', 'firstchurch' ); ?>">
+		<div class="fcs-creed__in">
+			<p class="fcs-creed__big">
+				<?php esc_html_e( 'Across the whole spectrum of human existence, with your questions and your doubts, in a world that needs repair — may this community be a place of', 'firstchurch' ); ?>
+				<em><?php esc_html_e( 'companionship and healing', 'firstchurch' ); ?></em>
+				<?php esc_html_e( 'for you. There is nothing that can separate you from God’s all-embracing love.', 'firstchurch' ); ?>
+			</p>
+			<ul class="fcs-btn-list">
+				<li><a class="is-primary" href="<?php echo esc_url( home_url( '/about/newcomers/' ) ); ?>"><?php esc_html_e( 'Plan a visit', 'firstchurch' ); ?></a></li>
+				<li><a href="<?php echo esc_url( home_url( '/connection-card/' ) ); ?>"><?php esc_html_e( 'Say hello', 'firstchurch' ); ?></a></li>
+			</ul>
+		</div>
+	</section>
 
 </main>
 <?php

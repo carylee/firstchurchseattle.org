@@ -48,31 +48,55 @@
   font-display: swap;
   src: url("fonts/lato-400i.woff2") format("woff2");
 }
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/fraunces-var.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/fraunces-var-italic.woff2") format("woff2");
+}
 
 /* ---- Semantic theme tokens ---------------------------------------------- */
 :root {
   /* Brand — used as solid FILLS (buttons, footer, banner, header). These stay
-     constant in dark mode: maroon with white text reads fine on dark. */
-  --fcs-maroon: #70334e;
-  --fcs-maroon-dark: #5a2940;
-  --fcs-text-light: #ffffff; /* text printed ON a brand/maroon fill */
+     constant in dark mode: berry with white text reads fine on dark.
+     Values are the May-2022 style guide palette, sampled from the guide
+     itself (dropbox/communication/Style Guide). Token names still say
+     "maroon"/"gold" — they mean "primary brand fill" and "small accent". */
+  --fcs-maroon: #9c3a75;      /* guide primary berry — C45 M93 Y31 */
+  --fcs-maroon-dark: #7d2c5d;
+  --fcs-forest: #186054;      /* guide secondary forest — C87 M41 Y66 K29; a
+                                 constant dark fill (ticker band), both modes */
+  --fcs-text-light: #ffffff; /* text printed ON a brand/berry/forest fill */
   --fcs-tap-min: 44px;
 
-  /* "accent" is brand maroon used as TEXT or an OUTLINE (links, headings,
+  /* "accent" is the brand berry used as TEXT or an OUTLINE (links, headings,
      ghost buttons) — distinct from the fills because on a dark canvas a text
      colour must lighten to stay legible, while a fill must not. */
-  --fcs-surface: #ffffff;        /* page / card background            */
-  --fcs-surface-2: #faf6f8;      /* subtly raised panel (brand soft)  */
-  --fcs-surface-3: #f7f4f6;      /* section band (happenings)         */
-  --fcs-text: #3a2a33;           /* primary text on a surface         */
-  --fcs-text-soft: #4a414c;      /* secondary body text               */
-  --fcs-text-muted: #8a7d86;     /* meta / muted                      */
-  --fcs-border: #ebe1e5;         /* hairline border                   */
-  --fcs-border-soft: #f0e8ec;    /* very light divider                */
+  --fcs-surface: #fdfcfa;        /* page background (paper white)     */
+  --fcs-surface-2: #ffffff;      /* raised panel / card (lighter)     */
+  --fcs-surface-3: #f4f2ee;      /* section band                      */
+  --fcs-text: #232026;           /* primary text (neutral ink)        */
+  --fcs-text-soft: #4c4750;      /* secondary body text               */
+  --fcs-text-muted: #7f7984;     /* meta / muted                      */
+  --fcs-border: #e3e0db;         /* neutral hairline border           */
+  --fcs-border-soft: #edebe6;    /* very light divider                */
   --fcs-accent: var(--fcs-maroon);             /* brand as link / accent text */
   --fcs-accent-strong: var(--fcs-maroon-dark); /* its hover/active state      */
-  --fcs-accent-muted: #8a5a72;   /* quieter brand (fallback CTAs)     */
-  --fcs-live: #2e7d32;           /* "live now" status green           */
+  --fcs-accent-muted: #aa5e8d;   /* quieter brand (fallback CTAs)     */
+  --fcs-gold: #7d6a26;           /* guide olive (#9f8838) darkened for AA as
+                                    small text on white (kickers, tags)       */
+  --fcs-gold-on-dark: #d6c054;   /* the olive accent on berry/dark fills      */
+  --fcs-emerald-bright: #7be0b4; /* guide emerald lightened for dark fills
+                                    (ticker dates on forest)                  */
+  --fcs-live: #109d68;           /* "live now" — guide primary emerald */
 
   /* Tell the UA our palette so native form controls, scrollbars and the
      date/select widgets adapt automatically. */
@@ -82,21 +106,22 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Brand FILL tokens intentionally unchanged (see above). Accent lightens
-       to a rose so links stay legible on dark (maroon on near-black fails
-       WCAG). Contrast checked against #16181c: body ~14:1, muted ~5:1,
+       to a rose so links stay legible on dark (berry on near-black fails
+       WCAG). Contrast checked against #1a191c: body ~14:1, muted ~5:1,
        accent ~7:1 — all ≥ AA. */
-    --fcs-surface: #16181c;
-    --fcs-surface-2: #1e2127;
-    --fcs-surface-3: #1a1d22;
-    --fcs-text: #e9e7e4;
-    --fcs-text-soft: #c8c3c9;
-    --fcs-text-muted: #9b949c;
-    --fcs-border: #34373d;
-    --fcs-border-soft: #2a2d33;
-    --fcs-accent: #e295b6;
-    --fcs-accent-strong: #f1b6d0;
-    --fcs-accent-muted: #c98aac;
-    --fcs-live: #5cc46a;
+    --fcs-surface: #1a191c;
+    --fcs-surface-2: #242227;
+    --fcs-surface-3: #1f1d21;
+    --fcs-text: #eceaee;
+    --fcs-text-soft: #c9c5cd;
+    --fcs-text-muted: #959099;
+    --fcs-border: #37343b;
+    --fcs-border-soft: #2c2930;
+    --fcs-accent: #e391bd;
+    --fcs-accent-strong: #f0b3d3;
+    --fcs-accent-muted: #cb8db1;
+    --fcs-gold: #d3bd58;
+    --fcs-live: #3ecf94;
   }
 }
 
@@ -120,7 +145,10 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
+    /* Guide primary face. 600 is the Raleway variable file's top weight —
+       the browser would fake-bold a default 700. */
     font-family: var(--font-display);
+    font-weight: 600;
     color: var(--fcs-text);
     line-height: 1.25;
     text-wrap: balance;

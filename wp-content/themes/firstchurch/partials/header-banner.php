@@ -16,6 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <div class="fcs-banner">
 	<div class="fcs-banner__inner">
+		<?php $fcs_kicker = fcs_banner_kicker(); ?>
+		<?php if ( $fcs_kicker ) : ?>
+			<p class="fcs-kicker"><?php echo esc_html( $fcs_kicker ); ?></p>
+		<?php endif; ?>
 		<h1><?php echo esc_html( fcs_page_title() ); ?></h1>
 	</div>
 </div>

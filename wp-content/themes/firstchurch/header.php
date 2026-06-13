@@ -30,9 +30,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div class="fcs-header__inner">
 
-		<a class="fcs-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
-			<?php // The header bar is brand maroon in both light and dark mode (see --fcs-maroon in base.css), so the white wordmark is correct in both; the black variant is for light backgrounds elsewhere. ?>
-			<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/logo-white.svg' ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="171" height="44">
+		<a class="fcs-wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+			<picture>
+				<source srcset="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/logo-white.svg' ); ?>" media="(prefers-color-scheme: dark)">
+				<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/logo-black.svg' ); ?>" alt="" width="2009" height="517">
+			</picture>
 		</a>
 
 		<nav class="fcs-nav" aria-label="<?php esc_attr_e( 'Primary', 'firstchurch' ); ?>">
@@ -50,6 +52,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</nav>
 
 		<div class="fcs-header__actions">
+
+			<?php // The standing Give CTA lives with the utility actions, not in the editable menu. ?>
+			<a class="fcs-header__give" href="<?php echo esc_url( home_url( '/give/' ) ); ?>"><?php esc_html_e( 'Give', 'firstchurch' ); ?></a>
 
 			<button type="button" class="fcs-header__btn fcs-search-toggle" aria-expanded="false" aria-controls="fcs-search" aria-label="<?php esc_attr_e( 'Search', 'firstchurch' ); ?>">
 				<svg class="fcs-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>

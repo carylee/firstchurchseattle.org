@@ -68,7 +68,7 @@
 	padding: 12px 26px;
 	min-height: var(--fcs-tap-min);
 	border: 1px solid var(--fcs-accent);
-	border-radius: 999px;
+	border-radius: 0.5rem;
 	color: var(--fcs-accent);
 	text-decoration: none;
 	font-weight: 600;
@@ -110,7 +110,7 @@
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: #5a5158;
+	color: var(--fcs-gold);
 }
 
 .fcs-visit__schedule-list {
@@ -182,7 +182,7 @@
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: #5a5158;
+	color: var(--fcs-gold);
 }
 
 .fcs-breakfast__heading {
@@ -281,169 +281,292 @@
 	}
 }
 
-/* -------------------------------------------------------------------------
- * Hero + navigation bands (front-page.php)
- *
- * The hero keeps the old homepage's language: a maroon landing banner with an
- * optional photo washed to ~30% over the brand colour, a light Raleway
- * heading, and pill CTAs. The bands alternate dark / light and stay dark in
- * dark mode (they're a design feature, not a surface).
- * --------------------------------------------------------------------- */
+/* ---- Unified CTA row ---------------------------------------------------------
+ * One button language: rounded rectangle, sentence case. Default styling is
+ * for dark/brand surfaces; --on-light flips to accent outline/fill. */
 
-.fcs-hero {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: min(34rem, 72vh);
-	padding: 4rem 1.5rem 4.5rem;
-	background-color: var(--fcs-maroon);
-	overflow: hidden;
-}
-
-.fcs-hero__image {
-	position: absolute;
-	inset: 0;
-	background-size: cover;
-	background-position: center;
-	opacity: 0.3;
-}
-
-.fcs-hero__content {
-	position: relative;
-	max-width: 50rem;
-	text-align: center;
-	color: var(--fcs-text-light);
-}
-
-.fcs-hero__content h1 {
-	margin: 0 0 1rem;
-	color: var(--fcs-text-light);
-	font-family: var(--font-display);
-	font-weight: 300;
-	font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
-	letter-spacing: 0.02em;
-}
-
-.fcs-hero__copy {
-	font-size: 1.125rem;
-	line-height: 1.6;
-}
-
-.fcs-hero__copy p {
-	margin: 0 0 0.75em;
-}
-
-.fcs-hero__copy a {
-	color: var(--fcs-text-light);
-	text-decoration: underline;
-	text-decoration-color: rgb(255 255 255 / 0.5);
-}
-
-/* ---- Pill CTA row (hero + bands) ---- */
-
-.fcs-pill-list {
+.fcs-btn-list {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.75rem;
 	justify-content: center;
 	list-style: none;
-	margin: 1.75rem 0 0;
+	margin: 1.5rem 0 0;
 	padding: 0;
 }
 
-.fcs-pill-list a {
+.fcs-btn-list a {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	min-height: var(--fcs-tap-min);
-	padding: 0.7rem 1.5rem;
-	border: 1px solid currentColor;
-	border-radius: 999px;
-	color: inherit;
-	font-size: 0.8125rem;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
+	padding: 0.7rem 1.4rem;
+	border: 1px solid rgb(255 255 255 / 0.75);
+	border-radius: 0.5rem;
+	color: var(--fcs-text-light);
+	font-size: 0.9375rem;
+	font-weight: 600;
 	text-decoration: none;
 	transition: background-color 0.12s ease-out, color 0.12s ease-out;
 }
 
-.fcs-pill-list a:hover,
-.fcs-pill-list a:focus-visible {
+.fcs-btn-list a:hover,
+.fcs-btn-list a:focus-visible {
 	background-color: rgb(255 255 255 / 0.15);
+	border-color: #fff;
+	color: var(--fcs-text-light);
 	text-decoration: none;
-	color: inherit;
 }
 
-.fcs-pill-list a.is-primary {
+.fcs-btn-list a.is-primary {
 	background-color: #fff;
 	border-color: #fff;
-	color: var(--fcs-maroon);
+	color: var(--fcs-maroon-dark);
 }
 
-.fcs-pill-list a.is-primary:hover,
-.fcs-pill-list a.is-primary:focus-visible {
-	background-color: rgb(255 255 255 / 0.88);
+.fcs-btn-list a.is-primary:hover,
+.fcs-btn-list a.is-primary:focus-visible {
+	background-color: #f7e9f1;
+	border-color: #f7e9f1;
+	color: var(--fcs-maroon-dark);
 }
 
-/* ---- Bands ---- */
-
-.fcs-band {
-	position: relative;
-	overflow: hidden;
-	padding: 5rem 1.5rem;
-}
-
-/* Washed background photo, same treatment the old widgets used (~10%). */
-.fcs-band__image {
-	position: absolute;
-	inset: 0;
-	background-size: cover;
-	background-position: center;
-	opacity: 0.12;
-}
-
-.fcs-band__content {
-	position: relative;
-	max-width: 46rem;
-	margin-inline: auto;
-	text-align: center;
-}
-
-.fcs-band__content h2 {
-	margin: 0 0 0.75rem;
-	font-family: var(--font-display);
-	font-weight: 300;
-	font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
-}
-
-.fcs-band--dark {
-	background-color: #26222a;
-	color: #e8e4ea;
-}
-
-.fcs-band--dark h2 {
-	color: #fff;
-}
-
-.fcs-band--light {
-	background-color: var(--fcs-surface-3);
-	color: var(--fcs-text);
-}
-
-.fcs-band--light h2 {
-	color: var(--fcs-text);
-}
-
-/* On the light band the pills read in accent, not white. */
-.fcs-band--light .fcs-pill-list a {
+.fcs-btn-list--on-light a {
+	border-color: var(--fcs-accent);
 	color: var(--fcs-accent);
 }
 
-.fcs-band--light .fcs-pill-list a:hover,
-.fcs-band--light .fcs-pill-list a:focus-visible {
+.fcs-btn-list--on-light a:hover,
+.fcs-btn-list--on-light a:focus-visible {
 	background-color: var(--fcs-maroon);
 	border-color: var(--fcs-maroon);
 	color: var(--fcs-text-light);
+}
+
+.fcs-btn-list--on-light a.is-primary {
+	background-color: var(--fcs-maroon);
+	border-color: var(--fcs-maroon);
+	color: var(--fcs-text-light);
+}
+
+.fcs-btn-list--on-light a.is-primary:hover,
+.fcs-btn-list--on-light a.is-primary:focus-visible {
+	background-color: var(--fcs-maroon-dark);
+	border-color: var(--fcs-maroon-dark);
+	color: var(--fcs-text-light);
+}
+
+/* ---- Kicker (small gold label) ---------------------------------------------- */
+
+.fcs-kicker {
+	margin: 0 0 0.4rem;
+	color: var(--fcs-gold);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.fcs-kicker--on-dark {
+	color: var(--fcs-gold-on-dark);
+}
+
+/* -------------------------------------------------------------------------
+ * "The Open Table" homepage (front-page.php)
+ * Masthead → ticker → mosaic → creed.
+ * --------------------------------------------------------------------- */
+
+.fcs-mast {
+	/* Compact enough that the ticker and most of the mosaic clear the fold
+	   on a ~1470×860 laptop viewport. */
+	max-width: 78rem;
+	margin-inline: auto;
+	padding: 2.75rem 1.5rem 2rem;
+}
+
+.fcs-mast .fcs-kicker {
+	letter-spacing: 0.14em;
+}
+
+.fcs-mast h1 {
+	margin: 0.5rem 0 1rem;
+	font-family: var(--font-display);
+	font-weight: 300;
+	font-size: clamp(2.7rem, 5.8vw, 4.5rem);
+	line-height: 1.04;
+	letter-spacing: -0.015em;
+	color: var(--fcs-text);
+}
+
+.fcs-mast h1 em {
+	font-style: italic;
+	font-weight: 400;
+	color: var(--fcs-accent);
+}
+
+/* The blessing leads at reading size; worship logistics demote to a compact
+   meta row beneath it. */
+.fcs-mast__bless {
+	max-width: 44rem;
+	margin: 0 0 0.65rem;
+	font-size: 1.22rem;
+	line-height: 1.5;
+	color: var(--fcs-text);
+}
+
+.fcs-mast__bless em {
+	font-style: italic;
+	color: var(--fcs-accent);
+}
+
+.fcs-mast__meta {
+	margin: 0;
+	font-size: 0.98rem;
+	color: var(--fcs-text-soft);
+}
+
+.fcs-mast__meta strong {
+	color: var(--fcs-text);
+}
+
+.fcs-mast__notice {
+	max-width: 38rem;
+	margin: 0.9rem 0 0;
+	font-size: 1.02rem;
+	color: var(--fcs-accent);
+	font-weight: 700;
+}
+
+/* ---- Happening-next ticker ---- */
+
+.fcs-ticker {
+	/* Forest is a constant brand fill (like the berry), so the text is fixed
+	   white rather than scheme-flipped tokens. */
+	background: var(--fcs-forest);
+	color: rgb(255 255 255 / 0.95);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.fcs-ticker__in {
+	display: flex;
+	gap: 3rem;
+	padding: 0.8rem 2rem;
+	font-size: 0.92rem;
+	white-space: nowrap;
+}
+
+.fcs-ticker b {
+	color: var(--fcs-emerald-bright);
+	font-weight: 700;
+	margin-right: 0.3rem;
+}
+
+.fcs-ticker a {
+	color: inherit;
+}
+
+.fcs-ticker a:hover {
+	color: var(--fcs-emerald-bright);
+	text-decoration: none;
+}
+
+/* ---- Photo mosaic ---- */
+
+.fcs-mosaic {
+	max-width: 78rem;
+	margin-inline: auto;
+	padding: 1.5rem 1.5rem 3rem;
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	grid-auto-rows: 10rem;
+	gap: 1rem;
+}
+
+.fcs-tile {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	overflow: hidden;
+	border-radius: 1.1rem;
+	background-size: cover;
+	background-position: center;
+	color: var(--fcs-text-light);
+	text-decoration: none;
+	transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+
+.fcs-tile::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(transparent 38%, rgb(30 12 22 / 0.84));
+}
+
+.fcs-tile:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 28px rgb(46 34 40 / 0.25);
+	color: var(--fcs-text-light);
+	text-decoration: none;
+}
+
+.fcs-tile__lab {
+	position: relative;
+	z-index: 2;
+	padding: 1.2rem 1.4rem;
+}
+
+.fcs-tile__lab b {
+	display: block;
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 1.4rem;
+}
+
+.fcs-tile__lab span {
+	font-size: 0.88rem;
+	opacity: 0.9;
+}
+
+.is-worship { grid-column: span 4; grid-row: span 2; }
+.is-breakfast { grid-column: span 2; grid-row: span 2; }
+.is-music, .is-pride, .is-community { grid-column: span 2; }
+
+@media (max-width: 47.9rem) {
+	.fcs-mosaic { grid-template-columns: 1fr 1fr; grid-auto-rows: 10rem; }
+	.is-worship { grid-column: span 2; }
+	.is-breakfast { grid-column: span 2; grid-row: span 1; }
+	.is-music, .is-pride, .is-community { grid-column: span 1; }
+}
+
+/* ---- Creed band (the candle welcome) ---- */
+
+.fcs-creed {
+	background: var(--fcs-maroon);
+}
+
+.fcs-creed__in {
+	max-width: 50rem;
+	margin-inline: auto;
+	padding: 3.5rem 2rem;
+	text-align: center;
+	color: rgb(255 255 255 / 0.94);
+}
+
+.fcs-creed__big {
+	margin: 0;
+	font-family: var(--font-display);
+	font-weight: 300;
+	font-size: clamp(1.45rem, 2.7vw, 2rem);
+	line-height: 1.55;
+}
+
+.fcs-creed__big em {
+	font-style: italic;
+	font-weight: 400;
+	color: #f3cfe4; /* pale berry tint — olive reads muddy on the berry fill */
+}
+
+.fcs-creed .fcs-btn-list {
+	margin-top: 2rem;
 }
