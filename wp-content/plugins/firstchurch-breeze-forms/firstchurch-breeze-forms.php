@@ -28,6 +28,8 @@ require_once __DIR__ . '/src/Native.php';
 // Intake queue: capture Breeze form submissions on-site (CPT + reader + MCP).
 require_once __DIR__ . '/inc/intake-cpt.php';
 require_once __DIR__ . '/inc/intake-reader.php';
+require_once __DIR__ . '/inc/intake-email.php';
+require_once __DIR__ . '/inc/intake-process.php';
 require_once __DIR__ . '/inc/intake-mcp.php';
 
 // Mode 3: native in-theme rendering + server-side submission to Breeze.
@@ -343,7 +345,15 @@ function fcbf_sync_descriptions()
 
 add_action(FCBF_DESCRIPTIONS_HOOK, 'fcbf_sync_descriptions');
 
-/** Ensure both recurring syncs are scheduled (self-heals after updates). */
+/** Add a 15-minute cron interval (the processor runs at the real-crontab cadence). */
+add_filter('cron_schedules', static function (array $schedules): array {
+    if (!isset($schedules['fcbf_15min'])) {
+        $schedules['fcbf_15min'] = ['interval' => 15 * MINUTE_IN_SECONDS, 'display' => 'Every 15 minutes'];
+    }
+    return $schedules;
+});
+
+/** Ensure the recurring syncs + the intake processor are scheduled (self-heals after updates). */
 function fcbf_ensure_scheduled(): void
 {
     if (!wp_next_scheduled(FCBF_SYNC_HOOK)) {
@@ -355,6 +365,9 @@ function fcbf_ensure_scheduled(): void
     if (!wp_next_scheduled(FCBF_INTAKE_HOOK)) {
         wp_schedule_event(time() + 180, 'hourly', FCBF_INTAKE_HOOK);
     }
+    if (!wp_next_scheduled(FCBF_INTAKE_PROCESS_HOOK)) {
+        wp_schedule_event(time() + 240, 'fcbf_15min', FCBF_INTAKE_PROCESS_HOOK);
+    }
 }
 add_action('init', 'fcbf_ensure_scheduled');
 register_activation_hook(__FILE__, 'fcbf_ensure_scheduled');
@@ -362,4 +375,5 @@ register_deactivation_hook(__FILE__, function (): void {
     wp_clear_scheduled_hook(FCBF_SYNC_HOOK);
     wp_clear_scheduled_hook(FCBF_DESCRIPTIONS_HOOK);
     wp_clear_scheduled_hook(FCBF_INTAKE_HOOK);
+    wp_clear_scheduled_hook(FCBF_INTAKE_PROCESS_HOOK);
 });

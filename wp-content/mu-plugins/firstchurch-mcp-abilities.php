@@ -28,4 +28,5 @@ require_once __DIR__ . '/firstchurch-mcp-abilities/pages.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/redirects.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/menus.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/resources-prompts.php';
+require_once __DIR__ . '/firstchurch-mcp-abilities/voice.php';
 require_once __DIR__ . '/firstchurch-mcp-abilities/intake.php';
