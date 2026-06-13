@@ -128,6 +128,17 @@ rsync -av $DRY --delete \
   -e "$RSH" wp-content/plugins/firstchurch-enews/ \
   "$REMOTE/plugins/firstchurch-enews/"
 
+# comms-desk (the human Communications Coordinator workspace: the Comms Desk
+# dashboard, the comms_editor role, and the decluttered admin). Fully ours, no
+# runtime deps; exclude the standard dev artifacts. NOTE: after the first deploy,
+# activate it (it self-heals the comms_editor role on activation):
+#   ssh firstchurch 'cd ~/public_html && wp plugin activate firstchurch-comms-desk'
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-comms-desk/ \
+  "$REMOTE/plugins/firstchurch-comms-desk/"
+
 # mu-plugins/ ALSO holds host must-use plugins (endurance-page-cache) we do NOT track,
 # so sync our files individually and NEVER --delete this directory.
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php          "$REMOTE/mu-plugins/"
