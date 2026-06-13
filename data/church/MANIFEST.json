@@ -1,0 +1,54 @@
+{
+  "built_at": "2026-06-13T05:34:30+00:00",
+  "source": "church/datasets",
+  "datasets": {
+    "enews-lite": {
+      "output": "enews-lite.db",
+      "version": "e2ffbcef9fe4ef242cf7349ad2652f30de0252c1bf1ad8c553681edd83fe7cff",
+      "files": 1,
+      "bytes": 47026176,
+      "built_at": "2026-06-13T05:34:29+00:00",
+      "description": "First Church e-newsletter archive (2012-2026): newsletters, parsed blocks, entities, links, mentions + FTS. Vector embeddings stripped to fit plain git."
+    },
+    "hymns": {
+      "output": "hymns.db",
+      "version": "b6c1530ecaff0268e63b2ef6c035b06b2b7ba31c5da7dbe96898d97246daf0b7",
+      "files": 1,
+      "bytes": 2273280,
+      "built_at": "2026-06-13T05:34:29+00:00",
+      "description": "UMC Hymnal (1989) + The Faith We Sing \u2014 983 hymns, 4165 verses."
+    },
+    "breeze-forms": {
+      "output": "breeze-forms",
+      "version": "a76f6e5dab5f6ab8380ae5f4d0ae0420a4c92a58681d0a42b41b4c482873c1a7",
+      "files": 397,
+      "bytes": 559168,
+      "built_at": "2026-06-13T05:27:45+00:00",
+      "description": "Breeze ChMS form-definition corpus (connection cards, rosters, etc)."
+    },
+    "youtube-transcripts": {
+      "output": "youtube-transcripts",
+      "version": "61eab50b8acd4c2de67d83b9ddd281df3ddd5bff5cbc10abc0476236f60a9eef",
+      "files": 101,
+      "bytes": 4781585,
+      "built_at": "2026-06-13T05:27:45+00:00",
+      "description": "Gemini-generated worship-service transcripts (2024-05 -> 2026-06)."
+    },
+    "bible": {
+      "output": "bible",
+      "version": "e51ced4b981a9f0144d500d669e748dba2e023095d924f1e9e1a82655ebd6cab",
+      "files": 1,
+      "bytes": 5615616,
+      "built_at": "2026-06-13T05:34:29+00:00",
+      "description": "Selected scripture translation(s) as SQLite (book/chapter/verse)."
+    },
+    "worship-corpus": {
+      "output": "worship-corpus",
+      "version": "e8cf149238769e9c534f3747b73000b444fb08fd25879f79934cb6521323b9ec",
+      "files": 124,
+      "bytes": 5086276,
+      "built_at": "2026-06-13T05:27:45+00:00",
+      "description": "Per-date worship corpus assembled from scattered sources \u2014 longform liturgy, print bulletin (Typst), projected slides (Marp), and the service transcript."
+    }
+  }
+}
