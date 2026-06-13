@@ -146,9 +146,14 @@ These are the real blockers, and two are already named on the roadmap:
 - **Ordering is richer than `weight`.** An edited digest needs explicit section order and a
   designated lead, not just `weight`'s coarse float-up. The issue object owns this; the block's
   per-section composition + `excludeFeatured` de-duping is the seed.
-- **The Pastoral Message has no spine home.** Smallest lift: a free prose block on the issue.
-  Slightly more: model it as an announcement of `kind: message` so a "From the Pastor" card can
-  *also* surface on the site. Both are cheap; start with the free block.
+- **The Pastoral Message — done (self-filling block).** Pastor's letters are already authored as
+  blog posts in the **`pastoral-letters`** category, so the "From the Pastor" slot now *projects*
+  the latest one (published within ~5 days) instead of being re-keyed: the `firstchurch/pastoral-
+  letter` block (`firstchurch-enews/inc/pastoral-letter.php`) resolves that post and renders the
+  full letter inline (web + email share one resolver + `Email::letter`). When no recent letter
+  exists, the block falls back to prose written directly in the issue (the "some weeks it's just
+  written into the e-news" case below) — so the slot is automatic when there's a letter and
+  editable when there isn't.
 - **Look-back vs. send cadence.** The weekly window (`weeks=1` / `days=7`) is a starting default;
   some announcements (a multi-week drive) want to recur across issues until `fcs_expires`. That's
   already the announcement lifecycle — no new field, just author the expiry intentionally.

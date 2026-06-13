@@ -42,6 +42,8 @@ function fcen_render_email( int $post_id ): string {
 		}
 		if ( 'firstchurch/happenings' === $name ) {
 			$inner .= fcen_render_happenings_email( $block['attrs'] ?? array() );
+		} elseif ( 'firstchurch/pastoral-letter' === $name ) {
+			$inner .= fcen_render_pastoral_letter_email( $block['attrs'] ?? array() );
 		} else {
 			// Editorial blocks render to clean semantic HTML; the scaffold sets the
 			// base font around them.
@@ -120,6 +122,31 @@ function fcen_render_happenings_email( array $attrs ): string {
 	}
 
 	return $html;
+}
+
+/**
+ * The "From the Pastor" block as the email's serif letter slot, resolved through
+ * the SAME lens the web block uses (fcen_pastoral_letter_resolve) so the two
+ * agree: the latest pastoral-letters post within the window, else the issue's
+ * hand-authored fallback prose.
+ *
+ * @param array<string,mixed> $attrs Block attributes (days/fallback).
+ */
+function fcen_render_pastoral_letter_email( array $attrs ): string {
+	$days   = max( 1, (int) ( $attrs['days'] ?? 5 ) );
+	$letter = function_exists( 'fcen_pastoral_letter_resolve' ) ? fcen_pastoral_letter_resolve( $days ) : null;
+
+	if ( $letter ) {
+		return Email::letter(
+			array(
+				'title' => $letter['title'],
+				'url'   => $letter['url'],
+				'body'  => $letter['body'],
+			)
+		);
+	}
+
+	return Email::prose( isset( $attrs['fallback'] ) ? (string) $attrs['fallback'] : '' );
 }
 
 /* ---- Staff preview ---------------------------------------------------------

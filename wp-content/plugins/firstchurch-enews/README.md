@@ -17,9 +17,14 @@ block editor. The issue is a *thin curation layer*, not a content store:
 - **A new issue opens pre-filled, not blank.** The CPT's block `template` seeds the
   composition in order, so there's no "duplicate last week" ritual, and stale items are
   already gone (the spine self-expires). The template is unlocked — staff reorder and curate.
-- **The hand-authored bits are small.** A Pastoral Message paragraph, the section headings,
-  and the issue envelope (subject + preview tagline + send date, in the *E-News Settings*
-  meta box). That's Bucket C in the design doc.
+- **"From the Pastor" self-fills too.** The `firstchurch/pastoral-letter` block shows the
+  latest post in the **pastoral-letters** category (published within ~5 days), rendering the
+  full letter inline — Pastor's prose is authored once as a blog post and projected here. When
+  there's no recent letter, the block falls back to prose written directly in its block
+  settings, so the slot is automatic when a letter exists and editable when it doesn't.
+- **The hand-authored bits are small.** The "From the Pastor" fallback (most weeks a letter
+  post fills it), the section headings, and the issue envelope (subject + preview tagline +
+  send date, in the *E-News Settings* meta box). That's Bucket C in the design doc.
 
 ## Layout
 
@@ -27,13 +32,16 @@ block editor. The issue is a *thin curation layer*, not a content store:
 firstchurch-enews/
 ├── firstchurch-enews.php   # bootstrap: CPT slug + meta keys, requires, rewrite flush
 ├── src/
-│   ├── Email.php           # pure, unit-tested email render (card + document scaffold + footer)
+│   ├── Email.php           # pure, unit-tested email render (card + letter/prose + document scaffold + footer)
 │   └── Mailchimp.php       # pure, unit-tested Marketing-API payload/parse helpers
 ├── inc/
 │   ├── cpt.php             # register enews_issue + its pre-fill block template
 │   ├── meta.php            # subject / preview / send-date meta + the settings meta box
+│   ├── pastoral-letter.php # the self-filling "From the Pastor" block + its resolver
 │   ├── render.php          # walk an issue's blocks → email HTML; the church footer; "Preview email"
 │   └── mailchimp.php       # credentials + HTTP + "Push to Mailchimp draft" action
+├── assets/
+│   └── pastoral-letter-block.js  # build-free editor UI for the pastoral-letter block
 └── tests/                  # PHPUnit for src/ (dev-only, not deployed)
 ```
 

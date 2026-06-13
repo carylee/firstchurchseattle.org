@@ -117,6 +117,58 @@ final class EmailTest extends TestCase
         $this->assertStringContainsString('Helvetica', $html);
     }
 
+    public function test_letter_links_the_title_embeds_the_body_and_reads_in_serif(): void
+    {
+        // The "From the Pastor" slot: a maroon serif title linking to the post, the
+        // full letter body embedded verbatim (trusted the_content HTML), and a
+        // read-on-the-website link.
+        $html = Email::letter([
+            'title' => 'A Word from Pastor Elizabeth: Pentecost',
+            'url'   => 'https://x/pastoral-letters/pentecost/',
+            'body'  => '<p>Friends, the Spirit moves among us.</p>',
+        ]);
+        $this->assertStringContainsString('A Word from Pastor Elizabeth: Pentecost', $html);
+        $this->assertStringContainsString('href="https://x/pastoral-letters/pentecost/"', $html);
+        $this->assertStringContainsString('<p>Friends, the Spirit moves among us.</p>', $html);
+        $this->assertStringContainsString('Georgia', $html);          // serif slot
+        $this->assertStringContainsString('Read this letter', $html); // website link
+        $this->assertStringContainsString('#800000', $html);          // brand maroon
+    }
+
+    public function test_letter_escapes_the_title_but_trusts_the_body_html(): void
+    {
+        $html = Email::letter([
+            'title' => 'Grace & <peace>',
+            'url'   => 'https://x/l/',
+            'body'  => '<p>Trusted <em>markup</em>.</p>',
+        ]);
+        // The title (plain text) is escaped; the body (the_content) is embedded as-is.
+        $this->assertStringContainsString('Grace &amp; &lt;peace&gt;', $html);
+        $this->assertStringContainsString('<p>Trusted <em>markup</em>.</p>', $html);
+    }
+
+    public function test_letter_without_url_omits_the_link_and_website_cta(): void
+    {
+        $html = Email::letter(['title' => 'Untitled', 'url' => '', 'body' => '<p>x</p>']);
+        $this->assertStringNotContainsString('<a href', $html);
+        $this->assertStringNotContainsString('Read this letter', $html);
+    }
+
+    public function test_prose_splits_blank_lines_into_paragraphs_and_escapes(): void
+    {
+        // The fallback path (no recent letter): plain text → paragraphs, blank lines
+        // separating them, single newlines becoming <br>, everything escaped.
+        $html = Email::prose("Dear friends,\nGrace & peace.\n\nWith love,\nElizabeth");
+        $this->assertSame(2, substr_count($html, '<p '));
+        $this->assertStringContainsString('Grace &amp; peace.', $html);
+        $this->assertStringContainsString('<br', $html);
+    }
+
+    public function test_prose_is_empty_for_blank_input(): void
+    {
+        $this->assertSame('', Email::prose('   '));
+    }
+
     public function test_document_wraps_inner_in_an_email_scaffold(): void
     {
         $inner = '<h2>This Week</h2><p>hello</p>';

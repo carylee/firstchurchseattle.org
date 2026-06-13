@@ -75,7 +75,7 @@ add_action( 'wp_abilities_api_init', static function () {
 			'properties' => array_merge(
 				array(
 					'title'            => array( 'type' => 'string', 'description' => 'Issue title. Defaults to "First Church Weekly News — <issue_date>".' ),
-					'pastoral_message' => array( 'type' => 'string', 'description' => 'Prose for the "From the Pastor" block. Optional; the block is left empty if omitted.' ),
+					'pastoral_message' => array( 'type' => 'string', 'description' => 'Optional fallback prose for the "From the Pastor" block. The block auto-fills from the latest pastoral-letters post (published within ~5 days); this prose is shown only when there is no recent letter.' ),
 					'status'           => array( 'type' => 'string', 'enum' => array( 'draft', 'pending', 'publish' ), 'default' => 'draft' ),
 				),
 				$envelope

@@ -47,17 +47,22 @@ final class ComposeTest extends TestCase
         $this->assertSame($opens, $closes + $selfClosing, 'every non-self-closing block must close');
     }
 
-    public function test_empty_message_yields_an_empty_paragraph(): void
+    public function test_empty_message_yields_a_self_filling_pastoral_block_with_no_fallback(): void
     {
-        $this->assertStringContainsString("<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->", \fcen_compose_issue_body());
+        // No prose supplied → the block carries only its window; it self-fills from
+        // the latest pastoral-letters post at render time.
+        $this->assertStringContainsString('<!-- wp:firstchurch/pastoral-letter {"days":5} /-->', \fcen_compose_issue_body());
     }
 
-    public function test_pastoral_message_is_injected_and_escaped(): void
+    public function test_pastoral_message_becomes_the_block_fallback_attribute(): void
     {
-        $body = \fcen_compose_issue_body('Grace & peace to <you>');
-        $this->assertStringContainsString('Grace &amp; peace to &lt;you&gt;', $body);
-        // The raw, unescaped form must never reach the markup.
-        $this->assertStringNotContainsString('<you>', $body);
+        // The prose is now a STORED attribute (escaped at render, not HTML-escaped
+        // into the markup), so it appears JSON-encoded inside the block delimiter.
+        $body = \fcen_compose_issue_body('Grace & "peace" to you');
+        $this->assertStringContainsString('wp:firstchurch/pastoral-letter', $body);
+        $this->assertStringContainsString('"fallback":"Grace & \\"peace\\" to you"', $body);
+        // No standalone Pastoral Message paragraph block anymore.
+        $this->assertStringNotContainsString('<p>Grace', $body);
     }
 
     public function test_attribute_json_keeps_slashes_unescaped(): void
