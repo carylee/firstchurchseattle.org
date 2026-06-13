@@ -1,0 +1,33 @@
+/* Comms Desk — a calm, focused worklist. */
+.fccd-wrap { max-width: 960px; }
+.fccd-h1 { margin-bottom: 4px; }
+.fccd-greeting { font-size: 15px; color: #50575e; margin-top: 0; }
+
+.fccd-quick { margin: 16px 0 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.fccd-addthing { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 16px; margin: 8px 0 16px; max-width: 640px; }
+.fccd-addthing input, .fccd-addthing textarea { width: 100%; margin-bottom: 8px; }
+
+.fccd-sec { margin-top: 28px; padding-bottom: 6px; border-bottom: 1px solid #dcdcde; font-size: 16px; }
+.fccd-count { display: inline-block; min-width: 22px; text-align: center; background: #d63638; color: #fff; border-radius: 11px; padding: 0 7px; font-size: 12px; line-height: 20px; vertical-align: middle; margin-left: 6px; }
+.fccd-empty { color: #50575e; }
+
+.fccd-card { background: #fff; border: 1px solid #dcdcde; border-left: 4px solid #2271b1; border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
+.fccd-card--done { opacity: 0.55; border-left-color: #00a32a; }
+.fccd-card-title { font-size: 15px; }
+.fccd-card-excerpt { color: #50575e; margin: 6px 0; }
+.fccd-pill { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; padding: 1px 8px; border-radius: 10px; vertical-align: middle; margin-right: 6px; }
+.fccd-pill--event { background: #e7f0fb; color: #0a4b8c; }
+.fccd-pill--announcement { background: #f0e9fb; color: #5a2ca0; }
+
+.fccd-prov { font-size: 12px; color: #646970; margin: 8px 0; }
+.fccd-prov-note { display: block; font-style: italic; margin-top: 2px; }
+
+.fccd-actions { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+.fccd-card-status { font-size: 13px; }
+.fccd-card-status.is-ok { color: #00a32a; }
+.fccd-card-status.is-err { color: #d63638; }
+
+.fccd-loose ul { margin: 4px 0 10px 18px; }
+.fccd-week, .fccd-recent { margin-left: 4px; }
+.fccd-muted { color: #646970; }
