@@ -60,8 +60,9 @@ function fcen_register_cpt(): void {
 /**
  * The default block composition a new issue opens with. Each `firstchurch/
  * happenings` block renders server-side from the spine, so the timely sections
- * auto-fill; the headings and the Pastoral Message paragraph are editorial
- * placeholders the staff replace.
+ * auto-fill; the `firstchurch/pastoral-letter` block likewise self-fills from the
+ * latest pastoral-letters post (with an editable fallback). The headings are
+ * editorial placeholders the staff curate.
  *
  * Windows match the weekly cadence (enews-spine.md §3): featured leads with a
  * single highlight (now able to be a dated event with a real when-line —
@@ -72,9 +73,11 @@ function fcen_register_cpt(): void {
  */
 function fcen_issue_block_template(): array {
 	return array(
-		// --- Bucket C: the one hand-written block (the Pastoral Message). ---
+		// --- Bucket C: the "From the Pastor" slot. Self-fills from the latest
+		//     pastoral-letters post (within ~5 days); falls back to prose written
+		//     in the block's settings when there is no recent letter. ---
 		array( 'core/heading', array( 'level' => 2, 'content' => 'From the Pastor' ) ),
-		array( 'core/paragraph', array( 'placeholder' => "This week's message from our pastor…" ) ),
+		array( 'firstchurch/pastoral-letter', array( 'days' => 5 ) ),
 
 		// --- The week's lead highlight (a featured event or announcement). ---
 		array( 'core/heading', array( 'level' => 2, 'content' => 'This Week’s Highlight' ) ),

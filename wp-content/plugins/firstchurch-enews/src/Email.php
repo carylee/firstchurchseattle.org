@@ -106,6 +106,65 @@ final class Email
     }
 
     /**
+     * The "From the Pastor" letter as the serif prose slot (../mailchimp's
+     * pastor's letter): a maroon serif title linking to the post, the full letter
+     * body (trusted the_content HTML, embedded verbatim — the staff choice to show
+     * it inline), and a "Read this letter on our website »" link. Inherits the
+     * body slot's serif base; the `.serif` class keeps Outlook on Georgia.
+     *
+     * @param array{title?:string,url?:string,body?:string} $view Resolved letter.
+     */
+    public static function letter(array $view): string
+    {
+        $title = (string) ($view['title'] ?? '');
+        $url   = (string) ($view['url'] ?? '');
+        $body  = (string) ($view['body'] ?? ''); // trusted HTML (the_content output)
+
+        $out = '';
+        if ($title !== '') {
+            $titleHtml = self::esc($title);
+            if ($url !== '') {
+                $titleHtml = '<a href="' . self::escAttr($url) . '" style="color:' . self::MAROON . ';text-decoration:none;">' . $titleHtml . '</a>';
+            }
+            $out .= '<p class="serif text-dark" style="' . self::SERIF . 'font-size:20px;line-height:28px;font-weight:bold;color:' . self::MAROON . ';margin:0 0 14px;">' . $titleHtml . '</p>';
+        }
+
+        $out .= '<div class="serif body-text text-dark" style="' . self::SERIF . 'font-size:17px;line-height:27px;color:' . self::INK . ';">' . $body . '</div>';
+
+        if ($url !== '') {
+            $out .= '<p style="' . self::SANS . 'font-size:16px;line-height:25px;margin:16px 0 0;">'
+                . '<a href="' . self::escAttr($url) . '" target="_blank" style="color:' . self::MAROON . ';font-weight:bold;text-decoration:underline;">Read this letter on our website &raquo;</a></p>';
+        }
+
+        return $out;
+    }
+
+    /**
+     * Plain-text prose → paragraphs. The single converter for the "From the Pastor"
+     * fallback (used when no recent letter post exists), shared by the web render
+     * and the email projection so the hand-authored message reads the same on both.
+     * Blank lines separate paragraphs; single newlines become <br>. Escapes input.
+     */
+    public static function prose(string $text): string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return '';
+        }
+
+        $out = '';
+        foreach (preg_split('/\R{2,}/', $text) as $para) {
+            $para = trim((string) $para);
+            if ($para === '') {
+                continue;
+            }
+            $out .= '<p style="margin:0 0 16px;">' . nl2br(self::esc($para)) . '</p>';
+        }
+
+        return $out;
+    }
+
+    /**
      * Wrap already-rendered inner body HTML in the bulletproof email document —
      * the masthead + footer chrome ported from ../mailchimp's tested template
      * (topbar, logo, worship buttons, tan divider … social row, legal panel),

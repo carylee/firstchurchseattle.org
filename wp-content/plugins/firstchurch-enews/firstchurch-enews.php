@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church E-News
  * Description: The weekly e-news as a Happenings surface. An `enews_issue` is a thin, block-editor authoring object that composes the firstchurch-happenings spine — a featured event, this week's events, recent announcements — plus evergreen recurring items and a fixed footer. New issues open pre-filled from the spine (not duplicated from last week), so staff write the editorial bits and curate rather than re-key content. See ops/docs/enews-spine.md.
- * Version:     0.2.0
+ * Version:     0.3.0
  * Author:      First Church Seattle
  *
  * Pairs with firstchurch-happenings (the spine): the composing blocks are the
@@ -18,6 +18,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 const FCEN_CPT = 'enews_issue';
 
+// Plugin base URL/dir — runtime values (so define(), not const), used to enqueue
+// the block editor script under assets/ with a filemtime cache-bust.
+define( 'FCEN_URL', plugin_dir_url( __FILE__ ) );
+define( 'FCEN_DIR', plugin_dir_path( __FILE__ ) );
+
 // Issue-level editorial meta (Bucket C in ops/docs/enews-spine.md §3): the only
 // hand-authored fields. The body — Pastoral Message + composing blocks — lives in
 // post_content; these are the email envelope around it.
@@ -32,6 +37,7 @@ require_once __DIR__ . '/src/Mailchimp.php';
 
 require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/meta.php';
+require_once __DIR__ . '/inc/pastoral-letter.php'; // self-filling "From the Pastor" block
 require_once __DIR__ . '/inc/render.php';
 require_once __DIR__ . '/inc/mailchimp.php';
 require_once __DIR__ . '/inc/compose.php'; // pure body composer (API/MCP prefill)

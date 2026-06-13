@@ -6,9 +6,11 @@
  *
  * It mirrors fcen_issue_block_template() one-for-one: the same headings, the
  * same `firstchurch/happenings` blocks (which self-fill from the spine at render
- * time), the same evergreen list and footer — so an MCP-drafted issue previews
- * and pushes to Mailchimp identically to one a human opened in Gutenberg. The
- * one variable is the Pastoral Message prose, injected here.
+ * time), the same self-filling `firstchurch/pastoral-letter` block, the same
+ * evergreen list and footer — so an MCP-drafted issue previews and pushes to
+ * Mailchimp identically to one a human opened in Gutenberg. The one variable is
+ * the optional Pastoral Message prose, stored as the pastoral-letter block's
+ * fallback (shown only when no recent pastoral-letters post exists).
  *
  * Kept deliberately pure (string building + htmlspecialchars only, no WordPress
  * calls) so it is unit-testable in the plugin's standalone PHPUnit harness; the
@@ -30,15 +32,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string Block markup suitable for enews_issue post_content.
  */
 function fcen_compose_issue_body( string $pastoral_message = '' ): string {
-	$message = trim( $pastoral_message );
-	$message_p = '' === $message
-		? "<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->"
-		: "<!-- wp:paragraph -->\n<p>" . htmlspecialchars( $message, ENT_QUOTES, 'UTF-8' ) . "</p>\n<!-- /wp:paragraph -->";
-
 	$blocks = array(
-		// Bucket C: the one hand-written block (the Pastoral Message).
+		// Bucket C: the "From the Pastor" slot — a self-filling block (the latest
+		// pastoral-letters post within ~5 days), with any supplied prose kept as the
+		// fallback used when there is no recent letter.
 		fcen_compose_heading( 'From the Pastor' ),
-		$message_p,
+		fcen_compose_pastoral_letter( $pastoral_message ),
 
 		// The week's lead highlight (a featured event or announcement).
 		fcen_compose_heading( "This Week\u{2019}s Highlight" ),
@@ -64,6 +63,24 @@ function fcen_compose_issue_body( string $pastoral_message = '' ): string {
 	);
 
 	return implode( "\n\n", $blocks );
+}
+
+/**
+ * A self-closing firstchurch/pastoral-letter block. The block self-fills from the
+ * latest pastoral-letters post at render time; any prose supplied here is stored
+ * as the `fallback` attribute (used only when no recent letter exists). The prose
+ * is a stored attribute, escaped at render — not HTML-escaped into the markup.
+ *
+ * @param string $fallback Optional fallback prose for the "no recent letter" case.
+ */
+function fcen_compose_pastoral_letter( string $fallback = '' ): string {
+	$attrs    = array( 'days' => 5 );
+	$fallback = trim( $fallback );
+	if ( '' !== $fallback ) {
+		$attrs['fallback'] = $fallback;
+	}
+	$json = fcen_block_attrs_json( $attrs );
+	return "<!-- wp:firstchurch/pastoral-letter {$json} /-->";
 }
 
 /** A level-2 heading block. @param string $html Pre-escaped inner HTML. */
