@@ -65,6 +65,11 @@ final class Recurrence
             }
         } elseif ($freq === 'yearly') {
             $parts[] = 'FREQ=YEARLY';
+            // "Every N years" reuses the shared interval meta (weekly_interval).
+            $interval = max(1, (int) ($e['weekly_interval'] ?? 1));
+            if ($interval > 1) {
+                $parts[] = 'INTERVAL=' . $interval;
+            }
         } else {
             return null;
         }

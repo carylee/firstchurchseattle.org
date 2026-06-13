@@ -86,6 +86,14 @@ final class RecurrenceTest extends TestCase
         );
     }
 
+    public function test_yearly_every_other(): void
+    {
+        $this->assertSame(
+            'FREQ=YEARLY;INTERVAL=2',
+            Recurrence::toRrule(['recurrence' => 'yearly', 'weekly_interval' => 2, 'start' => '2026-12-25'])
+        );
+    }
+
     public function test_end_date_becomes_until(): void
     {
         $this->assertSame(
