@@ -44,9 +44,9 @@ The page is a vertical sequence, not a grid of equals:
 4. **Creed band** — the welcome liturgy, finished (see §5 on the refrain structure).
 
 Three concepts were mocked before this was chosen (A "Doorway", B "Bulletin", C "Open
-Table"); the user picked C. The mockup HTML still lives in `/tmp/fcs-mocks/` and the
-rendered comparisons in `~/church/theme-refs/mock-*.jpg` — but those are scratch, not
-tracked.
+Table"); the user picked C. The mockup HTML is archived in `~/church/theme-refs/mocks/` (scratch lives in
+`/tmp/fcs-mocks/` during a session but is wiped on reboot — copy anything worth keeping to
+theme-refs) and the rendered comparisons in `~/church/theme-refs/mock-*.jpg`.
 
 ---
 
@@ -56,7 +56,8 @@ This redesign was built by **mocking options first, then building the chosen one
 is worth continuing that way, because the user reasons visually and the cost of a throwaway
 mock is minutes.
 
-- **Standalone HTML mocks** under `/tmp/fcs-mocks/`, sharing `shared.css` which pulls the
+- **Standalone HTML mocks** in `/tmp/fcs-mocks/` (archived to `~/church/theme-refs/mocks/`),
+  sharing `shared.css` which pulls the
   *real* theme fonts and palette, so a mock looks like the real site. Serve the dir with
   `python3 -m http.server` and screenshot with the Playwright MCP browser.
 - **Present 3–5 labeled variants on one page**, stacked, with the *current* version at top
@@ -281,7 +282,7 @@ the photos and their consent constraints). Start there before sourcing any new i
 
 ---
 
-*Pointers:* mocks `/tmp/fcs-mocks/` · rendered refs + photo audit `~/church/theme-refs/` ·
+*Pointers:* mocks `~/church/theme-refs/mocks/` (scratch `/tmp/fcs-mocks/`) · rendered refs + photo audit `~/church/theme-refs/` ·
 voice corpus `../youtube/transcripts/` + `../archive/longform/` · written rules
 [`voice-guide.md`](./voice-guide.md) · theme internals
 [`theme-independence.md`](./theme-independence.md).
