@@ -52,6 +52,8 @@ function fcbf_intake_to_array(WP_Post $post, bool $full = false): array
     $contact   = is_array($contact) ? $contact : [];
     $responses = is_array($responses) ? $responses : [];
     $linked    = (int) get_post_meta($post->ID, FCBF_INTAKE_LINKED, true);
+    $note      = (string) get_post_meta($post->ID, FCBF_INTAKE_NOTE, true);
+    $conf      = get_post_meta($post->ID, FCBF_INTAKE_CONFIDENCE, true);
 
     $data = [
         'id'         => $post->ID,
@@ -61,6 +63,8 @@ function fcbf_intake_to_array(WP_Post $post, bool $full = false): array
         'form_id'    => (string) get_post_meta($post->ID, FCBF_INTAKE_FORM_ID, true),
         'created_on' => (string) get_post_meta($post->ID, FCBF_INTAKE_CREATED_ON, true),
         'status'     => (string) get_post_meta($post->ID, FCBF_INTAKE_STATUS, true) ?: 'new',
+        'note'       => '' !== $note ? $note : null,
+        'confidence' => '' !== $conf ? (float) $conf : null,
         'contact'    => [
             'name'  => (string) ($contact['name'] ?? ''),
             'email' => (string) ($contact['email'] ?? ''),
@@ -136,7 +140,7 @@ add_action(
             'firstchurch/set-intake-status',
             [
                 'label'               => 'Set intake status',
-                'description'         => 'Mark an intake item new, drafted, or dismissed. When you create an event/announcement draft from an item, set status=drafted and pass linked_post (the new draft id) so it leaves the queue and is not re-drafted.',
+                'description'         => 'Mark an intake item new, drafted, or dismissed. When you create an event/announcement draft from an item, set status=drafted and pass linked_post (the new draft id) so it leaves the queue and is not re-drafted. Optionally record a note (e.g. why it was dismissed) and a 0–1 confidence.',
                 'category'            => 'firstchurch',
                 'input_schema'        => [
                     'type'                 => 'object',
@@ -144,6 +148,8 @@ add_action(
                         'id'          => ['type' => 'integer'],
                         'status'      => ['type' => 'string', 'enum' => FCBF_INTAKE_STATUSES],
                         'linked_post' => ['type' => 'integer', 'description' => 'The draft post created from this item (optional).'],
+                        'note'        => ['type' => 'string', 'description' => 'Short triage note for a human (e.g. why dismissed, what was guessed).'],
+                        'confidence'  => ['type' => 'number', 'minimum' => 0, 'maximum' => 1, 'description' => 'How sure the drafting was (optional).'],
                     ],
                     'required'             => ['id', 'status'],
                     'additionalProperties' => false,
@@ -223,6 +229,17 @@ function fcbf_intake_ability_set_status($input)
         } else {
             delete_post_meta($post->ID, FCBF_INTAKE_LINKED);
         }
+    }
+    if (isset($input['note'])) {
+        $note = sanitize_textarea_field((string) $input['note']);
+        if ('' !== $note) {
+            update_post_meta($post->ID, FCBF_INTAKE_NOTE, $note);
+        } else {
+            delete_post_meta($post->ID, FCBF_INTAKE_NOTE);
+        }
+    }
+    if (isset($input['confidence'])) {
+        update_post_meta($post->ID, FCBF_INTAKE_CONFIDENCE, (string) (float) $input['confidence']);
     }
 
     return fcbf_intake_to_array($post, false);

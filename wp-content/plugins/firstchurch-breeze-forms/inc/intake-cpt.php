@@ -34,6 +34,10 @@ const FCBF_INTAKE_CONTACT    = '_fc_intake_contact';     // JSON {name,email,pho
 const FCBF_INTAKE_RESPONSES  = '_fc_intake_responses';   // JSON [{label,value}]
 const FCBF_INTAKE_STATUS     = '_fc_intake_status';      // 'new' | 'drafted' | 'dismissed'
 const FCBF_INTAKE_LINKED     = '_fc_intake_linked_post'; // id of the draft created from this item
+const FCBF_INTAKE_MSG_ID     = '_fc_intake_email_message_id'; // email Message-ID — DEDUP KEY (email source)
+const FCBF_INTAKE_ATTACHMENTS = '_fc_intake_attachments';     // JSON [url,…] — links to stashed attachments
+const FCBF_INTAKE_NOTE        = '_fc_intake_note';            // free-text triage note (e.g. why dismissed)
+const FCBF_INTAKE_CONFIDENCE  = '_fc_intake_confidence';      // 0..1 — AI confidence when it drafted
 
 /** The triage states an intake item can be in. */
 const FCBF_INTAKE_STATUSES = ['new', 'drafted', 'dismissed'];
@@ -91,6 +95,10 @@ function fcbf_intake_register_cpt(): void
             FCBF_INTAKE_RESPONSES,
             FCBF_INTAKE_STATUS,
             FCBF_INTAKE_LINKED,
+            FCBF_INTAKE_MSG_ID,
+            FCBF_INTAKE_ATTACHMENTS,
+            FCBF_INTAKE_NOTE,
+            FCBF_INTAKE_CONFIDENCE,
         ] as $key
     ) {
         register_post_meta(FCBF_INTAKE_CPT, $key, [
