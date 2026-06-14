@@ -25,6 +25,7 @@
 # the next deploy would overwrite it).
 /wp-content/themes/firstchurch/
 /wp-content/plugins/firstchurch-breeze-forms/
+/wp-content/plugins/firstchurch-bulletin-publish/
 /wp-content/plugins/firstchurch-carousel/
 /wp-content/plugins/firstchurch-comms-desk/
 /wp-content/plugins/firstchurch-connection-card/

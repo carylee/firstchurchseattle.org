@@ -62,6 +62,7 @@
 !/wp-content/plugins/firstchurch-stock-photos/
 !/wp-content/plugins/firstchurch-enews/
 !/wp-content/plugins/firstchurch-comms-desk/
+!/wp-content/plugins/firstchurch-bulletin-publish/
 !/wp-content/mu-plugins/
 /wp-content/mu-plugins/*
 !/wp-content/mu-plugins/firstchurch-mcp-abilities.php
