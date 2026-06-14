@@ -131,5 +131,17 @@ function fccd_rest_needs_info( WP_REST_Request $req ) {
 	if ( is_wp_error( $r ) ) {
 		return new WP_REST_Response( array( 'error' => $r->get_error_message() ), 400 );
 	}
-	return new WP_REST_Response( array( 'ok' => true, 'note' => $note ), 200 );
+
+	// Park the item so it stops surfacing in the active queue until a reply lands.
+	update_post_meta( $item_id, '_fc_intake_awaiting', current_time( 'mysql' ) );
+
+	// Draft a ready-to-send clarification to the submitter (house voice). '' when
+	// we have no usable address — the note alone still records the follow-up.
+	$contact = json_decode( (string) get_post_meta( $item_id, FCBF_INTAKE_CONTACT, true ), true );
+	$email   = is_array( $contact ) ? (string) ( $contact['email'] ?? '' ) : '';
+	$linked  = (int) get_post_meta( $item_id, FCBF_INTAKE_LINKED, true );
+	$title   = $linked ? (string) get_the_title( $linked ) : '';
+	$mailto  = fccd_clarification_mailto( $email, $title, $question );
+
+	return new WP_REST_Response( array( 'ok' => true, 'note' => $note, 'mailto' => $mailto ), 200 );
 }

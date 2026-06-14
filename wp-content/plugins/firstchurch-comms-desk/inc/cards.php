@@ -128,3 +128,46 @@ function fccd_partition_cards( array $cards ): array {
 	usort( $look, static fn ( $a, $b ) => $conf( $a ) <=> $conf( $b ) );  // riskiest first
 	return array( 'ready' => $ready, 'look' => $look );
 }
+
+/* ============================================================================
+ * Closure — turn "Needs info" into a real message and stop it nagging
+ * ========================================================================== */
+
+/**
+ * Build a ready-to-send clarification email to the submitter, in the house
+ * voice (warm, an invitation not a demand). Returns a mailto: URL, or '' when
+ * there's no usable recipient — the caller falls back to just recording a note.
+ */
+function fccd_clarification_mailto( string $email, string $title, string $question ): string {
+	$email = trim( $email );
+	if ( '' === $email || false === strpos( $email, '@' ) || false !== strpos( $email, ' ' ) ) {
+		return '';
+	}
+	$subject = 'Quick question about ' . ( '' !== trim( $title ) ? trim( $title ) : 'your submission' );
+	$body    = "Hi,\n\n"
+		. "Thanks so much for sending this our way! One quick thing so we can post it:\n\n"
+		. trim( $question ) . "\n\n"
+		. "No rush — just reply whenever you can and we'll take it from there.\n\n"
+		. "Warmly,\nFirst Church Seattle";
+	return 'mailto:' . $email . '?subject=' . rawurlencode( $subject ) . '&body=' . rawurlencode( $body );
+}
+
+/**
+ * Split the worklist into items still needing action vs. those parked awaiting a
+ * submitter reply (so "Needs info" stops re-surfacing the same card every visit).
+ *
+ * @param array<int,array<string,mixed>> $cards
+ * @return array{active:array<int,array<string,mixed>>,awaiting:array<int,array<string,mixed>>}
+ */
+function fccd_split_awaiting( array $cards ): array {
+	$active   = array();
+	$awaiting = array();
+	foreach ( $cards as $c ) {
+		if ( ! empty( $c['awaiting'] ) ) {
+			$awaiting[] = $c;
+		} else {
+			$active[] = $c;
+		}
+	}
+	return array( 'active' => $active, 'awaiting' => $awaiting );
+}

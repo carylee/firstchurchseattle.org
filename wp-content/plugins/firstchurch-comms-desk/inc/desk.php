@@ -78,6 +78,8 @@ function fccd_needs_you_now(): array {
 			'confidence' => ( '' !== (string) $conf ) ? (float) $conf : null,
 			'submitted'  => substr( (string) get_post_meta( $item->ID, FCBF_INTAKE_CREATED_ON, true ), 0, 10 ),
 			'note'       => (string) get_post_meta( $item->ID, FCBF_INTAKE_NOTE, true ),
+			// Parked awaiting a submitter reply (set by "Needs info").
+			'awaiting'   => '' !== (string) get_post_meta( $item->ID, '_fc_intake_awaiting', true ),
 		);
 
 		if ( $dup_of > 0 ) {
@@ -167,10 +169,14 @@ function fccd_render_desk(): void {
 	echo '<button type="button" class="button button-primary fccd-addthing-submit">Add to intake</button> <span class="fccd-addthing-status"></span>';
 	echo '</div>';
 
-	/* Needs you now — split into ready-to-publish vs needs-a-look. */
-	$parts = fccd_partition_cards( $cards );
-	echo '<h2 class="fccd-sec">Needs you now <span class="fccd-count" data-fccd-remaining>' . count( $cards ) . '</span></h2>';
-	if ( ! $cards ) {
+	/* Needs you now — park items awaiting a reply, then split active into
+	 * ready-to-publish vs needs-a-look. */
+	$split    = fccd_split_awaiting( $cards );
+	$active   = $split['active'];
+	$awaiting = $split['awaiting'];
+	$parts    = fccd_partition_cards( $active );
+	echo '<h2 class="fccd-sec">Needs you now <span class="fccd-count" data-fccd-remaining>' . count( $active ) . '</span></h2>';
+	if ( ! $active ) {
 		echo '<p class="fccd-empty" data-fccd-clear>Nothing waiting — the queue is clear. 🎉</p>';
 	}
 
@@ -192,6 +198,16 @@ function fccd_render_desk(): void {
 			fccd_render_card( $c );
 		}
 		echo '</div>';
+	}
+
+	/* Waiting on a reply — parked by "Needs info", collapsed so it doesn't nag. */
+	if ( $awaiting ) {
+		echo '<details class="fccd-group fccd-group--awaiting">';
+		echo '<summary class="fccd-group-title">Waiting on a reply <span class="fccd-subcount">' . count( $awaiting ) . '</span></summary>';
+		foreach ( $awaiting as $c ) {
+			fccd_render_card( $c );
+		}
+		echo '</details>';
 	}
 
 	/* Loose ends */
@@ -277,6 +293,17 @@ function fccd_render_card( array $c ): void {
 	}
 	echo '<span class="fccd-card-status"></span>';
 	echo '</div>';
+
+	/* Inline "needs info" composer (replaces the old window.prompt) — review cards. */
+	if ( ! $is_rev ) {
+		echo '<div class="fccd-needsinfo-box" hidden>';
+		echo '<textarea class="fccd-needsinfo-q" rows="2" placeholder="What do you need to ask the sender? (e.g. what time does it start?)"></textarea>';
+		echo '<div><button type="button" class="button button-small fccd-needsinfo-send">Email sender &amp; park</button> ';
+		echo '<button type="button" class="button-link fccd-needsinfo-cancel">Cancel</button>';
+		echo ' <span class="fccd-needsinfo-status"></span></div>';
+		echo '</div>';
+	}
+
 	echo '</div>';
 }
 

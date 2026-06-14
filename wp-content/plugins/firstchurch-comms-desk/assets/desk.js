@@ -127,15 +127,37 @@
 			return;
 		}
 
-		// ---- Needs info ----
+		// ---- Needs info: reveal the inline composer ----
 		if ( cls.contains( 'fccd-needsinfo' ) ) {
-			var item = itemOf( btn );
-			if ( ! item ) { return; }
-			var q = window.prompt( 'What do you need to ask the sender? (recorded as a note)' );
-			if ( q === null ) { return; }
-			apiFetch( { path: P + 'needs-info', method: 'POST', data: { item_id: item, question: q } } )
-				.then( function () { setStatus( cardOf( btn ).querySelector( '.fccd-card-status' ), 'Flagged — needs info', 'ok' ); } )
-				.catch( function ( err ) { fail( 'Failed', err ); } );
+			var boxN = cardOf( btn ).querySelector( '.fccd-needsinfo-box' );
+			if ( boxN ) { boxN.hidden = ! boxN.hidden; var ta = boxN.querySelector( '.fccd-needsinfo-q' ); if ( ! boxN.hidden && ta ) { ta.focus(); } }
+			return;
+		}
+
+		// ---- Needs info: cancel ----
+		if ( cls.contains( 'fccd-needsinfo-cancel' ) ) {
+			var boxC = cardOf( btn ).querySelector( '.fccd-needsinfo-box' );
+			if ( boxC ) { boxC.hidden = true; }
+			return;
+		}
+
+		// ---- Needs info: email the sender & park the card ----
+		if ( cls.contains( 'fccd-needsinfo-send' ) ) {
+			var cardI = cardOf( btn ), itemI = itemOf( btn );
+			var boxI = cardI.querySelector( '.fccd-needsinfo-box' );
+			var q = boxI.querySelector( '.fccd-needsinfo-q' ).value.trim();
+			var stI = boxI.querySelector( '.fccd-needsinfo-status' );
+			if ( ! itemI || ! q ) { if ( stI ) { stI.textContent = 'Type a question first.'; } return; }
+			btn.disabled = true; if ( stI ) { stI.textContent = 'Saving…'; }
+			apiFetch( { path: P + 'needs-info', method: 'POST', data: { item_id: itemI, question: q } } )
+				.then( function ( res ) {
+					// Open a pre-written email to the submitter if we have an address.
+					if ( res && res.mailto ) { window.location.href = res.mailto; }
+					boxI.hidden = true;
+					markDone( cardI );
+					setStatus( cardI.querySelector( '.fccd-card-status' ), res && res.mailto ? 'Emailed sender — waiting on reply' : 'Flagged — waiting on reply', 'ok' );
+				} )
+				.catch( function ( err ) { btn.disabled = false; if ( stI ) { stI.textContent = 'Failed: ' + ( err && err.message || 'error' ); } } );
 			return;
 		}
 

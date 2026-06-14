@@ -75,3 +75,11 @@
 .fccd-approve-all-status { font-size: 13px; color: #646970; }
 .fccd-card { transition: opacity .25s ease; }
 .fccd-card--done { opacity: 0.5; }
+
+/* PR C — closure: inline needs-info composer + waiting-on-reply group */
+.fccd-needsinfo-box { margin: 8px 0 0; padding: 10px 12px; background: #f6f7f7; border-radius: 6px; }
+.fccd-needsinfo-q { width: 100%; max-width: 520px; display: block; margin-bottom: 6px; }
+.fccd-needsinfo-status { font-size: 13px; color: #646970; }
+.fccd-group--awaiting { margin-top: 18px; }
+.fccd-group--awaiting > summary { cursor: pointer; }
+.fccd-group--awaiting .fccd-card { border-left-color: #8a8a8a; opacity: 0.85; }
