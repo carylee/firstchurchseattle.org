@@ -103,6 +103,34 @@ function fccd_render_gaps( array $gaps ): string {
 	return '<div class="fccd-gaps"><p class="fccd-gaps-head">Check these before publishing:</p><ul>' . $items . '</ul></div>';
 }
 
+/**
+ * Render pre-fetched stock-photo suggestions as a row of one-click thumbnails.
+ * Each is the SAME .fccd-stock-pick control the manual search produces, with
+ * the import payload in data-meta (url-encoded JSON the desk JS already decodes)
+ * — so picking a suggestion reuses the existing import path with no new JS.
+ * Returns '' when there are no usable candidates.
+ *
+ * @param array<int,array{thumbnail?:string,url?:string,title?:string,meta?:array<string,mixed>}> $candidates
+ */
+function fccd_render_suggestions( array $candidates ): string {
+	$btns = '';
+	foreach ( $candidates as $c ) {
+		$thumb = esc_url( (string) ( $c['thumbnail'] ?? '' ) );
+		if ( '' === $thumb ) {
+			continue;
+		}
+		$meta = ( isset( $c['meta'] ) && is_array( $c['meta'] ) ) ? $c['meta'] : $c;
+		$btns .= '<button type="button" class="fccd-stock-pick" title="' . esc_attr( (string) ( $c['title'] ?? '' ) ) . '"'
+			. ' data-meta="' . esc_attr( rawurlencode( wp_json_encode( $meta ) ) ) . '">'
+			. '<img src="' . $thumb . '" alt="" /></button>';
+	}
+	if ( '' === $btns ) {
+		return '';
+	}
+	return '<div class="fccd-suggest"><p class="fccd-suggest-head">Suggested photos — pick one to use:</p>'
+		. '<div class="fccd-suggest-grid">' . $btns . '</div></div>';
+}
+
 /* ============================================================================
  * Speed — triage the worklist so the easy majority clears in one pass
  * ========================================================================== */
