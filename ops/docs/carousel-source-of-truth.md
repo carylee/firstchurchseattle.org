@@ -277,15 +277,27 @@ PHP equivalent on shared hosting anyway.
 So `wp-content/plugins/firstchurch-carousel/inc/render.php` adds a `/carousel/` route that:
 - resolves the feed **in-process** (`fccar_resolve()`, no HTTP round-trip),
 - emits a bare, full-screen document (no theme chrome) with the items inlined as JSON,
-- and lets `assets/carousel.js` render the six layouts, generate QR codes client-side
-  (vendored MIT `assets/vendor/qrcode-generator.js`, UTM-tagged), scale a fixed 1280×720
+- and lets `assets/carousel.js` (an ES module) render the six layouts through the **shared
+  renderer** (below), generating QR codes client-side (vendored MIT
+  `assets/vendor/qrcode-generator.js`, UTM-tagged `carousel/screen_qr`), scale a fixed 1280×720
   stage to the viewport, crossfade through the deck, and silently re-pull the feed every
   5 min so a newly published event appears without touching the screen.
 
-`?variant=preservice|postservice` selects the loop; `?seconds=N` tunes dwell time. The look is
-a **close-enough** echo of the slides cards (gold `#D4A256` accent, white Raleway, darkened
-photo backgrounds) — deliberately *not* a pixel-faithful port of the baked font-size ladders,
-since the browser does live layout.
+`?variant=preservice|postservice` selects the loop; `?seconds=N` tunes dwell time.
+
+**The renderer is now shared (2026-06-13).** The six card layouts used to be drawn *twice* —
+here in `assets/card-render.js` and again in the slides app — and the two had drifted (the big
+QR was 360px here vs 430px there, etc.). They were consolidated into one package,
+**`@church/carousel-card`** (in `../hocuspocus/packages/`), which both surfaces consume: the
+slides GIF imports it directly; this plugin ships an esbuild **browser build** of it as
+`assets/card-render.mjs` (+ a generated `assets/card.css`), with a thin web adapter
+`assets/card-stage.mjs` supplying the client-side QR. The admin curate/edit/list screens load
+it the same way via the WP Script Modules API (`inc/admin-curate.php`, `inc/cpt.php`). So the
+live page is now a **faithful** render of the slide cards — same gold `#D4A256` accent, white
+Raleway, darkened photo backgrounds, **and** the auto-fit font-size ladders — rather than the
+earlier close-enough echo (one visible upgrade: the `event` layout now shows its `where` line).
+Regenerate the committed build with `npm run build:browser` in the package (`npm run
+check:browser` is the drift guard); never hand-edit `card-render.mjs` / `card.css`.
 
 **Playback:** point a smart-TV browser / kiosk box / fullscreen tab at
 `https://firstchurchseattle.org/carousel/?variant=preservice`. This is a *separate display

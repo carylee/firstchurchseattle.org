@@ -1,6 +1,6 @@
 /* Carousel curation screen — a WYSIWYG deck editor with an adaptive slide-over
  * editor. Each card is a real, scaled-down render of the live carousel card (via
- * the shared FCCarCard renderer). Drag a deck thumbnail to reorder, click an
+ * the shared renderer). Drag a deck thumbnail to reorder, click an
  * available one to add it, and click ✎ to open the drawer:
  *
  *   - a STANDING CARD opens a full content editor (layout/title/body/prompt/
@@ -10,12 +10,14 @@
  *     preservice) plus a deep link to edit the original — the public post is
  *     never touched; overrides ride along in the deck.
  *
- * Plain jQuery + jquery-ui-sortable + wp.media — no build step. */
+ * jQuery + jquery-ui-sortable + wp.media (classic globals) + an ESM import of the
+ * shared renderer. */
+import { buildStageEl } from '@fccar/stage';
+
 ( function ( $ ) {
 	'use strict';
 
 	var D = window.FCCAR || { deck: [], available: [], layouts: [], restUrl: '', restCardUrl: '', nonce: '' };
-	var Card = window.FCCarCard;
 	var $deck = $( '#fccar-deck' );
 	var $avail = $( '#fccar-available' );
 	var $status = $( '#fccar-status' );
@@ -91,7 +93,7 @@
 	/** Render the scaled card preview into a well element, sized to its width. */
 	function paintWell( $well, e ) {
 		$well.empty();
-		var stage = Card.buildStage( effItem( e ), {} );
+		var stage = buildStageEl( effItem( e ), {} );
 		$well.append( stage );
 		var w = $well.width() || 240;
 		stage.style.transform = 'scale(' + ( w / 1280 ) + ')';
@@ -498,7 +500,7 @@
 		PV.n = items.length;
 		PV.$deck.empty();
 		items.forEach( function ( it ) {
-			var stage = Card.buildStage( it, {} );
+			var stage = buildStageEl( it, {} );
 			stage.className += ' fccar-pv-stage';
 			PV.$deck.append( stage );
 		} );

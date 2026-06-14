@@ -201,7 +201,7 @@ add_filter( 'manage_' . FCCAR_CPT . '_posts_columns', static function ( $cols ) 
 
 add_action( 'manage_' . FCCAR_CPT . '_posts_custom_column', static function ( $col, $post_id ) {
 	if ( 'fccar_preview' === $col ) {
-		// A rendered mini of the card, drawn client-side by FCCarCard (list-cards.js)
+		// A rendered mini of the card, drawn client-side by the shared renderer (list-cards.js)
 		// from this item's resolved data — so the list matches the curator.
 		$item = fccar_card_to_item( get_post( $post_id ) );
 		echo '<div class="fccar-list-thumb" data-fccar="' . esc_attr( (string) wp_json_encode( $item ) ) . '"></div>';
@@ -230,13 +230,17 @@ add_action( 'admin_enqueue_scripts', static function ( $hook ) {
 	wp_enqueue_style( 'fccar-raleway', 'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,600;0,700;1,400&display=swap', array(), null );
 	wp_enqueue_style( 'fccar-card', $base . 'card.css', array(), FCCAR_VERSION );
 	wp_enqueue_style( 'fccar-admin-card', $base . 'admin-card.css', array( 'fccar-card' ), FCCAR_VERSION );
+	// Shared renderer as an ESM module (@church/carousel-card → card-render.mjs);
+	// the QR lib stays a classic global the module reads via window.qrcode.
 	wp_enqueue_script( 'fccar-qrcode', $base . 'vendor/qrcode-generator.js', array(), FCCAR_VERSION, true );
-	wp_enqueue_script( 'fccar-card-render', $base . 'card-render.js', array( 'fccar-qrcode' ), FCCAR_VERSION, true );
+	wp_register_script_module( '@fccar/card', $base . 'card-render.mjs', array(), FCCAR_VERSION );
+	wp_register_script_module( '@fccar/stage', $base . 'card-stage.mjs', array( '@fccar/card' ), FCCAR_VERSION );
 
 	if ( 'post' === $screen->base ) {            // single card add/edit
-		wp_enqueue_script( 'fccar-edit-card', $base . 'edit-card.js', array( 'jquery', 'fccar-card-render' ), FCCAR_VERSION, true );
+		wp_enqueue_script( 'jquery' );           // edit-card.js reads window.jQuery
+		wp_enqueue_script_module( 'fccar-edit-card', $base . 'edit-card.js', array( '@fccar/stage' ), FCCAR_VERSION );
 	} elseif ( 'edit' === $screen->base ) {      // the Carousel Cards list
-		wp_enqueue_script( 'fccar-list-cards', $base . 'list-cards.js', array( 'fccar-card-render' ), FCCAR_VERSION, true );
+		wp_enqueue_script_module( 'fccar-list-cards', $base . 'list-cards.js', array( '@fccar/stage' ), FCCAR_VERSION );
 	}
 } );
 
