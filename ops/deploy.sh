@@ -139,6 +139,18 @@ rsync -av $DRY --delete \
   -e "$RSH" wp-content/plugins/firstchurch-comms-desk/ \
   "$REMOTE/plugins/firstchurch-comms-desk/"
 
+# bulletin-publish (receives the weekly bulletin from the editor's Publish action
+# and writes it into /bulletin/). Fully ours, no runtime deps. After the first
+# deploy, set the shared secret (matching the Worker's WP_PUBLISH_SECRET) and
+# activate:
+#   ssh firstchurch 'cd ~/public_html && wp option update fc_bulletin_publish_secret "<secret>" && wp plugin activate firstchurch-bulletin-publish'
+# (or define FC_BULLETIN_PUBLISH_SECRET in wp-config.php instead of the option).
+rsync -av $DRY --delete \
+  --exclude='vendor/' --exclude='.phpunit.cache/' --exclude='tests/' \
+  --exclude='composer.json' --exclude='composer.lock' --exclude='phpunit.xml.dist' \
+  -e "$RSH" wp-content/plugins/firstchurch-bulletin-publish/ \
+  "$REMOTE/plugins/firstchurch-bulletin-publish/"
+
 # mu-plugins/ ALSO holds host must-use plugins (endurance-page-cache) we do NOT track,
 # so sync our files individually and NEVER --delete this directory.
 rsync -av $DRY -e "$RSH" wp-content/mu-plugins/firstchurch-mcp-abilities.php          "$REMOTE/mu-plugins/"
