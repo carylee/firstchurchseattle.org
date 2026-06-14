@@ -16,6 +16,7 @@ const FCCD_ROLE = 'comms_editor';
 /** Comms Desk admin page slug. */
 const FCCD_SLUG = 'fc-comms-desk';
 
+require_once __DIR__ . '/inc/cards.php';
 require_once __DIR__ . '/inc/role.php';
 require_once __DIR__ . '/inc/desk.php';
 require_once __DIR__ . '/inc/review-actions.php';
