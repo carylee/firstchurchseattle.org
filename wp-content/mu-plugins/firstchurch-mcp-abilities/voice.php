@@ -369,6 +369,45 @@ function fcmcp_intake_extract( $input = array() ) {
 	return fcmcp_voice_generate( $user, $schema, array( 'system' => $system, 'temperature' => 0.2 ) );
 }
 
+/**
+ * Suggest 2–3 stock-photo search phrases for a draft. Titles make poor image
+ * queries (proper nouns, dates, names), so this turns the title + description
+ * into concrete VISUAL concepts — scenes, objects, light, nature, hands —
+ * deliberately avoiding stock photos of people, which read "stocky" and risk a
+ * tone-deaf mismatch. Used by the intake processor when a draft has no image.
+ */
+function fcmcp_suggest_image_queries( $input = array() ) {
+	$title = trim( (string) ( $input['title'] ?? '' ) );
+	$desc  = trim( (string) ( $input['description'] ?? '' ) );
+	if ( '' === $title && '' === $desc ) {
+		return new WP_Error( 'missing_content', 'Provide a title or description.' );
+	}
+	$schema = array(
+		'type'                 => 'object',
+		'properties'           => array(
+			'queries' => array(
+				'type'     => 'array',
+				'items'    => array( 'type' => 'string' ),
+				'minItems' => 1,
+				'maxItems' => 3,
+			),
+		),
+		'required'             => array( 'queries' ),
+		'additionalProperties' => false,
+	);
+	$system = "You pick stock-photo search terms for a church website. Given an event "
+		. "or announcement, return 2–3 short search phrases (2–4 words each) for a "
+		. "warm, tasteful HERO image.\n"
+		. "- Describe a VISUAL SCENE or OBJECT, never the literal title: 'Maundy "
+		. "Thursday Service' → 'candlelit communion table', not 'Maundy Thursday'.\n"
+		. "- Prefer scenes, objects, light, nature, food, hands. AVOID photos of "
+		. "people's faces and anything that would look like a posed stock model.\n"
+		. "- No proper nouns, dates, names, or church jargon. Return strict JSON.";
+	$user = trim( "Title: {$title}\nDescription: {$desc}" );
+	$out  = fcmcp_voice_generate( $user, $schema, array( 'system' => $system, 'temperature' => 0.3 ) );
+	return is_wp_error( $out ) ? $out : array( 'queries' => array_values( (array) ( $out['queries'] ?? array() ) ) );
+}
+
 /* ---- Registration ---- */
 
 add_action(
@@ -436,6 +475,26 @@ add_action(
 					'additionalProperties' => false,
 				),
 				'execute_callback'    => 'fcmcp_draft_excerpt',
+				'permission_callback' => $can_write,
+				'meta'                => $mcp_public,
+			)
+		);
+
+		wp_register_ability(
+			'firstchurch/suggest-image-queries',
+			array(
+				'label'               => 'Suggest image search terms',
+				'description'         => 'Turn a draft title + description into 2–3 tasteful stock-photo search phrases (visual scenes/objects, not the literal title). Used by intake to suggest a hero image.',
+				'category'            => 'firstchurch',
+				'input_schema'        => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'title'       => array( 'type' => 'string' ),
+						'description' => array( 'type' => 'string' ),
+					),
+					'additionalProperties' => false,
+				),
+				'execute_callback'    => 'fcmcp_suggest_image_queries',
 				'permission_callback' => $can_write,
 				'meta'                => $mcp_public,
 			)

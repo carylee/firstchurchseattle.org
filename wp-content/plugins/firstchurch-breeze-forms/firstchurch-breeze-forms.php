@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Breeze Forms
  * Description: Surface any Breeze form via the [breeze_form] shortcode — as a themed button (Mode 1), a responsive embed (Mode 2), or a native in-theme form that posts straight to Breeze (Mode 3). Modes 1 & 2 need no Breeze credentials; Mode 3 renders forms with a baked field contract (currently the Prayer Requests form).
- * Version:     0.2.2
+ * Version:     0.2.3
  * Author:      First Church Seattle
  *
  * @package FirstChurch\BreezeForms
@@ -25,6 +25,7 @@ require_once __DIR__ . '/src/Block.php';
 require_once __DIR__ . '/src/Entries.php';
 require_once __DIR__ . '/src/Native.php';
 require_once __DIR__ . '/src/Gaps.php';
+require_once __DIR__ . '/src/PhotoQuery.php';
 
 // Intake queue: capture Breeze form submissions on-site (CPT + reader + MCP).
 require_once __DIR__ . '/inc/embed.php';

@@ -90,3 +90,8 @@
 .fccd-gaps ul { margin: 0 0 0 18px; }
 .fccd-gaps li { color: #6a5b12; }
 .fccd-gap-field { font-weight: 600; text-transform: capitalize; }
+
+/* photo suggestions — the desk's self-found stock photos */
+.fccd-suggest { margin: 0 0 8px; }
+.fccd-suggest-head { margin: 0 0 4px; font-size: 12px; color: #646970; }
+.fccd-suggest-grid { display: flex; flex-wrap: wrap; gap: 6px; }

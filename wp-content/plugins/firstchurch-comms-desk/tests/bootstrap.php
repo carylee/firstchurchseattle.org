@@ -60,4 +60,11 @@ if (!function_exists('esc_attr_e')) {
     }
 }
 
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($data, int $options = 0, int $depth = 512): string
+    {
+        return (string) json_encode($data, $options, $depth);
+    }
+}
+
 require_once __DIR__ . '/../inc/cards.php';

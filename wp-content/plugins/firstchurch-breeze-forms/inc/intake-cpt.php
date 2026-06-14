@@ -41,6 +41,7 @@ const FCBF_INTAKE_CONFIDENCE  = '_fc_intake_confidence';      // 0..1 — AI con
 const FCBF_INTAKE_ATTEMPTS    = '_fc_intake_attempts';        // processor failure count (parks the item after N)
 const FCBF_INTAKE_DUP_OF      = '_fc_intake_dup_of';          // event id this item duplicates — a possible revision, NOT a reject
 const FCBF_INTAKE_GAPS        = '_fc_intake_gaps';            // JSON [{field,question}] — per-field things the AI was unsure about
+const FCBF_INTAKE_PHOTOS      = '_fc_intake_photo_suggestions'; // JSON [{thumbnail,url,title,creator,meta}] — auto-suggested stock photos for an imageless draft
 
 /** The triage states an intake item can be in. */
 const FCBF_INTAKE_STATUSES = ['new', 'drafted', 'dismissed'];
@@ -105,6 +106,7 @@ function fcbf_intake_register_cpt(): void
             FCBF_INTAKE_ATTEMPTS,
             FCBF_INTAKE_DUP_OF,
             FCBF_INTAKE_GAPS,
+            FCBF_INTAKE_PHOTOS,
         ] as $key
     ) {
         register_post_meta(FCBF_INTAKE_CPT, $key, [

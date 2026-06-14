@@ -75,6 +75,46 @@ function fcbf_intake_item_attachments(int $post_id): array
 }
 
 /**
+ * Pre-fetch tasteful stock-photo suggestions for an imageless draft so the
+ * Comms Desk can offer them with a single click (no typing). Resolution order:
+ * the curated category map (free) → AI-suggested visual phrases (only when the
+ * map misses) → a cleaned title. Returns the compact candidate list to stash on
+ * the item, or [] when there's nothing to suggest (no provider, draft already
+ * has an image, or the search came up empty). Degrades gracefully — a down AI
+ * connector just means the map/title path is used.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function fcbf_intake_photo_suggestions(int $draft_id, string $category, string $title, string $desc): array
+{
+    if (!function_exists('fcsp_search') || !class_exists(\FirstChurch\BreezeForms\PhotoQuery::class)) {
+        return [];
+    }
+    if (function_exists('has_post_thumbnail') && has_post_thumbnail($draft_id)) {
+        return []; // an image was already supplied — don't suggest over it
+    }
+
+    $query = \FirstChurch\BreezeForms\PhotoQuery::forCategory($category);
+    if ('' === $query) {
+        $phrases = [];
+        if (function_exists('fcmcp_suggest_image_queries')) {
+            $ai = fcmcp_suggest_image_queries(['title' => $title, 'description' => $desc]);
+            $phrases = is_wp_error($ai) ? [] : (array) ($ai['queries'] ?? []);
+        }
+        $query = \FirstChurch\BreezeForms\PhotoQuery::resolve('', $title, $phrases);
+    }
+    if ('' === $query) {
+        return [];
+    }
+
+    $res = fcsp_search(['query' => $query, 'orientation' => 'wide', 'count' => 6]);
+    if (is_wp_error($res)) {
+        return [];
+    }
+    return \FirstChurch\BreezeForms\PhotoQuery::cleanCandidates((array) ($res['results'] ?? []), 4);
+}
+
+/**
  * Map a model-suggested category to a real event-category slug, or '' if none
  * fits. The model sometimes returns the display name ("Worship") or a near-slug;
  * match case-insensitively against the live taxonomy.
@@ -207,6 +247,7 @@ function fcbf_intake_process_item(int $post_id): array
     $drafts = [];
     $dup_of = 0; // an existing event this item duplicates — surfaced as a revision
     $conf   = 1.0;
+    $seed   = null; // {draft_id,category,title,description} of the first draft, for photo suggestions
     foreach ($intents as $intent) {
         $kind = (string) ($intent['kind'] ?? '');
         $conf = min($conf, (float) ($intent['confidence'] ?? 1));
@@ -234,6 +275,14 @@ function fcbf_intake_process_item(int $post_id): array
             $res = fcmcp_create_event($ev);
             if (!is_wp_error($res) && !empty($res['id'])) {
                 $drafts[] = (int) $res['id'];
+                if (null === $seed) {
+                    $seed = [
+                        'draft_id'    => (int) $res['id'],
+                        'category'    => (string) ($ev['category'] ?? ''),
+                        'title'       => (string) ($ev['title'] ?? ''),
+                        'description' => trim(wp_strip_all_tags((string) ($ev['description'] ?? ''))),
+                    ];
+                }
                 // If the event has a Breeze sign-up form, embed it on the page by
                 // default (the coordinator can adjust on the Comms Desk card).
                 $fid = fcbf_breeze_form_id_from_url((string) ($ev['registration_url'] ?? ''));
@@ -252,6 +301,14 @@ function fcbf_intake_process_item(int $post_id): array
             $res = fcmcp_create_announcement($ann);
             if (!is_wp_error($res) && !empty($res['id'])) {
                 $drafts[] = (int) $res['id'];
+                if (null === $seed) {
+                    $seed = [
+                        'draft_id'    => (int) $res['id'],
+                        'category'    => '', // announcements carry no event category
+                        'title'       => (string) ($ann['title'] ?? ''),
+                        'description' => trim(wp_strip_all_tags((string) ($ann['content'] ?? ''))),
+                    ];
+                }
             }
         }
     }
@@ -272,6 +329,15 @@ function fcbf_intake_process_item(int $post_id): array
         }
         // Genuinely nothing draftable — park it (don't loop forever).
         return fcbf_intake_attempt_failure($post_id, 'extraction produced no usable draft' . ($notes !== '' ? ' — ' . $notes : ''));
+    }
+
+    // 3b. Suggest a hero image for the (imageless) draft so the Comms Desk can
+    // offer it one-click. Best-effort — failures never block drafting.
+    if (null !== $seed) {
+        $photos = fcbf_intake_photo_suggestions($seed['draft_id'], $seed['category'], $seed['title'], $seed['description']);
+        if ($photos) {
+            update_post_meta($post_id, FCBF_INTAKE_PHOTOS, wp_json_encode($photos));
+        }
     }
 
     // 4. Mark drafted, link the first draft, carry notes + confidence.

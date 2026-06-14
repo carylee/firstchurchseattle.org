@@ -215,7 +215,19 @@
 		// ---- Photo: toggle stock search ----
 		if ( cls.contains( 'fccd-photo-stock-toggle' ) ) {
 			var sbox = btn.closest( '.fccd-photo' ).querySelector( '.fccd-stock' );
-			if ( sbox ) { sbox.hidden = ! sbox.hidden; }
+			if ( sbox ) {
+				sbox.hidden = ! sbox.hidden;
+				// Pre-filled with a derived query? Run it once on first open so
+				// the coordinator never has to type.
+				if ( ! sbox.hidden ) {
+					var qEl = sbox.querySelector( '.fccd-stock-q' );
+					var rEl = sbox.querySelector( '.fccd-stock-results' );
+					if ( qEl && qEl.value.trim() && rEl && ! rEl.children.length && ! rEl.textContent.trim() ) {
+						var go = sbox.querySelector( '.fccd-stock-go' );
+						if ( go ) { go.click(); }
+					}
+				}
+			}
 			return;
 		}
 

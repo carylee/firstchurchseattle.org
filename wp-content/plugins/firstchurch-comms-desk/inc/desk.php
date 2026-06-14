@@ -105,6 +105,11 @@ function fccd_needs_you_now(): array {
 		$reg_url  = $is_event ? (string) get_post_meta( $linked_id, '_fce_registration_url', true ) : '';
 		$resp     = json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_RESPONSES, true ), true );
 		$gaps     = defined( 'FCBF_INTAKE_GAPS' ) ? json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_GAPS, true ), true ) : null;
+		$sugg     = defined( 'FCBF_INTAKE_PHOTOS' ) ? json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_PHOTOS, true ), true ) : null;
+		// A title-derived fallback query so even legacy cards (no stored
+		// suggestions) open the stock search pre-filled, no typing.
+		$pq       = ( '' === (string) get_the_post_thumbnail_url( $linked_id ) && class_exists( '\FirstChurch\BreezeForms\PhotoQuery' ) )
+			? \FirstChurch\BreezeForms\PhotoQuery::cleanTitle( (string) get_the_title( $linked ) ) : '';
 		$cards[]  = array_merge( $base, array(
 			'type'        => 'review',
 			'draft_id'    => $linked_id,
@@ -116,6 +121,8 @@ function fccd_needs_you_now(): array {
 			'responses'   => is_array( $resp ) ? $resp : array(),
 			'contact'     => is_array( $contact ) ? $contact : array(),
 			'gaps'        => is_array( $gaps ) ? $gaps : array(),
+			'suggestions' => is_array( $sugg ) ? $sugg : array(),
+			'photo_query' => $pq,
 			'start_date'  => $is_event ? (string) get_post_meta( $linked_id, '_fce_dtstart', true ) : '',
 			'photo'       => (string) ( get_the_post_thumbnail_url( $linked_id, 'medium' ) ?: '' ),
 			// announcement CTA
@@ -320,11 +327,14 @@ function fccd_render_card_edit( array $c ): void {
 		echo '<img class="fccd-photo-thumb" src="' . esc_url( $c['photo'] ) . '" alt="" />';
 		echo '<button type="button" class="button-link fccd-photo-media">Change photo</button>';
 	} else {
-		echo '<span class="fccd-photo-none">No photo &mdash; </span>';
+		// Photos the desk found on its own — one click to use (already escaped).
+		echo fccd_render_suggestions( $c['suggestions'] ?? array() ); // phpcs:ignore WordPress.Security.EscapeOutput
+		$has_sugg = ! empty( $c['suggestions'] );
+		echo '<span class="fccd-photo-none">' . ( $has_sugg ? 'Or ' : 'No photo &mdash; ' ) . '</span>';
 		echo '<button type="button" class="button button-small fccd-photo-media">Media library</button> ';
-		echo '<button type="button" class="button button-small fccd-photo-stock-toggle">Stock photos</button>';
+		echo '<button type="button" class="button button-small fccd-photo-stock-toggle">' . ( $has_sugg ? 'Search more' : 'Stock photos' ) . '</button>';
 	}
-	echo '<div class="fccd-stock" hidden><input type="text" class="fccd-stock-q" placeholder="Search stock photos&hellip;" /> <button type="button" class="button button-small fccd-stock-go">Search</button><div class="fccd-stock-results"></div></div>';
+	echo '<div class="fccd-stock" hidden><input type="text" class="fccd-stock-q" value="' . esc_attr( $c['photo_query'] ?? '' ) . '" placeholder="Search stock photos&hellip;" /> <button type="button" class="button button-small fccd-stock-go">Search</button><div class="fccd-stock-results"></div></div>';
 	echo '</div>';
 
 	/* CTA — announcements only. */
