@@ -24,10 +24,12 @@ add_action(
 			'save-cta'       => 'fccd_rest_save_cta',
 			'breeze-forms'   => 'fccd_rest_breeze_forms',
 			'breeze-embed'   => 'fccd_rest_breeze_embed',
+			'preview'        => 'fccd_rest_preview',
 		);
+		$gets = array( 'breeze-forms', 'preview' );
 		foreach ( $routes as $path => $cb ) {
 			register_rest_route( 'firstchurch/v1', '/comms-desk/' . $path, array(
-				'methods'             => ( 'breeze-forms' === $path ) ? 'GET' : 'POST',
+				'methods'             => in_array( $path, $gets, true ) ? 'GET' : 'POST',
 				'permission_callback' => $can,
 				'callback'            => $cb,
 			) );
@@ -149,4 +151,18 @@ function fccd_rest_breeze_embed( WP_REST_Request $req ) {
 	}
 	fcbf_embed_breeze_form( $post->ID, $fid );
 	return new WP_REST_Response( array( 'ok' => true ), 200 );
+}
+
+/**
+ * Render the draft body exactly as the front end will, so the coordinator can
+ * read what publishes (shortcodes like [breeze_form], blocks, wpautop) inline
+ * on the Desk instead of opening the editor. Read-only.
+ */
+function fccd_rest_preview( WP_REST_Request $req ) {
+	$post = fccd_editable_post( $req->get_param( 'draft_id' ) );
+	if ( ! $post ) {
+		return new WP_REST_Response( array( 'error' => 'Draft not found.' ), 404 );
+	}
+	$html = apply_filters( 'the_content', $post->post_content );
+	return new WP_REST_Response( array( 'html' => wp_kses_post( (string) $html ) ), 200 );
 }

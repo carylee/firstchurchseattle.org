@@ -78,6 +78,8 @@ function fccd_needs_you_now(): array {
 			'confidence' => ( '' !== (string) $conf ) ? (float) $conf : null,
 			'submitted'  => substr( (string) get_post_meta( $item->ID, FCBF_INTAKE_CREATED_ON, true ), 0, 10 ),
 			'note'       => (string) get_post_meta( $item->ID, FCBF_INTAKE_NOTE, true ),
+			// Parked awaiting a submitter reply (set by "Needs info").
+			'awaiting'   => '' !== (string) get_post_meta( $item->ID, '_fc_intake_awaiting', true ),
 		);
 
 		if ( $dup_of > 0 ) {
@@ -101,6 +103,8 @@ function fccd_needs_you_now(): array {
 		}
 		$is_event = ( 'fce_event' === $linked->post_type );
 		$reg_url  = $is_event ? (string) get_post_meta( $linked_id, '_fce_registration_url', true ) : '';
+		$resp     = json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_RESPONSES, true ), true );
+		$gaps     = defined( 'FCBF_INTAKE_GAPS' ) ? json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_GAPS, true ), true ) : null;
 		$cards[]  = array_merge( $base, array(
 			'type'        => 'review',
 			'draft_id'    => $linked_id,
@@ -108,6 +112,10 @@ function fccd_needs_you_now(): array {
 			'title'       => get_the_title( $linked ),
 			'excerpt'     => wp_trim_words( wp_strip_all_tags( $linked->post_content ), 40 ),
 			'edit_url'    => (string) get_edit_post_link( $linked_id, 'raw' ),
+			// Provenance the coordinator can open to diff against the AI's draft.
+			'responses'   => is_array( $resp ) ? $resp : array(),
+			'contact'     => is_array( $contact ) ? $contact : array(),
+			'gaps'        => is_array( $gaps ) ? $gaps : array(),
 			'start_date'  => $is_event ? (string) get_post_meta( $linked_id, '_fce_dtstart', true ) : '',
 			'photo'       => (string) ( get_the_post_thumbnail_url( $linked_id, 'medium' ) ?: '' ),
 			// announcement CTA
@@ -163,13 +171,45 @@ function fccd_render_desk(): void {
 	echo '<button type="button" class="button button-primary fccd-addthing-submit">Add to intake</button> <span class="fccd-addthing-status"></span>';
 	echo '</div>';
 
-	/* Needs you now */
-	echo '<h2 class="fccd-sec">Needs you now <span class="fccd-count">' . count( $cards ) . '</span></h2>';
-	if ( ! $cards ) {
-		echo '<p class="fccd-empty">Nothing waiting — the queue is clear. 🎉</p>';
+	/* Needs you now — park items awaiting a reply, then split active into
+	 * ready-to-publish vs needs-a-look. */
+	$split    = fccd_split_awaiting( $cards );
+	$active   = $split['active'];
+	$awaiting = $split['awaiting'];
+	$parts    = fccd_partition_cards( $active );
+	echo '<h2 class="fccd-sec">Needs you now <span class="fccd-count" data-fccd-remaining>' . count( $active ) . '</span></h2>';
+	if ( ! $active ) {
+		echo '<p class="fccd-empty" data-fccd-clear>Nothing waiting — the queue is clear. 🎉</p>';
 	}
-	foreach ( $cards as $c ) {
-		fccd_render_card( $c );
+
+	if ( $parts['ready'] ) {
+		echo '<div class="fccd-group fccd-group--ready">';
+		echo '<div class="fccd-group-head"><h3 class="fccd-group-title">Ready to publish <span class="fccd-subcount">' . count( $parts['ready'] ) . '</span></h3>';
+		echo '<button type="button" class="button button-primary fccd-approve-all">Approve all ' . count( $parts['ready'] ) . ' ready</button>';
+		echo ' <span class="fccd-approve-all-status"></span></div>';
+		foreach ( $parts['ready'] as $c ) {
+			fccd_render_card( $c );
+		}
+		echo '</div>';
+	}
+
+	if ( $parts['look'] ) {
+		echo '<div class="fccd-group fccd-group--look">';
+		echo '<h3 class="fccd-group-title">Needs a look <span class="fccd-subcount">' . count( $parts['look'] ) . '</span></h3>';
+		foreach ( $parts['look'] as $c ) {
+			fccd_render_card( $c );
+		}
+		echo '</div>';
+	}
+
+	/* Waiting on a reply — parked by "Needs info", collapsed so it doesn't nag. */
+	if ( $awaiting ) {
+		echo '<details class="fccd-group fccd-group--awaiting">';
+		echo '<summary class="fccd-group-title">Waiting on a reply <span class="fccd-subcount">' . count( $awaiting ) . '</span></summary>';
+		foreach ( $awaiting as $c ) {
+			fccd_render_card( $c );
+		}
+		echo '</details>';
 	}
 
 	/* Loose ends */
@@ -209,7 +249,16 @@ function fccd_render_card( array $c ): void {
 	} else {
 		echo '<span class="fccd-pill fccd-pill--' . esc_attr( $c['kind'] ) . '">' . esc_html( ucfirst( $c['kind'] ) ) . '</span> ';
 		echo '<strong class="fccd-card-title">' . esc_html( $c['title'] ) . '</strong>';
+		echo ' <button type="button" class="button-link fccd-readdraft">Read draft &#9656;</button>';
 		echo '<p class="fccd-card-excerpt">' . esc_html( $c['excerpt'] ) . '</p>';
+		// The full draft body, fetched + rendered on demand so the coordinator
+		// sees exactly what publishes without leaving the Desk.
+		echo '<div class="fccd-draftbody" hidden></div>';
+		// Elevate the AI's note + structured gaps to "check these" callouts, and
+		// offer the verbatim original to diff against (all already-escaped HTML).
+		echo fccd_render_note_callout( (string) ( $c['note'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo fccd_render_gaps( $c['gaps'] ?? array() ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo fccd_render_original( $c['responses'] ?? array(), $c['contact'] ?? array() ); // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 	echo '</div>';
 
@@ -233,9 +282,6 @@ function fccd_render_card( array $c ): void {
 		$bits[] = 'confidence ' . esc_html( round( $c['confidence'] * 100 ) . '%' );
 	}
 	echo '<span class="fccd-prov-meta">' . implode( ' &middot; ', $bits ) . '</span>'; // phpcs:ignore — bits are individually escaped
-	if ( ! $is_rev && '' !== ( $c['note'] ?? '' ) ) {
-		echo '<span class="fccd-prov-note">' . esc_html( $c['note'] ) . '</span>';
-	}
 	echo '</div>';
 
 	/* actions */
@@ -250,6 +296,17 @@ function fccd_render_card( array $c ): void {
 	}
 	echo '<span class="fccd-card-status"></span>';
 	echo '</div>';
+
+	/* Inline "needs info" composer (replaces the old window.prompt) — review cards. */
+	if ( ! $is_rev ) {
+		echo '<div class="fccd-needsinfo-box" hidden>';
+		echo '<textarea class="fccd-needsinfo-q" rows="2" placeholder="What do you need to ask the sender? (e.g. what time does it start?)"></textarea>';
+		echo '<div><button type="button" class="button button-small fccd-needsinfo-send">Email sender &amp; park</button> ';
+		echo '<button type="button" class="button-link fccd-needsinfo-cancel">Cancel</button>';
+		echo ' <span class="fccd-needsinfo-status"></span></div>';
+		echo '</div>';
+	}
+
 	echo '</div>';
 }
 

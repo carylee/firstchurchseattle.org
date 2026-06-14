@@ -193,6 +193,12 @@ function fcbf_intake_process_item(int $post_id): array
     }
     $intents = is_array($extract['intents'] ?? null) ? $extract['intents'] : [];
     $notes   = trim((string) ($extract['notes'] ?? ''));
+
+    // Persist the AI's per-field uncertainties so the Comms Desk can show a
+    // "check these" checklist (normalized via the pure Gaps helper).
+    $gaps = \FirstChurch\BreezeForms\Gaps::clean($extract['gaps'] ?? null);
+    update_post_meta($post_id, FCBF_INTAKE_GAPS, wp_json_encode($gaps));
+
     if (!$intents) {
         return fcbf_intake_attempt_failure($post_id, 'extraction produced no usable draft');
     }

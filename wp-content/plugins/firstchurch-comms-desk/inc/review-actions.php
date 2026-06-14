@@ -32,8 +32,55 @@ add_action(
 			'permission_callback' => $can,
 			'callback'            => 'fccd_rest_dismiss',
 		) );
+		register_rest_route( 'firstchurch/v1', '/comms-desk/unpublish', array(
+			'methods'             => 'POST',
+			'permission_callback' => $can,
+			'callback'            => 'fccd_rest_unpublish',
+		) );
+		register_rest_route( 'firstchurch/v1', '/comms-desk/approve-batch', array(
+			'methods'             => 'POST',
+			'permission_callback' => $can,
+			'callback'            => 'fccd_rest_approve_batch',
+		) );
 	}
 );
+
+/**
+ * Approve & publish many drafts at once (the "ready" group). Skips any the user
+ * can't publish; returns the ids actually published.
+ */
+function fccd_rest_approve_batch( WP_REST_Request $req ) {
+	$p    = $req->get_json_params();
+	$ids  = is_array( $p ) && is_array( $p['ids'] ?? null ) ? $p['ids'] : array();
+	$done = array();
+	foreach ( $ids as $id ) {
+		$id = (int) $id;
+		if ( $id && get_post( $id ) && current_user_can( 'publish_post', $id ) ) {
+			$r = wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ), true );
+			if ( ! is_wp_error( $r ) ) {
+				$done[] = $id;
+			}
+		}
+	}
+	return new WP_REST_Response( array( 'ok' => true, 'published' => $done ), 200 );
+}
+
+/** Undo an approve: flip a just-published post back to draft (the safety net). */
+function fccd_rest_unpublish( WP_REST_Request $req ) {
+	$p        = $req->get_json_params();
+	$draft_id = is_array( $p ) ? (int) ( $p['draft_id'] ?? 0 ) : 0;
+	if ( ! $draft_id || ! get_post( $draft_id ) ) {
+		return new WP_REST_Response( array( 'error' => 'Post not found.' ), 404 );
+	}
+	if ( ! current_user_can( 'edit_post', $draft_id ) ) {
+		return new WP_REST_Response( array( 'error' => 'Not allowed.' ), 403 );
+	}
+	$r = wp_update_post( array( 'ID' => $draft_id, 'post_status' => 'draft' ), true );
+	if ( is_wp_error( $r ) ) {
+		return new WP_REST_Response( array( 'error' => $r->get_error_message() ), 400 );
+	}
+	return new WP_REST_Response( array( 'ok' => true, 'status' => 'draft' ), 200 );
+}
 
 /** Dismiss an intake item (e.g. a revision that adds nothing new). */
 function fccd_rest_dismiss( WP_REST_Request $req ) {
@@ -84,5 +131,17 @@ function fccd_rest_needs_info( WP_REST_Request $req ) {
 	if ( is_wp_error( $r ) ) {
 		return new WP_REST_Response( array( 'error' => $r->get_error_message() ), 400 );
 	}
-	return new WP_REST_Response( array( 'ok' => true, 'note' => $note ), 200 );
+
+	// Park the item so it stops surfacing in the active queue until a reply lands.
+	update_post_meta( $item_id, '_fc_intake_awaiting', current_time( 'mysql' ) );
+
+	// Draft a ready-to-send clarification to the submitter (house voice). '' when
+	// we have no usable address — the note alone still records the follow-up.
+	$contact = json_decode( (string) get_post_meta( $item_id, FCBF_INTAKE_CONTACT, true ), true );
+	$email   = is_array( $contact ) ? (string) ( $contact['email'] ?? '' ) : '';
+	$linked  = (int) get_post_meta( $item_id, FCBF_INTAKE_LINKED, true );
+	$title   = $linked ? (string) get_the_title( $linked ) : '';
+	$mailto  = fccd_clarification_mailto( $email, $title, $question );
+
+	return new WP_REST_Response( array( 'ok' => true, 'note' => $note, 'mailto' => $mailto ), 200 );
 }

@@ -21,6 +21,30 @@
 	function itemOf( el ) { var c = cardOf( el ); return c ? parseInt( c.getAttribute( 'data-item' ), 10 ) : 0; }
 	function fail( msg, err ) { window.alert( msg + ': ' + ( err && err.message ? err.message : 'error' ) ); }
 
+	// Live "N remaining" counter + a felt "desk clear" finish.
+	function bumpRemaining( delta ) {
+		var el = doc.querySelector( '[data-fccd-remaining]' );
+		if ( ! el ) { return; }
+		var n = Math.max( 0, ( parseInt( el.textContent, 10 ) || 0 ) + delta );
+		el.textContent = n;
+		var clear = doc.querySelector( '[data-fccd-clear]' );
+		if ( 0 === n && ! clear ) {
+			var sec = el.closest( '.fccd-sec' );
+			if ( sec ) {
+				var p = doc.createElement( 'p' );
+				p.className = 'fccd-empty'; p.setAttribute( 'data-fccd-clear', '' );
+				p.textContent = 'Desk clear — nothing waiting. 🎉';
+				sec.insertAdjacentElement( 'afterend', p );
+			}
+		}
+	}
+	// Mark a card resolved: fade/collapse it and tick the counter down.
+	function markDone( card ) {
+		if ( ! card || card.classList.contains( 'fccd-card--done' ) ) { return; }
+		card.classList.add( 'fccd-card--done' );
+		bumpRemaining( -1 );
+	}
+
 	function setThumb( card, url ) {
 		if ( ! card || ! url ) { return; }
 		var ph = card.querySelector( '.fccd-photo' );
@@ -51,20 +75,89 @@
 			btn.disabled = true;
 			setStatus( card.querySelector( '.fccd-card-status' ), 'Publishing…' );
 			apiFetch( { path: P + 'approve', method: 'POST', data: { draft_id: draft } } )
-				.then( function () { card.classList.add( 'fccd-card--done' ); setStatus( card.querySelector( '.fccd-card-status' ), 'Published ✓', 'ok' ); } )
+				.then( function ( res ) {
+					markDone( card );
+					var s = card.querySelector( '.fccd-card-status' );
+					setStatus( s, 'Published ✓ ', 'ok' );
+					// Reassurance: a way to see it live and an escape hatch.
+					if ( res && res.view_url ) {
+						var v = doc.createElement( 'a' );
+						v.href = res.view_url; v.target = '_blank'; v.rel = 'noopener';
+						v.textContent = 'View it'; s.appendChild( v );
+						s.appendChild( doc.createTextNode( ' · ' ) );
+					}
+					var u = doc.createElement( 'button' );
+					u.type = 'button'; u.className = 'button-link fccd-undo';
+					u.textContent = 'Undo'; s.appendChild( u );
+				} )
 				.catch( function ( err ) { btn.disabled = false; setStatus( card.querySelector( '.fccd-card-status' ), 'Failed: ' + ( err && err.message || 'error' ), 'err' ); } );
 			return;
 		}
 
-		// ---- Needs info ----
+		// ---- Undo a publish (back to draft) ----
+		if ( cls.contains( 'fccd-undo' ) ) {
+			var cardU = cardOf( btn ), draftU = draftOf( btn );
+			if ( ! draftU ) { return; }
+			btn.disabled = true;
+			apiFetch( { path: P + 'unpublish', method: 'POST', data: { draft_id: draftU } } )
+				.then( function () {
+					cardU.classList.remove( 'fccd-card--done' );
+					bumpRemaining( 1 );
+					var ap = cardU.querySelector( '.fccd-approve' );
+					if ( ap ) { ap.disabled = false; }
+					setStatus( cardU.querySelector( '.fccd-card-status' ), 'Back to draft — not published.', '' );
+				} )
+				.catch( function ( err ) { btn.disabled = false; fail( 'Undo failed', err ); } );
+			return;
+		}
+
+		// ---- Read draft: render the full body inline ----
+		if ( cls.contains( 'fccd-readdraft' ) ) {
+			var cardR = cardOf( btn ), draftR = draftOf( btn );
+			var body = cardR.querySelector( '.fccd-draftbody' );
+			if ( ! body ) { return; }
+			if ( ! body.hidden ) { body.hidden = true; btn.innerHTML = 'Read draft &#9656;'; return; }
+			btn.innerHTML = 'Hide draft &#9662;';
+			body.hidden = false;
+			if ( body.getAttribute( 'data-loaded' ) ) { return; }
+			body.innerHTML = '<em>Loading…</em>';
+			apiFetch( { path: P + 'preview?draft_id=' + draftR } )
+				.then( function ( res ) { body.innerHTML = res && res.html ? res.html : '<em>(empty draft)</em>'; body.setAttribute( 'data-loaded', '1' ); } )
+				.catch( function ( err ) { body.innerHTML = 'Preview failed: ' + ( err && err.message || 'error' ); } );
+			return;
+		}
+
+		// ---- Needs info: reveal the inline composer ----
 		if ( cls.contains( 'fccd-needsinfo' ) ) {
-			var item = itemOf( btn );
-			if ( ! item ) { return; }
-			var q = window.prompt( 'What do you need to ask the sender? (recorded as a note)' );
-			if ( q === null ) { return; }
-			apiFetch( { path: P + 'needs-info', method: 'POST', data: { item_id: item, question: q } } )
-				.then( function () { setStatus( cardOf( btn ).querySelector( '.fccd-card-status' ), 'Flagged — needs info', 'ok' ); } )
-				.catch( function ( err ) { fail( 'Failed', err ); } );
+			var boxN = cardOf( btn ).querySelector( '.fccd-needsinfo-box' );
+			if ( boxN ) { boxN.hidden = ! boxN.hidden; var ta = boxN.querySelector( '.fccd-needsinfo-q' ); if ( ! boxN.hidden && ta ) { ta.focus(); } }
+			return;
+		}
+
+		// ---- Needs info: cancel ----
+		if ( cls.contains( 'fccd-needsinfo-cancel' ) ) {
+			var boxC = cardOf( btn ).querySelector( '.fccd-needsinfo-box' );
+			if ( boxC ) { boxC.hidden = true; }
+			return;
+		}
+
+		// ---- Needs info: email the sender & park the card ----
+		if ( cls.contains( 'fccd-needsinfo-send' ) ) {
+			var cardI = cardOf( btn ), itemI = itemOf( btn );
+			var boxI = cardI.querySelector( '.fccd-needsinfo-box' );
+			var q = boxI.querySelector( '.fccd-needsinfo-q' ).value.trim();
+			var stI = boxI.querySelector( '.fccd-needsinfo-status' );
+			if ( ! itemI || ! q ) { if ( stI ) { stI.textContent = 'Type a question first.'; } return; }
+			btn.disabled = true; if ( stI ) { stI.textContent = 'Saving…'; }
+			apiFetch( { path: P + 'needs-info', method: 'POST', data: { item_id: itemI, question: q } } )
+				.then( function ( res ) {
+					// Open a pre-written email to the submitter if we have an address.
+					if ( res && res.mailto ) { window.location.href = res.mailto; }
+					boxI.hidden = true;
+					markDone( cardI );
+					setStatus( cardI.querySelector( '.fccd-card-status' ), res && res.mailto ? 'Emailed sender — waiting on reply' : 'Flagged — waiting on reply', 'ok' );
+				} )
+				.catch( function ( err ) { btn.disabled = false; if ( stI ) { stI.textContent = 'Failed: ' + ( err && err.message || 'error' ); } } );
 			return;
 		}
 
@@ -74,8 +167,33 @@
 			if ( ! item2 ) { return; }
 			btn.disabled = true;
 			apiFetch( { path: P + 'dismiss', method: 'POST', data: { item_id: item2 } } )
-				.then( function () { card2.classList.add( 'fccd-card--done' ); setStatus( card2.querySelector( '.fccd-card-status' ), 'Dismissed', 'ok' ); } )
+				.then( function () { markDone( card2 ); setStatus( card2.querySelector( '.fccd-card-status' ), 'Dismissed', 'ok' ); } )
 				.catch( function ( err ) { btn.disabled = false; fail( 'Failed', err ); } );
+			return;
+		}
+
+		// ---- Approve all "ready" at once ----
+		if ( cls.contains( 'fccd-approve-all' ) ) {
+			var group = btn.closest( '.fccd-group--ready' );
+			if ( ! group ) { return; }
+			var cardsR = Array.prototype.slice.call( group.querySelectorAll( '.fccd-card:not(.fccd-card--done)' ) );
+			var ids = cardsR.map( function ( c ) { return parseInt( c.getAttribute( 'data-draft' ), 10 ); } ).filter( Boolean );
+			if ( ! ids.length ) { return; }
+			btn.disabled = true;
+			var st = group.querySelector( '.fccd-approve-all-status' );
+			if ( st ) { st.textContent = 'Publishing ' + ids.length + '…'; }
+			apiFetch( { path: P + 'approve-batch', method: 'POST', data: { ids: ids } } )
+				.then( function ( res ) {
+					var pub = ( res && res.published ) || [];
+					cardsR.forEach( function ( c ) {
+						if ( pub.indexOf( parseInt( c.getAttribute( 'data-draft' ), 10 ) ) !== -1 ) {
+							markDone( c );
+							setStatus( c.querySelector( '.fccd-card-status' ), 'Published ✓', 'ok' );
+						}
+					} );
+					if ( st ) { st.textContent = 'Published ' + pub.length + ' ✓'; }
+				} )
+				.catch( function ( err ) { btn.disabled = false; if ( st ) { st.textContent = 'Failed: ' + ( err && err.message || 'error' ); } } );
 			return;
 		}
 
