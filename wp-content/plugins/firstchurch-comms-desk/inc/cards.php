@@ -132,6 +132,35 @@ function fccd_render_suggestions( array $candidates ): string {
 }
 
 /* ============================================================================
+ * Loose ends — fix the surfaced problem in place instead of leaving to do it
+ * ========================================================================== */
+
+/**
+ * The compact stock-photo widget for an event in "Loose ends" that's missing an
+ * image: the SAME .fccd-photo / .fccd-stock controls a review card uses, pre-
+ * filled with a derived query and carrying the post id — so the established
+ * toggle → auto-search → pick → import path works with no new JS.
+ */
+function fccd_render_loose_photo( int $id, string $query ): string {
+	return '<span class="fccd-photo fccd-loose-photo" data-draft="' . (int) $id . '"> '
+		. '<button type="button" class="button button-small fccd-photo-stock-toggle">Find a photo</button>'
+		. '<div class="fccd-stock" hidden><input type="text" class="fccd-stock-q" value="' . esc_attr( $query )
+		. '" placeholder="Search stock photos&hellip;" /> '
+		. '<button type="button" class="button button-small fccd-stock-go">Search</button>'
+		. '<div class="fccd-stock-results"></div></div></span>';
+}
+
+/**
+ * New expiry date when extending an announcement: add $days to the later of its
+ * current expiry or today, so an already-expired (or undated) item actually
+ * comes back rather than landing in the past again. Returns YYYY-MM-DD.
+ */
+function fccd_extend_expiry( string $current, string $today, int $days = 30 ): string {
+	$base = ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $current ) && $current > $today ) ? $current : $today;
+	return gmdate( 'Y-m-d', (int) strtotime( $base . ' +' . max( 1, $days ) . ' days' ) );
+}
+
+/* ============================================================================
  * Speed — triage the worklist so the easy majority clears in one pass
  * ========================================================================== */
 

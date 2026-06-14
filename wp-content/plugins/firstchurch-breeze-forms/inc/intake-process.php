@@ -455,6 +455,69 @@ function fcbf_intake_backfill_dates(int $limit = 200, bool $dry_run = false): ar
     return $out;
 }
 
+/**
+ * One-time backfill: suggest hero photos for already-drafted intake items that
+ * predate the auto-suggestion (no _fc_intake_photo_suggestions yet), whose
+ * linked draft is still draft/pending and imageless. Mirrors backfill-dates:
+ * idempotent (skips items that already have suggestions), only touches its own
+ * draft/pending linked posts. Pass dry_run to preview which it would touch
+ * without spending any AI/search calls.
+ *
+ * @return array{scanned:int,updated:int,skipped:int,items:array<int,array<string,mixed>>}
+ */
+function fcbf_intake_backfill_photos(int $limit = 100, bool $dry_run = false): array
+{
+    $q = new WP_Query([
+        'post_type'      => FCBF_INTAKE_CPT,
+        'post_status'    => ['publish', 'pending', 'draft', 'private'],
+        'posts_per_page' => max(1, min(300, $limit)),
+        'no_found_rows'  => true,
+        'meta_query'     => [
+            'relation' => 'AND',
+            ['key' => FCBF_INTAKE_STATUS, 'value' => 'drafted'],
+            ['key' => FCBF_INTAKE_LINKED, 'compare' => 'EXISTS'],
+            ['key' => FCBF_INTAKE_PHOTOS, 'compare' => 'NOT EXISTS'],
+        ],
+    ]);
+
+    $out = ['scanned' => 0, 'updated' => 0, 'skipped' => 0, 'items' => []];
+    foreach ($q->posts as $item) {
+        $out['scanned']++;
+        $draft_id = (int) get_post_meta($item->ID, FCBF_INTAKE_LINKED, true);
+        $draft    = $draft_id ? get_post($draft_id) : null;
+        $skip     = static function (string $r) use (&$out, $item, $draft_id): void {
+            $out['skipped']++;
+            $out['items'][] = ['item' => $item->ID, 'draft' => $draft_id ?: null, 'result' => $r];
+        };
+
+        if (!$draft) { $skip('no linked draft'); continue; }
+        if (!in_array($draft->post_status, ['draft', 'pending'], true)) { $skip('skip (' . $draft->post_status . ')'); continue; }
+
+        $category = '';
+        if ('fce_event' === $draft->post_type) {
+            $slugs    = wp_get_post_terms($draft_id, 'ctc_event_category', ['fields' => 'slugs']);
+            $category = (is_array($slugs) && $slugs) ? (string) $slugs[0] : '';
+        }
+        $title = (string) get_the_title($draft);
+
+        if ($dry_run) {
+            $out['updated']++;
+            $out['items'][] = ['item' => $item->ID, 'draft' => $draft_id, 'result' => 'WOULD suggest for "' . $title . '"'];
+            continue;
+        }
+
+        $photos = fcbf_intake_photo_suggestions($draft_id, $category, $title, trim(wp_strip_all_tags((string) $draft->post_content)));
+        if ($photos) {
+            update_post_meta($item->ID, FCBF_INTAKE_PHOTOS, wp_json_encode($photos));
+            $out['updated']++;
+            $out['items'][] = ['item' => $item->ID, 'draft' => $draft_id, 'result' => 'set ' . count($photos) . ' suggestions'];
+        } else {
+            $skip('no suggestions found');
+        }
+    }
+    return $out;
+}
+
 /* ---- Manual trigger as an MCP ability (drain the queue on demand) ---- */
 
 add_filter(
@@ -462,7 +525,7 @@ add_filter(
     static function ($config) {
         if (is_array($config)) {
             $existing        = isset($config['tools']) && is_array($config['tools']) ? $config['tools'] : [];
-            $config['tools'] = array_values(array_unique(array_merge($existing, ['firstchurch/process-intake', 'firstchurch/backfill-intake-dates'])));
+            $config['tools'] = array_values(array_unique(array_merge($existing, ['firstchurch/process-intake', 'firstchurch/backfill-intake-dates', 'firstchurch/backfill-intake-photos'])));
         }
         return $config;
     }
@@ -511,6 +574,28 @@ add_action(
                 ],
                 'execute_callback'    => static function ($input = []) {
                     return fcbf_intake_backfill_dates((int) ($input['limit'] ?? 200), (bool) ($input['dry_run'] ?? false));
+                },
+                'permission_callback' => static fn (): bool => current_user_can('edit_posts'),
+                'meta'                => ['mcp' => ['public' => true]],
+            ]
+        );
+
+        wp_register_ability(
+            'firstchurch/backfill-intake-photos',
+            [
+                'label'               => 'Backfill intake photo suggestions',
+                'description'         => 'One-time: suggest hero photos for already-drafted intake items that predate auto-suggestion (imageless draft/pending linked posts). Idempotent; skips items that already have suggestions. Pass dry_run to preview without spending AI/search calls.',
+                'category'            => 'firstchurch',
+                'input_schema'        => [
+                    'type'                 => 'object',
+                    'properties'           => [
+                        'limit'   => ['type' => 'integer', 'minimum' => 1, 'maximum' => 300, 'default' => 100],
+                        'dry_run' => ['type' => 'boolean', 'default' => false, 'description' => 'Preview which items would get suggestions without running searches.'],
+                    ],
+                    'additionalProperties' => false,
+                ],
+                'execute_callback'    => static function ($input = []) {
+                    return fcbf_intake_backfill_photos((int) ($input['limit'] ?? 100), (bool) ($input['dry_run'] ?? false));
                 },
                 'permission_callback' => static fn (): bool => current_user_can('edit_posts'),
                 'meta'                => ['mcp' => ['public' => true]],

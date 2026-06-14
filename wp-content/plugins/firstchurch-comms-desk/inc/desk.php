@@ -385,11 +385,7 @@ function fccd_render_loose_ends( array $health ): void {
 		$any = true;
 		echo '<li><strong>' . esc_html( $label ) . ' (' . count( $items ) . ')</strong><ul>';
 		foreach ( array_slice( $items, 0, 6 ) as $it ) {
-			printf(
-				'<li><a href="%s">%s</a></li>',
-				esc_url( (string) ( $it['edit_url'] ?? '#' ) ),
-				esc_html( (string) ( $it['title'] ?? '(untitled)' ) )
-			);
+			fccd_render_loose_item( $key, (array) $it );
 		}
 		echo '</ul></li>';
 	}
@@ -397,6 +393,46 @@ function fccd_render_loose_ends( array $health ): void {
 	if ( ! $any ) {
 		echo '<p class="fccd-empty">All tidy — no loose ends. ✨</p>';
 	}
+}
+
+/**
+ * One "Loose ends" finding, with an in-place fix where we have one: a stock-photo
+ * finder for an imageless event, extend/unpublish for announcements. The post id
+ * rides on the row (data-draft) so the shared review-action handlers apply.
+ *
+ * @param array<string,mixed> $it A content-health finding.
+ */
+function fccd_render_loose_item( string $key, array $it ): void {
+	$id    = (int) ( $it['id'] ?? 0 );
+	$title = (string) ( $it['title'] ?? '(untitled)' );
+	$edit  = (string) ( $it['edit_url'] ?? '#' );
+
+	echo '<li class="fccd-loose-item" data-draft="' . $id . '">';
+	echo '<a href="' . esc_url( $edit ) . '">' . esc_html( $title ) . '</a> ';
+
+	if ( 'events_missing_image' === $key && $id ) {
+		// Derive a query the same way intake does (category map → cleaned title),
+		// no AI on this render path — the box is editable and auto-runs on open.
+		$query = '';
+		if ( class_exists( '\FirstChurch\BreezeForms\PhotoQuery' ) ) {
+			$slugs = wp_get_post_terms( $id, 'ctc_event_category', array( 'fields' => 'slugs' ) );
+			$slug  = ( is_array( $slugs ) && $slugs ) ? (string) $slugs[0] : '';
+			$query = \FirstChurch\BreezeForms\PhotoQuery::forCategory( $slug );
+			if ( '' === $query ) {
+				$query = \FirstChurch\BreezeForms\PhotoQuery::cleanTitle( $title );
+			}
+		}
+		echo fccd_render_loose_photo( $id, $query ); // phpcs:ignore WordPress.Security.EscapeOutput
+	} elseif ( 'announcements_expiring' === $key && $id ) {
+		echo '<span class="fccd-loose-meta">expires ' . esc_html( substr( (string) ( $it['expires'] ?? '' ), 0, 10 ) ) . '</span> ';
+		echo '<button type="button" class="button button-small fccd-extend-expiry">Extend 30 days</button> <span class="fccd-loose-status"></span>';
+	} elseif ( 'announcements_expired' === $key && $id ) {
+		echo '<span class="fccd-loose-meta">expired ' . esc_html( substr( (string) ( $it['expires'] ?? '' ), 0, 10 ) ) . '</span> ';
+		echo '<button type="button" class="button button-small fccd-extend-expiry">Extend 30 days</button> ';
+		echo '<button type="button" class="button button-small fccd-loose-unpublish">Unpublish</button> <span class="fccd-loose-status"></span>';
+	}
+
+	echo '</li>';
 }
 
 function fccd_render_this_week(): void {

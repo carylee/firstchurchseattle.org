@@ -95,3 +95,11 @@
 .fccd-suggest { margin: 0 0 8px; }
 .fccd-suggest-head { margin: 0 0 4px; font-size: 12px; color: #646970; }
 .fccd-suggest-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* actionable Loose ends — fix in place */
+.fccd-loose-item { margin: 2px 0; }
+.fccd-loose-photo { display: inline-block; margin-left: 4px; }
+.fccd-loose-photo .fccd-stock { margin-top: 6px; }
+.fccd-loose-meta { color: #646970; font-size: 12px; margin: 0 4px; }
+.fccd-loose-status { font-size: 12px; color: #00a32a; margin-left: 4px; }
+.fccd-loose-done { opacity: 0.5; }
