@@ -34,7 +34,11 @@ function fcen_render_email( int $post_id ): string {
 		return '';
 	}
 
-	$inner = '';
+	// The pastor's letter is hoisted out of the body into its own slot above the
+	// worship buttons (parity with the live send, §9). Everything else — the
+	// timely happenings cards + editorial blocks — fills the body in order.
+	$inner  = '';
+	$letter = '';
 	foreach ( parse_blocks( $post->post_content ) as $block ) {
 		$name = $block['blockName'] ?? null;
 		if ( null === $name ) {
@@ -43,10 +47,16 @@ function fcen_render_email( int $post_id ): string {
 		if ( 'firstchurch/happenings' === $name ) {
 			$inner .= fcen_render_happenings_email( $block['attrs'] ?? array() );
 		} elseif ( 'firstchurch/pastoral-letter' === $name ) {
-			$inner .= fcen_render_pastoral_letter_email( $block['attrs'] ?? array() );
+			$letter .= fcen_render_pastoral_letter_email( $block['attrs'] ?? array() );
+		} elseif ( fcen_is_from_the_pastor_heading( $block ) ) {
+			continue; // the letter slot needs no "From the Pastor" label (parity).
+		} elseif ( 'core/heading' === $name ) {
+			// Section headers need inline brand styling — email strips the
+			// `wp-block-heading` class render_block() would emit.
+			$inner .= Email::heading( wp_strip_all_tags( render_block( $block ) ) );
 		} else {
-			// Editorial blocks render to clean semantic HTML; the scaffold sets the
-			// base font around them.
+			// Other editorial blocks render to clean semantic HTML; the scaffold
+			// sets the base font around them.
 			$inner .= render_block( $block );
 		}
 	}
@@ -56,6 +66,7 @@ function fcen_render_email( int $post_id ): string {
 		'subject' => '' !== $subject ? $subject : get_the_title( $post ),
 		'preview' => (string) get_post_meta( $post_id, FCEN_PREVIEW_KEY, true ),
 		'date'    => (string) get_post_meta( $post_id, FCEN_DATE_KEY, true ),
+		'letter'  => $letter,
 		'footer'  => fcen_email_footer(),
 	);
 
@@ -122,6 +133,22 @@ function fcen_render_happenings_email( array $attrs ): string {
 	}
 
 	return $html;
+}
+
+/**
+ * True for the legacy standalone "From the Pastor" heading. New issues drop it
+ * (the letter slot is self-labelling — inc/cpt.php / inc/compose.php), but an
+ * issue drafted before this change may still carry it; skip it so the parity
+ * layout shows no stray heading above the worship buttons.
+ *
+ * @param array<string,mixed> $block A parsed block.
+ */
+function fcen_is_from_the_pastor_heading( array $block ): bool {
+	if ( 'core/heading' !== ( $block['blockName'] ?? '' ) ) {
+		return false;
+	}
+	$text = trim( wp_strip_all_tags( (string) ( $block['innerHTML'] ?? '' ) ) );
+	return 0 === strcasecmp( $text, 'From the Pastor' );
 }
 
 /**

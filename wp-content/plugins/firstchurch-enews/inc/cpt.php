@@ -75,8 +75,9 @@ function fcen_issue_block_template(): array {
 	return array(
 		// --- Bucket C: the "From the Pastor" slot. Self-fills from the latest
 		//     pastoral-letters post (within ~5 days); falls back to prose written
-		//     in the block's settings when there is no recent letter. ---
-		array( 'core/heading', array( 'level' => 2, 'content' => 'From the Pastor' ) ),
+		//     in the block's settings when there is no recent letter. No heading —
+		//     the email hoists this into its own letter slot above the worship
+		//     buttons (parity with the live send, enews-spine.md §9). ---
 		array( 'firstchurch/pastoral-letter', array( 'days' => 5 ) ),
 
 		// --- The week's lead highlight (a featured event or announcement). ---

@@ -169,6 +169,18 @@ final class EmailTest extends TestCase
         $this->assertSame('', Email::prose('   '));
     }
 
+    public function test_heading_is_inline_styled_maroon_sans_and_escaped(): void
+    {
+        // Section headers must carry inline brand styling (email strips classes)
+        // and escape their text.
+        $html = Email::heading('News & Notes <x>');
+        $this->assertStringContainsString('#800000', $html);   // brand maroon
+        $this->assertStringContainsString('Helvetica', $html); // sans stack
+        $this->assertStringContainsString('News &amp; Notes &lt;x&gt;', $html);
+        $this->assertStringNotContainsString('wp-block-heading', $html);
+        $this->assertSame('', Email::heading('  '));
+    }
+
     public function test_document_wraps_inner_in_an_email_scaffold(): void
     {
         $inner = '<h2>This Week</h2><p>hello</p>';
@@ -231,12 +243,51 @@ final class EmailTest extends TestCase
         $this->assertStringNotContainsString('Pride Sunday <3', $custom);
     }
 
-    public function test_document_body_slot_carries_the_serif_letter_font(): void
+    public function test_document_renders_the_letter_slot_above_the_worship_buttons(): void
     {
-        // The issue body (the pastoral letter prose) reads in the serif stack;
-        // sans is reserved for chrome + announcement cards.
-        $html = Email::document('<p>Dear First Church,</p>', []);
-        $this->assertStringContainsString('Georgia', $html);
+        // Parity with the live send (§9): the pastor's letter reads first, in its
+        // own serif slot above the worship buttons; the cards fill the body below.
+        $html = Email::document('<h2>This Week</h2>', [
+            'letter' => '<p>Dear First Church, grace and peace.</p>',
+        ]);
+        $this->assertStringContainsString('Dear First Church, grace and peace.', $html);
+        $this->assertStringContainsString('Georgia', $html); // serif letter slot
+        $this->assertLessThan(
+            strpos($html, 'Worship&nbsp;Livestream'),
+            strpos($html, 'Dear First Church'),
+            'the letter renders before the worship buttons'
+        );
+    }
+
+    public function test_document_omits_the_letter_slot_when_there_is_no_letter(): void
+    {
+        // A letter-less issue shows no empty serif box — just chrome + body.
+        $html = Email::document('<p>body</p>', []);
+        $this->assertStringNotContainsString('Dear First Church', $html);
+        $this->assertStringContainsString('Worship&nbsp;Livestream', $html);
+    }
+
+    public function test_document_renders_the_worship_notice_line(): void
+    {
+        $default = Email::document('<p>x</p>', []);
+        $this->assertStringContainsString('All First Church Sunday worship services are available', $default);
+
+        // Overridable + escaped.
+        $custom = Email::document('<p>x</p>', ['notice' => 'Closed <today> & tomorrow']);
+        $this->assertStringContainsString('Closed &lt;today&gt; &amp; tomorrow', $custom);
+        $this->assertStringNotContainsString('Closed <today>', $custom);
+    }
+
+    public function test_document_renders_the_important_links_furniture(): void
+    {
+        $html = Email::document('<p>x</p>', []);
+        $this->assertStringContainsString('Important Links', $html);
+        // The four fixed destinations (the live send's furniture).
+        $this->assertStringContainsString('form/603d6c56', $html);                 // Questions/Contact
+        $this->assertStringContainsString('mailto:comms@firstchurchseattle.org', $html); // Communications
+        $this->assertStringContainsString('form/38f910', $html);                   // Prayer Requests
+        $this->assertStringContainsString('firstchurchseattle.org/give/', $html);  // Give
+        $this->assertStringContainsString('Important Links', $html);
     }
 
     public function test_document_tolerates_missing_envelope_fields(): void

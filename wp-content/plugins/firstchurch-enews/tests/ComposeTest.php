@@ -31,7 +31,10 @@ final class ComposeTest extends TestCase
     public function test_includes_the_editorial_headings_and_footer(): void
     {
         $body = \fcen_compose_issue_body();
-        foreach (['From the Pastor', 'This Week', 'News &amp; Notes', 'Recurring at First Church'] as $needle) {
+        // No "From the Pastor" heading: the letter slot is self-labelling and the
+        // email hoists it above the worship buttons (parity, enews-spine.md §9).
+        $this->assertStringNotContainsString('From the Pastor', $body);
+        foreach (['This Week', 'News &amp; Notes', 'Recurring at First Church'] as $needle) {
             $this->assertStringContainsString($needle, $body);
         }
         $this->assertStringContainsString('E-news deadline: Tuesdays at noon', $body);

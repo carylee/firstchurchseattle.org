@@ -275,6 +275,14 @@ new markup instead of the old.
 | **A** | ✅ Reconcile brand tokens into public `Email` constants (`#800000`/`#e9dbb7`/`#202020`/`#656565` + `SANS`/`SERIF`); point `fcen_email_footer()` at them | card carries brand maroon, not `#7a1f2b` |
 | **B** | ✅ Port the masthead + footer chrome + `<style>`/MSO/dark-mode into `Email::document()`; trim the now-duplicate social text links from `fcen_email_footer()` | chrome present (doctype/PixelsPerInch/dark-mode media, topbar `*|ARCHIVE|*`, logo, worship URLs, tan rule, social); `$inner` still verbatim; footer still after body |
 | **C** | ✅ Re-skin `Email::card()` to the announcement design; render the CardView `image` | image present/absent; existing title/meta/blurb/CTA/escaping asserts still pass |
+| **D** | ✅ Live-send parity pass (screenshot-diffed against the 2026-05-30 issue): the pastor's letter hoisted into its own serif slot **above** the worship buttons (`$env['letter']` + `letterRow()`, dropping the now-redundant "From the Pastor" heading); the masthead **worship-availability notice** (`noticeRow()`); the fixed **"Important Links"** furniture — Questions/Contact, Communications, Prayer Requests, Give (`importantLinksRow()`); and inline brand styling for the editorial **section headings** (`Email::heading()`, since email strips the `wp-block-heading` class) | letter above worship row + omitted when absent; notice present + escaped; the four Important Links destinations present; heading is maroon sans + escaped |
+
+> **Why D:** phases A–C ported the *template*, but a screenshot read-over of the live sends
+> (June 13 / 6 / May 30) showed the render still diverged from what staff actually mail — the
+> letter sat below the worship buttons, the notice line and Important Links furniture were
+> missing, and the section headings rendered as unstyled black serif (the stripped class). D
+> closes those so the render is a visual match — the "evolutionary migration" wedge: *same
+> newsletter, nicer editor* (see the on-ramp ladder, this section's rung 2).
 
 > **Deploy note:** this is all inside the already-deployed `firstchurch-enews` plugin — no
 > `ops/deploy.sh` allowlist change and no prod re-activation needed; merging to `main` ships it

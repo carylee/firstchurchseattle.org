@@ -35,8 +35,8 @@ function fcen_compose_issue_body( string $pastoral_message = '' ): string {
 	$blocks = array(
 		// Bucket C: the "From the Pastor" slot — a self-filling block (the latest
 		// pastoral-letters post within ~5 days), with any supplied prose kept as the
-		// fallback used when there is no recent letter.
-		fcen_compose_heading( 'From the Pastor' ),
+		// fallback used when there is no recent letter. No heading: the email hoists
+		// this into its own letter slot above the worship buttons (enews-spine.md §9).
 		fcen_compose_pastoral_letter( $pastoral_message ),
 
 		// The week's lead highlight (a featured event or announcement).
