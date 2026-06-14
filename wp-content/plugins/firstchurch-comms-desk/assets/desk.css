@@ -64,3 +64,14 @@
 .fccd-original-qa { margin: 4px 0 0; padding: 8px 10px; background: #f6f7f7; border-radius: 6px; }
 .fccd-original-qa dt { font-weight: 600; margin-top: 6px; }
 .fccd-original-qa dd { margin: 0 0 0 8px; color: #3c434a; }
+
+/* PR B — speed: ready vs needs-a-look groups + batch approve */
+.fccd-group { margin: 8px 0 18px; }
+.fccd-group-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 14px 0 4px; }
+.fccd-group-title { font-size: 13px; text-transform: uppercase; letter-spacing: .03em; color: #646970; margin: 14px 0 4px; }
+.fccd-group-head .fccd-group-title { margin: 0; }
+.fccd-subcount { display: inline-block; min-width: 20px; text-align: center; background: #dcdcde; color: #1d2327; border-radius: 10px; padding: 0 6px; font-size: 11px; line-height: 18px; }
+.fccd-group--ready .fccd-card { border-left-color: #00a32a; }
+.fccd-approve-all-status { font-size: 13px; color: #646970; }
+.fccd-card { transition: opacity .25s ease; }
+.fccd-card--done { opacity: 0.5; }

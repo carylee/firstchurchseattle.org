@@ -37,8 +37,33 @@ add_action(
 			'permission_callback' => $can,
 			'callback'            => 'fccd_rest_unpublish',
 		) );
+		register_rest_route( 'firstchurch/v1', '/comms-desk/approve-batch', array(
+			'methods'             => 'POST',
+			'permission_callback' => $can,
+			'callback'            => 'fccd_rest_approve_batch',
+		) );
 	}
 );
+
+/**
+ * Approve & publish many drafts at once (the "ready" group). Skips any the user
+ * can't publish; returns the ids actually published.
+ */
+function fccd_rest_approve_batch( WP_REST_Request $req ) {
+	$p    = $req->get_json_params();
+	$ids  = is_array( $p ) && is_array( $p['ids'] ?? null ) ? $p['ids'] : array();
+	$done = array();
+	foreach ( $ids as $id ) {
+		$id = (int) $id;
+		if ( $id && get_post( $id ) && current_user_can( 'publish_post', $id ) ) {
+			$r = wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ), true );
+			if ( ! is_wp_error( $r ) ) {
+				$done[] = $id;
+			}
+		}
+	}
+	return new WP_REST_Response( array( 'ok' => true, 'published' => $done ), 200 );
+}
 
 /** Undo an approve: flip a just-published post back to draft (the safety net). */
 function fccd_rest_unpublish( WP_REST_Request $req ) {

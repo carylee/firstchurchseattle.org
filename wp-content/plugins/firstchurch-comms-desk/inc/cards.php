@@ -76,3 +76,55 @@ function fccd_render_note_callout( string $note ): string {
 	return '<p class="fccd-note-callout"><span class="fccd-note-icon" aria-hidden="true">⚠</span> '
 		. '<span class="fccd-note-label">Worth a look:</span> ' . esc_html( $note ) . '</p>';
 }
+
+/* ============================================================================
+ * Speed — triage the worklist so the easy majority clears in one pass
+ * ========================================================================== */
+
+/** Confidence at/above which a complete draft is considered publish-ready. */
+const FCCD_READY_CONFIDENCE = 0.8;
+
+/**
+ * Is this card safe to batch-approve without a closer look? A normal review
+ * draft (not a revision) the AI was confident about, that already has a photo
+ * and carries no "worth a look" note.
+ *
+ * @param array<string,mixed> $c A card from fccd_needs_you_now().
+ */
+function fccd_card_is_ready( array $c ): bool {
+	if ( 'review' !== ( $c['type'] ?? 'review' ) ) {
+		return false;
+	}
+	$conf = $c['confidence'] ?? null;
+	if ( null === $conf || (float) $conf < FCCD_READY_CONFIDENCE ) {
+		return false;
+	}
+	if ( '' === (string) ( $c['photo'] ?? '' ) ) {
+		return false;
+	}
+	return '' === trim( (string) ( $c['note'] ?? '' ) );
+}
+
+/**
+ * Partition the worklist into 'ready' (surest first — blast through them) and
+ * 'look' (most-uncertain first — spend attention there). Pure: returns reordered
+ * copies, leaves the input untouched.
+ *
+ * @param array<int,array<string,mixed>> $cards
+ * @return array{ready:array<int,array<string,mixed>>,look:array<int,array<string,mixed>>}
+ */
+function fccd_partition_cards( array $cards ): array {
+	$ready = array();
+	$look  = array();
+	foreach ( $cards as $c ) {
+		if ( fccd_card_is_ready( $c ) ) {
+			$ready[] = $c;
+		} else {
+			$look[] = $c;
+		}
+	}
+	$conf = static fn ( $c ) => (float) ( $c['confidence'] ?? 0 );
+	usort( $ready, static fn ( $a, $b ) => $conf( $b ) <=> $conf( $a ) ); // surest first
+	usort( $look, static fn ( $a, $b ) => $conf( $a ) <=> $conf( $b ) );  // riskiest first
+	return array( 'ready' => $ready, 'look' => $look );
+}

@@ -167,13 +167,31 @@ function fccd_render_desk(): void {
 	echo '<button type="button" class="button button-primary fccd-addthing-submit">Add to intake</button> <span class="fccd-addthing-status"></span>';
 	echo '</div>';
 
-	/* Needs you now */
-	echo '<h2 class="fccd-sec">Needs you now <span class="fccd-count">' . count( $cards ) . '</span></h2>';
+	/* Needs you now — split into ready-to-publish vs needs-a-look. */
+	$parts = fccd_partition_cards( $cards );
+	echo '<h2 class="fccd-sec">Needs you now <span class="fccd-count" data-fccd-remaining>' . count( $cards ) . '</span></h2>';
 	if ( ! $cards ) {
-		echo '<p class="fccd-empty">Nothing waiting — the queue is clear. 🎉</p>';
+		echo '<p class="fccd-empty" data-fccd-clear>Nothing waiting — the queue is clear. 🎉</p>';
 	}
-	foreach ( $cards as $c ) {
-		fccd_render_card( $c );
+
+	if ( $parts['ready'] ) {
+		echo '<div class="fccd-group fccd-group--ready">';
+		echo '<div class="fccd-group-head"><h3 class="fccd-group-title">Ready to publish <span class="fccd-subcount">' . count( $parts['ready'] ) . '</span></h3>';
+		echo '<button type="button" class="button button-primary fccd-approve-all">Approve all ' . count( $parts['ready'] ) . ' ready</button>';
+		echo ' <span class="fccd-approve-all-status"></span></div>';
+		foreach ( $parts['ready'] as $c ) {
+			fccd_render_card( $c );
+		}
+		echo '</div>';
+	}
+
+	if ( $parts['look'] ) {
+		echo '<div class="fccd-group fccd-group--look">';
+		echo '<h3 class="fccd-group-title">Needs a look <span class="fccd-subcount">' . count( $parts['look'] ) . '</span></h3>';
+		foreach ( $parts['look'] as $c ) {
+			fccd_render_card( $c );
+		}
+		echo '</div>';
 	}
 
 	/* Loose ends */

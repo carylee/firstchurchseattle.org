@@ -2,7 +2,7 @@
 /**
  * Plugin Name: First Church Comms Desk
  * Description: A human-centered workspace for the Communications Coordinator — a "Comms Desk" landing page (a weekly worklist cockpit + in-place review of AI drafts), a scoped human comms_editor role, and a decluttered admin. Sits on top of the intake/voice engine in firstchurch-mcp-abilities + firstchurch-breeze-forms; it surfaces existing data (review-queue, content-health, intake), it does not duplicate it.
- * Version:     0.3.0
+ * Version:     0.4.0
  * Author:      First Church Seattle
  *
  * @package FirstChurch\CommsDesk
