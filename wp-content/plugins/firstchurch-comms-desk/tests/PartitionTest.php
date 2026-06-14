@@ -28,6 +28,10 @@ final class PartitionTest extends TestCase
         $this->assertFalse(fccd_card_is_ready($this->card(array('photo' => ''))), 'no photo');
         $this->assertFalse(fccd_card_is_ready($this->card(array('note' => 'check the time'))), 'has a note');
         $this->assertFalse(fccd_card_is_ready($this->card(array('confidence' => null))), 'unknown confidence');
+        $this->assertFalse(
+            fccd_card_is_ready($this->card(array('gaps' => array(array('field' => 'venue', 'question' => 'which lot?'))))),
+            'AI flagged a gap'
+        );
     }
 
     public function test_revisions_are_never_ready(): void

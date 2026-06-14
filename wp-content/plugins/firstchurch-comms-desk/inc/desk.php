@@ -104,6 +104,7 @@ function fccd_needs_you_now(): array {
 		$is_event = ( 'fce_event' === $linked->post_type );
 		$reg_url  = $is_event ? (string) get_post_meta( $linked_id, '_fce_registration_url', true ) : '';
 		$resp     = json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_RESPONSES, true ), true );
+		$gaps     = defined( 'FCBF_INTAKE_GAPS' ) ? json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_GAPS, true ), true ) : null;
 		$cards[]  = array_merge( $base, array(
 			'type'        => 'review',
 			'draft_id'    => $linked_id,
@@ -114,6 +115,7 @@ function fccd_needs_you_now(): array {
 			// Provenance the coordinator can open to diff against the AI's draft.
 			'responses'   => is_array( $resp ) ? $resp : array(),
 			'contact'     => is_array( $contact ) ? $contact : array(),
+			'gaps'        => is_array( $gaps ) ? $gaps : array(),
 			'start_date'  => $is_event ? (string) get_post_meta( $linked_id, '_fce_dtstart', true ) : '',
 			'photo'       => (string) ( get_the_post_thumbnail_url( $linked_id, 'medium' ) ?: '' ),
 			// announcement CTA
@@ -252,9 +254,10 @@ function fccd_render_card( array $c ): void {
 		// The full draft body, fetched + rendered on demand so the coordinator
 		// sees exactly what publishes without leaving the Desk.
 		echo '<div class="fccd-draftbody" hidden></div>';
-		// Elevate the AI's note to a "worth a look" callout, and offer the
-		// verbatim original to diff against (already-escaped HTML).
+		// Elevate the AI's note + structured gaps to "check these" callouts, and
+		// offer the verbatim original to diff against (all already-escaped HTML).
 		echo fccd_render_note_callout( (string) ( $c['note'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo fccd_render_gaps( $c['gaps'] ?? array() ); // phpcs:ignore WordPress.Security.EscapeOutput
 		echo fccd_render_original( $c['responses'] ?? array(), $c['contact'] ?? array() ); // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 	echo '</div>';

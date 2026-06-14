@@ -83,3 +83,10 @@
 .fccd-group--awaiting { margin-top: 18px; }
 .fccd-group--awaiting > summary { cursor: pointer; }
 .fccd-group--awaiting .fccd-card { border-left-color: #8a8a8a; opacity: 0.85; }
+
+/* PR D — structured gaps checklist */
+.fccd-gaps { margin: 8px 0; padding: 8px 10px; background: #fcf9e8; border: 1px solid #f0e6a6; border-radius: 6px; font-size: 13px; }
+.fccd-gaps-head { margin: 0 0 4px; font-weight: 600; color: #6a5b12; }
+.fccd-gaps ul { margin: 0 0 0 18px; }
+.fccd-gaps li { color: #6a5b12; }
+.fccd-gap-field { font-weight: 600; text-transform: capitalize; }

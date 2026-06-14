@@ -325,6 +325,18 @@ function fcmcp_intake_extract( $input = array() ) {
 				),
 			),
 			'notes'   => array( 'type' => 'string', 'description' => 'For the human reviewer: guesses, gaps, a flyer to attach.' ),
+			'gaps'    => array(
+				'type'        => 'array',
+				'description' => 'Specific things you were unsure about — each a short question for the human reviewer.',
+				'items'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'field'    => array( 'type' => 'string', 'description' => 'The field in doubt, e.g. venue, time, cost.' ),
+						'question' => array( 'type' => 'string', 'description' => 'A short question to resolve it.' ),
+					),
+					'required'   => array( 'question' ),
+				),
+			),
 		),
 		'required'             => array( 'intents', 'notes' ),
 		'additionalProperties' => false,
@@ -342,7 +354,11 @@ function fcmcp_intake_extract( $input = array() ) {
 		. "- URLs: only emit a URL that appears verbatim in the text; normalize to https://. "
 		. "Never invent a Breeze/registration/social URL — omit and note 'link needed'.\n"
 		. "- Set an announcement `expires` when it's tied to a date or has a deadline.\n"
-		. "- Do not set images here; if a flyer/graphic is implied, say so in notes.";
+		. "- Do not set images here; if a flyer/graphic is implied, say so in notes.\n"
+		. "- For each thing you genuinely guessed or couldn't pin down (an ambiguous "
+		. "venue, a missing end-time, an unconfirmed cost), add a `gaps` entry: the "
+		. "field plus a short question the reviewer could ask the submitter. Leave "
+		. "`gaps` empty when you're confident.";
 
 	$user = "received-date: {$received}\n";
 	if ( $attachments ) {

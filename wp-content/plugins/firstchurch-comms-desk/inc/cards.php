@@ -77,6 +77,32 @@ function fccd_render_note_callout( string $note ): string {
 		. '<span class="fccd-note-label">Worth a look:</span> ' . esc_html( $note ) . '</p>';
 }
 
+/**
+ * Render the AI's structured uncertainties as a "check these" checklist, so
+ * review is "confirm two things" rather than "re-read everything." Returns ''
+ * when there are no gaps. Expects already-normalized entries (see the
+ * breeze-forms Gaps helper).
+ *
+ * @param array<int,array{field?:string,question?:string}> $gaps
+ */
+function fccd_render_gaps( array $gaps ): string {
+	$items = '';
+	foreach ( $gaps as $g ) {
+		$question = trim( (string) ( $g['question'] ?? '' ) );
+		if ( '' === $question ) {
+			continue;
+		}
+		$field = trim( (string) ( $g['field'] ?? '' ) );
+		$items .= '<li>'
+			. ( '' !== $field ? '<span class="fccd-gap-field">' . esc_html( $field ) . ':</span> ' : '' )
+			. esc_html( $question ) . '</li>';
+	}
+	if ( '' === $items ) {
+		return '';
+	}
+	return '<div class="fccd-gaps"><p class="fccd-gaps-head">Check these before publishing:</p><ul>' . $items . '</ul></div>';
+}
+
 /* ============================================================================
  * Speed — triage the worklist so the easy majority clears in one pass
  * ========================================================================== */
@@ -102,7 +128,11 @@ function fccd_card_is_ready( array $c ): bool {
 	if ( '' === (string) ( $c['photo'] ?? '' ) ) {
 		return false;
 	}
-	return '' === trim( (string) ( $c['note'] ?? '' ) );
+	if ( '' !== trim( (string) ( $c['note'] ?? '' ) ) ) {
+		return false;
+	}
+	// Any structured gap the AI flagged means "look first," not "auto-publish."
+	return empty( $c['gaps'] );
 }
 
 /**
