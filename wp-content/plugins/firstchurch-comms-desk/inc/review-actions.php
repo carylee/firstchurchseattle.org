@@ -32,8 +32,30 @@ add_action(
 			'permission_callback' => $can,
 			'callback'            => 'fccd_rest_dismiss',
 		) );
+		register_rest_route( 'firstchurch/v1', '/comms-desk/unpublish', array(
+			'methods'             => 'POST',
+			'permission_callback' => $can,
+			'callback'            => 'fccd_rest_unpublish',
+		) );
 	}
 );
+
+/** Undo an approve: flip a just-published post back to draft (the safety net). */
+function fccd_rest_unpublish( WP_REST_Request $req ) {
+	$p        = $req->get_json_params();
+	$draft_id = is_array( $p ) ? (int) ( $p['draft_id'] ?? 0 ) : 0;
+	if ( ! $draft_id || ! get_post( $draft_id ) ) {
+		return new WP_REST_Response( array( 'error' => 'Post not found.' ), 404 );
+	}
+	if ( ! current_user_can( 'edit_post', $draft_id ) ) {
+		return new WP_REST_Response( array( 'error' => 'Not allowed.' ), 403 );
+	}
+	$r = wp_update_post( array( 'ID' => $draft_id, 'post_status' => 'draft' ), true );
+	if ( is_wp_error( $r ) ) {
+		return new WP_REST_Response( array( 'error' => $r->get_error_message() ), 400 );
+	}
+	return new WP_REST_Response( array( 'ok' => true, 'status' => 'draft' ), 200 );
+}
 
 /** Dismiss an intake item (e.g. a revision that adds nothing new). */
 function fccd_rest_dismiss( WP_REST_Request $req ) {

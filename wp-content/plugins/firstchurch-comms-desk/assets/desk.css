@@ -50,3 +50,17 @@
 .fccd-loose ul { margin: 4px 0 10px 18px; }
 .fccd-week, .fccd-recent { margin-left: 4px; }
 .fccd-muted { color: #646970; }
+
+/* PR A — trust: read-the-draft, the AI note callout, the original submission */
+.fccd-readdraft { font-size: 12px; margin-left: 4px; vertical-align: middle; }
+.fccd-draftbody { margin: 8px 0; padding: 12px 14px; background: #fff; border: 1px solid #dcdcde; border-radius: 6px; font-size: 13px; max-height: 360px; overflow: auto; }
+.fccd-draftbody img { max-width: 100%; height: auto; }
+.fccd-note-callout { margin: 8px 0; padding: 8px 10px; background: #fcf9e8; border: 1px solid #f0e6a6; border-radius: 6px; font-size: 13px; color: #6a5b12; }
+.fccd-note-icon { margin-right: 2px; }
+.fccd-note-label { font-weight: 600; }
+.fccd-original { margin: 8px 0; font-size: 13px; }
+.fccd-original > summary { cursor: pointer; color: #2271b1; }
+.fccd-original-from { color: #646970; margin: 6px 0 4px; }
+.fccd-original-qa { margin: 4px 0 0; padding: 8px 10px; background: #f6f7f7; border-radius: 6px; }
+.fccd-original-qa dt { font-weight: 600; margin-top: 6px; }
+.fccd-original-qa dd { margin: 0 0 0 8px; color: #3c434a; }

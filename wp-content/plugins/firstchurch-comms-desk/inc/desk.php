@@ -101,6 +101,7 @@ function fccd_needs_you_now(): array {
 		}
 		$is_event = ( 'fce_event' === $linked->post_type );
 		$reg_url  = $is_event ? (string) get_post_meta( $linked_id, '_fce_registration_url', true ) : '';
+		$resp     = json_decode( (string) get_post_meta( $item->ID, FCBF_INTAKE_RESPONSES, true ), true );
 		$cards[]  = array_merge( $base, array(
 			'type'        => 'review',
 			'draft_id'    => $linked_id,
@@ -108,6 +109,9 @@ function fccd_needs_you_now(): array {
 			'title'       => get_the_title( $linked ),
 			'excerpt'     => wp_trim_words( wp_strip_all_tags( $linked->post_content ), 40 ),
 			'edit_url'    => (string) get_edit_post_link( $linked_id, 'raw' ),
+			// Provenance the coordinator can open to diff against the AI's draft.
+			'responses'   => is_array( $resp ) ? $resp : array(),
+			'contact'     => is_array( $contact ) ? $contact : array(),
 			'start_date'  => $is_event ? (string) get_post_meta( $linked_id, '_fce_dtstart', true ) : '',
 			'photo'       => (string) ( get_the_post_thumbnail_url( $linked_id, 'medium' ) ?: '' ),
 			// announcement CTA
@@ -209,7 +213,15 @@ function fccd_render_card( array $c ): void {
 	} else {
 		echo '<span class="fccd-pill fccd-pill--' . esc_attr( $c['kind'] ) . '">' . esc_html( ucfirst( $c['kind'] ) ) . '</span> ';
 		echo '<strong class="fccd-card-title">' . esc_html( $c['title'] ) . '</strong>';
+		echo ' <button type="button" class="button-link fccd-readdraft">Read draft &#9656;</button>';
 		echo '<p class="fccd-card-excerpt">' . esc_html( $c['excerpt'] ) . '</p>';
+		// The full draft body, fetched + rendered on demand so the coordinator
+		// sees exactly what publishes without leaving the Desk.
+		echo '<div class="fccd-draftbody" hidden></div>';
+		// Elevate the AI's note to a "worth a look" callout, and offer the
+		// verbatim original to diff against (already-escaped HTML).
+		echo fccd_render_note_callout( (string) ( $c['note'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo fccd_render_original( $c['responses'] ?? array(), $c['contact'] ?? array() ); // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 	echo '</div>';
 
@@ -233,9 +245,6 @@ function fccd_render_card( array $c ): void {
 		$bits[] = 'confidence ' . esc_html( round( $c['confidence'] * 100 ) . '%' );
 	}
 	echo '<span class="fccd-prov-meta">' . implode( ' &middot; ', $bits ) . '</span>'; // phpcs:ignore — bits are individually escaped
-	if ( ! $is_rev && '' !== ( $c['note'] ?? '' ) ) {
-		echo '<span class="fccd-prov-note">' . esc_html( $c['note'] ) . '</span>';
-	}
 	echo '</div>';
 
 	/* actions */

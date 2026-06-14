@@ -51,8 +51,54 @@
 			btn.disabled = true;
 			setStatus( card.querySelector( '.fccd-card-status' ), 'Publishing…' );
 			apiFetch( { path: P + 'approve', method: 'POST', data: { draft_id: draft } } )
-				.then( function () { card.classList.add( 'fccd-card--done' ); setStatus( card.querySelector( '.fccd-card-status' ), 'Published ✓', 'ok' ); } )
+				.then( function ( res ) {
+					card.classList.add( 'fccd-card--done' );
+					var s = card.querySelector( '.fccd-card-status' );
+					setStatus( s, 'Published ✓ ', 'ok' );
+					// Reassurance: a way to see it live and an escape hatch.
+					if ( res && res.view_url ) {
+						var v = doc.createElement( 'a' );
+						v.href = res.view_url; v.target = '_blank'; v.rel = 'noopener';
+						v.textContent = 'View it'; s.appendChild( v );
+						s.appendChild( doc.createTextNode( ' · ' ) );
+					}
+					var u = doc.createElement( 'button' );
+					u.type = 'button'; u.className = 'button-link fccd-undo';
+					u.textContent = 'Undo'; s.appendChild( u );
+				} )
 				.catch( function ( err ) { btn.disabled = false; setStatus( card.querySelector( '.fccd-card-status' ), 'Failed: ' + ( err && err.message || 'error' ), 'err' ); } );
+			return;
+		}
+
+		// ---- Undo a publish (back to draft) ----
+		if ( cls.contains( 'fccd-undo' ) ) {
+			var cardU = cardOf( btn ), draftU = draftOf( btn );
+			if ( ! draftU ) { return; }
+			btn.disabled = true;
+			apiFetch( { path: P + 'unpublish', method: 'POST', data: { draft_id: draftU } } )
+				.then( function () {
+					cardU.classList.remove( 'fccd-card--done' );
+					var ap = cardU.querySelector( '.fccd-approve' );
+					if ( ap ) { ap.disabled = false; }
+					setStatus( cardU.querySelector( '.fccd-card-status' ), 'Back to draft — not published.', '' );
+				} )
+				.catch( function ( err ) { btn.disabled = false; fail( 'Undo failed', err ); } );
+			return;
+		}
+
+		// ---- Read draft: render the full body inline ----
+		if ( cls.contains( 'fccd-readdraft' ) ) {
+			var cardR = cardOf( btn ), draftR = draftOf( btn );
+			var body = cardR.querySelector( '.fccd-draftbody' );
+			if ( ! body ) { return; }
+			if ( ! body.hidden ) { body.hidden = true; btn.innerHTML = 'Read draft &#9656;'; return; }
+			btn.innerHTML = 'Hide draft &#9662;';
+			body.hidden = false;
+			if ( body.getAttribute( 'data-loaded' ) ) { return; }
+			body.innerHTML = '<em>Loading…</em>';
+			apiFetch( { path: P + 'preview?draft_id=' + draftR } )
+				.then( function ( res ) { body.innerHTML = res && res.html ? res.html : '<em>(empty draft)</em>'; body.setAttribute( 'data-loaded', '1' ); } )
+				.catch( function ( err ) { body.innerHTML = 'Preview failed: ' + ( err && err.message || 'error' ); } );
 			return;
 		}
 
