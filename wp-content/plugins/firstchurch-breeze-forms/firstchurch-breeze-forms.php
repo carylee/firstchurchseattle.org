@@ -25,6 +25,7 @@ require_once __DIR__ . '/src/Block.php';
 require_once __DIR__ . '/src/Entries.php';
 require_once __DIR__ . '/src/Native.php';
 require_once __DIR__ . '/src/Gaps.php';
+require_once __DIR__ . '/src/PhotoQuery.php';
 
 // Intake queue: capture Breeze form submissions on-site (CPT + reader + MCP).
 require_once __DIR__ . '/inc/embed.php';
