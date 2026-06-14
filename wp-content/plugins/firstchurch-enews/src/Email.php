@@ -50,6 +50,8 @@ final class Email
     private const ARCHIVE     = '*|ARCHIVE|*';
     /** Default top-bar line; overridable per issue via $env['topbar']. */
     private const TOPBAR      = "Worship with us every Sunday at 10:30\u{00A0}AM!";
+    /** Worship-availability notice under the masthead; overridable via $env['notice']. */
+    private const NOTICE      = 'Notice: All First Church Sunday worship services are available in-person (masks welcome but not required) and online. For livestream worship services visit our Livestream page.';
 
     /**
      * One Happening as an email-safe announcement block, matching ../mailchimp's
@@ -140,6 +142,22 @@ final class Email
     }
 
     /**
+     * A section heading (e.g. "This Week at First Church") as inline-styled maroon
+     * sans. The editorial core/heading blocks otherwise render via WordPress as
+     * `<h2 class="wp-block-heading">`, and email clients strip the class — leaving a
+     * default black serif heading that breaks brand parity. The block walk routes
+     * core/heading through here instead so section headers read in the brand.
+     */
+    public static function heading(string $text): string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return '';
+        }
+        return '<h2 class="h2 text-dark" style="' . self::SANS . 'font-size:22px;line-height:28px;font-weight:bold;color:' . self::MAROON . ';margin:22px 0 14px;">' . self::esc($text) . '</h2>';
+    }
+
+    /**
      * Plain-text prose → paragraphs. The single converter for the "From the Pastor"
      * fallback (used when no recent letter post exists), shared by the web render
      * and the email projection so the hand-authored message reads the same on both.
@@ -174,7 +192,7 @@ final class Email
      * body slot. The Mailchimp merge tags are NOT here — they arrive via
      * $env['footer'] (built by the glue), so this stays content-agnostic.
      *
-     * @param array{subject?:string,preview?:string,date?:string,footer?:string,topbar?:string} $env Issue envelope.
+     * @param array{subject?:string,preview?:string,date?:string,footer?:string,topbar?:string,notice?:string,letter?:string} $env Issue envelope.
      */
     public static function document(string $inner, array $env): string
     {
@@ -182,7 +200,13 @@ final class Email
         $preview = (string) ($env['preview'] ?? '');
         $footer  = (string) ($env['footer'] ?? '');
         $topbar  = (string) ($env['topbar'] ?? self::TOPBAR);
+        $notice  = (string) ($env['notice'] ?? self::NOTICE);
+        $letter  = (string) ($env['letter'] ?? '');
 
+        // Order mirrors the live send (parity, ops/docs/enews-spine.md §9): the
+        // pastor's letter reads first, in its own white serif slot above the
+        // worship buttons; the timely cards fill the body; the fixed "Important
+        // Links" furniture sits between the body and the social footer.
         return self::head($subject)
             . '<body id="body" class="bg-page" style="margin:0;padding:0;width:100%;background-color:#eaeaea;">'
             . self::preheader($preview)
@@ -192,9 +216,12 @@ final class Email
             . '<table role="presentation" class="email-container" width="600" cellspacing="0" cellpadding="0" border="0" style="width:600px;max-width:600px;margin:0 auto;">'
             . self::topbarRow($topbar)
             . self::logoRow()
+            . self::noticeRow($notice)
+            . self::letterRow($letter)
             . self::worshipRow()
             . self::dividerRow()
             . self::bodyRow($inner)
+            . self::importantLinksRow()
             . self::spacerRow()
             . self::socialRow()
             . self::footerRow($footer)
@@ -286,6 +313,33 @@ final class Email
             . '</a></td></tr>';
     }
 
+    /** Worship-availability notice line under the masthead (small, muted, on white). */
+    private static function noticeRow(string $notice): string
+    {
+        if ($notice === '') {
+            return '';
+        }
+        return '<tr><td bgcolor="#ffffff" class="bg-card px text-muted" style="background-color:#ffffff;padding:0 40px 8px 40px;' . self::SANS . 'font-size:12px;line-height:18px;color:' . self::MUTED . ';">'
+            . self::esc($notice)
+            . '</td></tr>';
+    }
+
+    /**
+     * The pastor's letter slot: a white serif region above the worship buttons,
+     * matching the live send's reading order (the letter comes first). $letter is
+     * trusted HTML (Email::letter output); the row is omitted when there is none,
+     * so a letter-less issue shows no empty box.
+     */
+    private static function letterRow(string $letter): string
+    {
+        if ($letter === '') {
+            return '';
+        }
+        return '<tr><td bgcolor="#ffffff" class="bg-card px body-text text-dark" style="background-color:#ffffff;padding:24px 40px 4px 40px;' . self::SERIF . 'font-size:17px;line-height:27px;color:' . self::INK . ';">'
+            . $letter
+            . '</td></tr>';
+    }
+
     /** Two-up worship buttons (filled livestream + outlined in-person); stack on mobile. */
     private static function worshipRow(): string
     {
@@ -329,6 +383,47 @@ final class Email
     private static function spacerRow(): string
     {
         return '<tr><td bgcolor="#ffffff" class="bg-card" style="background-color:#ffffff;height:24px;line-height:24px;font-size:24px;">&nbsp;</td></tr>';
+    }
+
+    /**
+     * The "Important Links" furniture: four fixed icon cards (Questions/Contact,
+     * Communications, Prayer Requests, Give) on white, between the body and the
+     * social footer. Identical every week (the destinations are stable), so it
+     * lives here as chrome — the same call the worship buttons + social row make
+     * (ops/docs/enews-spine.md §9.4: don't invent editor fields for fixed
+     * furniture). Icons reuse the Mailchimp-hosted assets the live send uses.
+     */
+    private static function importantLinksRow(): string
+    {
+        $base = 'https://mcusercontent.com/18291af87fbc7224df67d6ab8/images/';
+        // [icon-id, heading, blurb, cta label, cta url]
+        $cards = array(
+            array( '1324d35c-0092-3ec5-d1e7-5289efc21d58', 'Questions? Contact Us!', 'Questions about an upcoming event, who to contact, or how to sign up — or about First Church, our mission and ministries? We’d love to hear from you.', 'Contact us', 'https://firstchurchseattle.breezechms.com/form/603d6c56' ),
+            array( '5c016e71-be5b-850d-ea7b-325451b82acc', 'Communications', 'Planning or promoting an upcoming First Church event? Email comms@firstchurchseattle.org and use our Publicity and Event Request forms.', 'comms@firstchurchseattle.org', 'mailto:comms@firstchurchseattle.org' ),
+            array( 'e2d3d615-bcf0-3ee5-33d8-e26f805c5fa8', 'Prayer Requests', 'Let us know how we can be praying for you. We want to make sure we are supporting each other in every season.', 'Send a prayer request', 'https://firstchurchseattle.breezechms.com/form/38f910' ),
+            array( '1a95a0e6-69e7-2c97-7327-4707f0839094', 'Give to First Church', 'Whether you’ve been part of First Church for a few weeks or twenty years, we’re grateful for your support as we strive to be a tangible presence of Christ in our neighborhood and world.', 'Give', 'https://firstchurchseattle.org/give/' ),
+        );
+
+        $cardsHtml = '';
+        foreach ( $cards as $card ) {
+            list( $icon, $head, $blurb, $cta, $url ) = $card;
+            $cardsHtml .= '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 18px;"><tr>'
+                . '<td width="64" valign="top" style="padding:2px 14px 0 0;">'
+                . '<img src="' . self::escAttr( $base . $icon . '.png' ) . '" width="48" height="48" alt="" style="display:block;width:48px;height:48px;border-radius:6px;"></td>'
+                . '<td valign="top" style="padding:0;">'
+                . '<p style="' . self::SANS . 'font-size:17px;line-height:23px;font-weight:bold;color:' . self::MAROON . ';margin:0 0 4px;">' . self::esc( $head ) . '</p>'
+                . '<p class="body-text text-dark" style="' . self::SANS . 'font-size:14px;line-height:21px;color:' . self::INK . ';margin:0 0 4px;">' . self::esc( $blurb ) . '</p>'
+                . '<p style="' . self::SANS . 'font-size:14px;line-height:21px;margin:0;"><a href="' . self::escAttr( $url ) . '" target="_blank" style="color:' . self::MAROON . ';font-weight:bold;text-decoration:underline;">' . self::esc( $cta ) . ' &raquo;</a></p>'
+                . '</td></tr></table>';
+        }
+
+        return '<tr><td bgcolor="#ffffff" class="bg-card px" style="background-color:#ffffff;padding:8px 40px 4px 40px;">'
+            . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="padding:0 0 6px;">'
+            . '<p class="h2 text-dark" style="' . self::SANS . 'font-size:20px;line-height:26px;font-weight:bold;color:' . self::MAROON . ';margin:0 0 4px;text-align:center;">Important Links</p>'
+            . '</td></tr></table>'
+            . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="padding:0 0 6px;"><table role="presentation" width="44" cellspacing="0" cellpadding="0" border="0" align="center"><tr><td height="3" style="height:3px;line-height:3px;font-size:3px;background-color:' . self::TAN . ';">&nbsp;</td></tr></table></td></tr></table>'
+            . $cardsHtml
+            . '</td></tr>';
     }
 
     /** Maroon social row (Facebook / Instagram / website). */
