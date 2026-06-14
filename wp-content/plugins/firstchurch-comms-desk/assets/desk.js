@@ -17,7 +17,9 @@
 		}
 	}
 	function cardOf( el ) { return el.closest( '.fccd-card' ); }
-	function draftOf( el ) { var c = cardOf( el ); return c ? parseInt( c.getAttribute( 'data-draft' ), 10 ) : 0; }
+	// The nearest element carrying a post id — a review card, or a "Loose ends"
+	// row / its photo widget. Lets the shared photo/import handlers work in both.
+	function draftOf( el ) { var c = el.closest ? el.closest( '[data-draft]' ) : null; return c ? parseInt( c.getAttribute( 'data-draft' ), 10 ) : 0; }
 	function itemOf( el ) { var c = cardOf( el ); return c ? parseInt( c.getAttribute( 'data-item' ), 10 ) : 0; }
 	function fail( msg, err ) { window.alert( msg + ': ' + ( err && err.message ? err.message : 'error' ) ); }
 
@@ -261,8 +263,40 @@
 			try { meta = JSON.parse( decodeURIComponent( btn.getAttribute( 'data-meta' ) ) ); } catch ( ex ) { return; }
 			btn.disabled = true;
 			apiFetch( { path: P + 'stock-import', method: 'POST', data: { draft_id: draftK, meta: meta } } )
-				.then( function ( res ) { setThumb( cardK, res.thumb ); } )
+				.then( function ( res ) {
+					if ( cardK ) {
+						setThumb( cardK, res.thumb );
+					} else {
+						// "Loose ends" context: confirm in place.
+						var ph = btn.closest( '.fccd-photo' );
+						if ( ph ) { ph.innerHTML = '<span class="fccd-ok">&#10003; photo added</span>'; }
+					}
+				} )
 				.catch( function ( err ) { btn.disabled = false; fail( 'Import failed', err ); } );
+			return;
+		}
+
+		// ---- Loose ends: extend an announcement's expiry by 30 days ----
+		if ( cls.contains( 'fccd-extend-expiry' ) ) {
+			var liE = btn.closest( '[data-draft]' ), idE = draftOf( btn );
+			if ( ! idE ) { return; }
+			btn.disabled = true;
+			var stE = liE.querySelector( '.fccd-loose-status' );
+			apiFetch( { path: P + 'extend-expiry', method: 'POST', data: { post_id: idE } } )
+				.then( function ( res ) { if ( stE ) { stE.textContent = '✓ now expires ' + ( res && res.expires || '' ); } btn.remove(); } )
+				.catch( function ( err ) { btn.disabled = false; if ( stE ) { stE.textContent = 'Failed: ' + ( err && err.message || 'error' ); } } );
+			return;
+		}
+
+		// ---- Loose ends: unpublish an expired announcement ----
+		if ( cls.contains( 'fccd-loose-unpublish' ) ) {
+			var liU = btn.closest( '[data-draft]' ), idU = draftOf( btn );
+			if ( ! idU ) { return; }
+			btn.disabled = true;
+			var stU = liU.querySelector( '.fccd-loose-status' );
+			apiFetch( { path: P + 'unpublish', method: 'POST', data: { draft_id: idU } } )
+				.then( function () { liU.classList.add( 'fccd-loose-done' ); if ( stU ) { stU.textContent = '✓ unpublished'; } } )
+				.catch( function ( err ) { btn.disabled = false; if ( stU ) { stU.textContent = 'Failed: ' + ( err && err.message || 'error' ); } } );
 			return;
 		}
 

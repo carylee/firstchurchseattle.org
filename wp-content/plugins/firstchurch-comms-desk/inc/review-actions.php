@@ -42,8 +42,29 @@ add_action(
 			'permission_callback' => $can,
 			'callback'            => 'fccd_rest_approve_batch',
 		) );
+		register_rest_route( 'firstchurch/v1', '/comms-desk/extend-expiry', array(
+			'methods'             => 'POST',
+			'permission_callback' => $can,
+			'callback'            => 'fccd_rest_extend_expiry',
+		) );
 	}
 );
+
+/** Loose ends: push an announcement's expiry out by 30 days (from the later of
+ * its current expiry or today, so an expired one actually comes back). */
+function fccd_rest_extend_expiry( WP_REST_Request $req ) {
+	$p  = $req->get_json_params();
+	$id = is_array( $p ) ? (int) ( $p['post_id'] ?? 0 ) : 0;
+	if ( ! $id || ! get_post( $id ) ) {
+		return new WP_REST_Response( array( 'error' => 'Post not found.' ), 404 );
+	}
+	if ( ! current_user_can( 'edit_post', $id ) ) {
+		return new WP_REST_Response( array( 'error' => 'Not allowed.' ), 403 );
+	}
+	$new = fccd_extend_expiry( (string) get_post_meta( $id, 'fcs_expires', true ), current_time( 'Y-m-d' ), 30 );
+	update_post_meta( $id, 'fcs_expires', $new );
+	return new WP_REST_Response( array( 'ok' => true, 'expires' => $new ), 200 );
+}
 
 /**
  * Approve & publish many drafts at once (the "ready" group). Skips any the user
